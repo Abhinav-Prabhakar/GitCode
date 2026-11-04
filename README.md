@@ -1,150 +1,156 @@
-# GitCode
+<p align="center">
+  <img src="docs/screenshots/dashboard-dark.png" alt="GitCode dashboard — dark theme" width="100%">
+</p>
 
-**LeetCode for Git.** A practice surface for the Git operations that actually hurt:
-recovering a lost commit, resolving a gnarly merge, rebasing a shared branch, bisecting a
-regression, cherry-picking a hotfix, and cleaning up history.
+<h1 align="center">GitCode</h1>
 
-This is a **static frontend** — HTML, CSS, and vanilla JavaScript. There is no backend, no
-build step, and no package manager. "Run" and "Submit" render deterministic simulated
-results; every task, graph, and terminal line is local data.
+<p align="center">
+  <strong>LeetCode for Git.</strong><br>
+  Recover lost commits, untangle merges, rebase shared branches, bisect regressions.<br>
+  A static, pixel-faithful re-creation of LeetCode's problem set and question pages — with a Git curriculum.
+</p>
 
-Two screens:
+<p align="center">
+  <a href="https://abhinav-prabhakar.github.io/gitcode/"><img src="https://img.shields.io/badge/%E2%96%B6%20live%20demo-gitcode-ffa116?style=for-the-badge" alt="Live demo"></a>
+  <img src="https://img.shields.io/badge/HTML%20%7C%20CSS%20%7C%20JS-no%20build-2db55d?style=for-the-badge" alt="HTML, CSS and vanilla JS — no build step">
+  <img src="https://img.shields.io/badge/tasks-44-0a84ff?style=for-the-badge" alt="44 tasks">
+</p>
 
-- `index.html` — the dashboard: feature banners, keyword tags, category pills, search,
-  all matching problem rows, bookmarks, daily challenge calendar, and a trending rail.
-- `problem.html?p=<slug>` — the question page: description, editorial, solutions,
-  submissions, a commit-graph workspace, and a terminal with Run/Submit output.
+<p align="center">
+  <a href="https://abhinav-prabhakar.github.io/gitcode/">abhinav-prabhakar.github.io/gitcode</a>
+</p>
+
+---
+
+## Screens
+
+<table>
+  <tr>
+    <td width="50%"><a href="https://abhinav-prabhakar.github.io/gitcode/"><img src="docs/screenshots/dashboard-light.png" alt="Dashboard — light theme" width="100%"></a></td>
+    <td width="50%"><img src="docs/screenshots/question-dark.png" alt="Question page — dark theme" width="100%"></td>
+  </tr>
+  <tr>
+    <td align="center"><sub><b>Dashboard</b> · light · 1440 px</sub></td>
+    <td align="center"><sub><b>Question</b> · dark · 1440 px</sub></td>
+  </tr>
+</table>
+
+<img src="docs/screenshots/question-light.png" alt="Question page — light theme" width="100%">
+
+<p align="center"><sub><b>Question</b> · light · 1440 px</sub></p>
+
+---
+
+## Anatomy
+
+<img src="docs/screenshots/detail-filters.png" alt="Keyword tags and category pills" width="100%">
+
+<p align="center"><sub>Keyword tags, inverted category pills, scroll arrow</sub></p>
+
+<img src="docs/screenshots/detail-rows.png" alt="Problem rows with status, acceptance, difficulty and bookmark" width="100%">
+
+<p align="center"><sub>44 px rows · zebra striping · acceptance · difficulty · premium meter · hover bookmark</sub></p>
+
+<table>
+  <tr>
+    <td width="30%" valign="top"><img src="docs/screenshots/detail-rail.png" alt="Daily challenge calendar and trending commands" width="100%"></td>
+    <td width="70%" valign="top">
+      <img src="docs/screenshots/detail-tabs.png" alt="Pane tab strip" width="100%">
+      <img src="docs/screenshots/detail-description.png" alt="Problem description with difficulty chips and examples" width="100%">
+    </td>
+  </tr>
+  <tr>
+    <td align="center"><sub>270 px rail · calendar · daily · trending</sub></td>
+    <td align="center"><sub>36 px tab strip · 28 px tabs · 24/32 title</sub></td>
+  </tr>
+</table>
+
+<img src="docs/screenshots/detail-terminal.png" alt="Terminal with reflog output" width="100%">
+
+<p align="center"><sub>Interactive-looking terminal · prompt, hashes, and shell colours</sub></p>
+
+<img src="docs/screenshots/detail-workspace.png" alt="Workspace panel with repo metadata and file tree" width="100%">
+
+<p align="center"><sub>Workspace panel · HEAD, upstream, conflicts, stashes, files</sub></p>
+
+---
+
+## Every width
+
+<table>
+  <tr>
+    <td width="50%" align="center"><img src="docs/screenshots/dashboard-mobile.png" alt="Dashboard at 390 px" width="78%"></td>
+    <td width="50%" align="center"><img src="docs/screenshots/question-mobile.png" alt="Question page at 390 px" width="78%"></td>
+  </tr>
+  <tr>
+    <td align="center"><sub><b>Dashboard</b> · 390 px</sub></td>
+    <td align="center"><sub><b>Question</b> · 390 px</sub></td>
+  </tr>
+</table>
+
+<p align="center"><sub>Verified at 320 / 480 / 768 / 1024 / 1440 px · zero horizontal overflow · zero console errors</sub></p>
 
 ---
 
 ## Run it
 
-Any static server works. From the repo root:
-
 ```bash
-python3 -m http.server 8000 --bind 127.0.0.1
+python3 -m http.server 8000
 ```
 
-Then open <http://127.0.0.1:8000/index.html>.
-
-The pages also work from `file://` because the scripts are classic `<script>` tags rather
-than ES modules. A server is still recommended so the vendored CSS and fonts resolve at
-the same origin.
-
-### Review links
-
-| URL | What it does |
-| --- | --- |
-| `index.html?theme=dark` | Force dark (canonical) |
-| `index.html?theme=light` | Force light |
-| `index.html?view=bookmarks` | Bookmarked tasks only |
-| `index.html?tag=reflog` | Tag-filtered view (dismissible chip) |
-| `index.html?page=2` | Deep link to a page |
-| `problem.html?p=recover-a-lost-commit` | The flagship task |
-
-A forced `?theme=` is persisted and then stripped from the URL on the next manual toggle, so
-a review link does not override the choice forever.
-
-### Keyboard
-
-| Key | Action |
-| --- | --- |
-| `/` | Focus the visible search field |
-| `Escape` | Close a menu, modal, or the mobile rail |
-| `←` `→` | Move between tabs when a tab is focused |
-| `Home` / `End` | First / last tab |
-| Arrow keys on a splitter | Resize by 16 px |
-| `Home` on a splitter | Reset to 50/50 |
+Open <http://127.0.0.1:8000> — or use the **[live demo](https://abhinav-prabhakar.github.io/gitcode/)**.
+The pages also work from `file://`; the scripts are classic `<script>` tags, not ES modules.
 
 ---
 
-## Project layout
+## How it's built
+
+- **Two static pages.** `index.html` is the problem set; `problem.html?p=<slug>` is the question.
+- **LeetCode's own CSS.** The compiled stylesheets in `assets/css/vendor/` are vendored untouched,
+  and copied components keep their original class names. Only pieces LeetCode has no
+  equivalent for are authored as `gc-*` in `assets/css/app.css`.
+- **No framework, no build.** Vanilla JS, local data, TypoRound vendored for offline rendering.
+- **Deterministic demo.** 44 Git tasks, 7 categories, 6 tracks. Run/Submit renders simulated
+  results; nothing leaves the browser.
+
+The full design contract — palette, dimensions, component anatomy, responsive rules — lives in
+**[`design.md`](./design.md)**.
+
+<details>
+<summary><b>File map</b></summary>
 
 ```
-index.html                 dashboard shell
-problem.html               question-page shell
-design.md                  the design-system contract — read this before adding UI
+index.html                  dashboard shell
+problem.html                question-page shell
+design.md                   design-system contract
+
 assets/
-  css/
-    vendor/                LeetCode's compiled CSS, byte-for-byte (do not edit)
-      leetcode-base.css
-      leetcode-question.css
-      leetcode-extras.css
-    app.css                token aliases + every authored gc-* component
-  fonts/                   TypoRound (the rounded Premium/promo face)
-  js/
-    icons.js               Font Awesome geometry + icon()
-    data.js                44 tasks, 7 categories, 6 tracks, daily/trending/stats
-    ui.js                  nav, theme, menus, modals, tabs, splitters, fades
-    dashboard.js           filtering, search, bookmarks, rail
-    problem.js             statement, panels, terminal, run/submit simulation
-_reference/
-  MANIFEST.md              source URLs, byte counts, hashes
-  sink_server.py           local collector used to capture the real pages
+  css/vendor/               LeetCode CSS, byte-for-byte (do not edit)
+  css/app.css               tokens + authored gc-* components
+  fonts/                    TypoRound (rounded Premium/promo face)
+  js/icons.js               icon geometry + icon()
+  js/data.js                44 tasks, categories, tracks, daily/trending
+  js/ui.js                  nav, theme, menus, modals, tabs, splitters
+  js/dashboard.js           filtering, search, bookmarks, rail
+  js/problem.js             statement, panels, terminal, run/submit
+
+docs/screenshots/           every image above
+_reference/                 capture manifest + collector
 ```
 
-The scraped dumps in `_reference/downloaded/` are git-ignored, as are the pretty-printed
-reference HTML files. Only the vendored CSS and the manifest ship.
+</details>
+
+<details>
+<summary><b>What is intentionally not wired</b></summary>
+
+No backend, no authentication, no real Git execution, no network calls. Theme and bookmarks
+persist in `localStorage`; everything else resets on reload. Solutions, submissions, and the
+editorial are representative static content.
+
+</details>
 
 ---
 
-## How the design works
-
-The styling is not "inspired by" LeetCode — it **is** LeetCode's compiled CSS. Existing
-patterns (rows, pills, chips, tab strips, badges) reuse the original class names; only
-components LeetCode has no equivalent for are authored as `gc-*` in `app.css`, built from
-the vendor `--sd-*` tokens.
-
-The full contract lives in [`design.md`](./design.md). The short version:
-
-- Dark is canonical; light mode requires `html.light`, not merely removing `html.dark`.
-- Nearly all colour is `hsl(var(--sd-…))`; no new colour literals.
-- 14/20 body type, 4 px spacing grid, 8 px base radius.
-- Orange is one primary action per view; difficulty colours are semantic, never decorative.
-- Monospace only for repo paths, commands, hashes, diffs, and terminal output.
-- Respect `prefers-reduced-motion`.
-
-### Adding a component
-
-1. Check whether LeetCode already has the pattern; if so, copy its markup and classes.
-2. Otherwise add one `.gc-*` block to `app.css` using existing tokens.
-3. Design it dark first, then verify with `html.light`.
-4. Provide hover, focus-visible, disabled, and empty states.
-5. Add it to `design.md` §8 and check 360 / 768 / 1024 / 1440 px.
-
----
-
-## What is wired
-
-- Category, difficulty, status, and tag filtering; search across title, slug, and tags;
-  sorting by difficulty or acceptance; URL sync for every filter.
-- Bookmarking (persisted in `localStorage`), bookmarked-only view, and empty states.
-- Theme toggle in the nav, the question IDE bar, and the options menu — all stay in sync.
-- Tabs, splitter drag and keyboard resize, focus mode, terminal clear, and simulated
-  Run/Submit output driven by each task's `status`.
-- Responsive behaviour down to 320 px; no horizontal page overflow.
-
-## What is intentionally not wired
-
-- No persistence beyond the theme and bookmarks; reloading resets terminal output.
-- No real Git execution, authentication, or network calls.
-- Solutions, submissions, and the editorial are representative static content.
-- Nav links that have no second screen (`Tracks`, `Playground`, `Discuss`, `Premium`)
-  route back into the dashboard's filtered views.
-
----
-
-## Verification
-
-The build was checked in headless Chromium at **1440, 1024, 768, 480, 360, and 320 px**, in
-both themes, on both pages:
-
-- Zero console errors and zero failed requests (the TypoRound files are vendored under
-  `assets/fonts/`).
-- No horizontal overflow at any tested width.
-- Filtering, URL sync, search, tag chips, bookmarks, tabs, theme toggles,
-  menus, modals, and the terminal were exercised end to end.
-
-To reproduce the visual pass, start the server and use Playwright or your browser's device
-toolbar at those widths. If you use the browser tools in this environment, note that
-screenshots require a visible tab; headless Playwright is the reliable path.
+<p align="center">
+  <sub>Git-themed content on a faithful LeetCode shell. Not affiliated with LeetCode.</sub>
+</p>
