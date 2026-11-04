@@ -24,6 +24,7 @@
 <body>
   <div class="gc-ide" data-page="problem" id="gc-ide">
     <header class="gc-idebar">
+      <a class="gc-idebar__logo" href="index.html" aria-label="GitCode home" id="gc-ide-logo"></a>
       <a class="gc-idebar__back" href="index.html" aria-label="Back to all tasks">
         <span id="gc-back-icon"></span>
         <span>All tasks</span>
@@ -32,14 +33,19 @@
       <div class="gc-idebar__nav" id="gc-prevnext"></div>
       <div class="gc-idebar__title" id="gc-ide-title"></div>
       <div class="gc-idebar__spacer"></div>
-      <div class="gc-idebar__actions">
-        <button class="gc-iconbtn" data-theme-toggle aria-label="Toggle theme"></button>
-        <button class="gc-idebar__run" id="gc-run">
-          <span id="gc-run-icon"></span><span>Run</span>
+      <div class="gc-idebar__center">
+        <span class="gc-idebar__vrule" aria-hidden="true"></span>
+        <button class="gc-idebar__run" id="gc-run" aria-label="Run checks">
+          <span id="gc-run-icon"></span>
         </button>
+        <span class="gc-idebar__vrule" aria-hidden="true"></span>
         <button class="gc-idebar__submit" id="gc-submit">
           <span id="gc-submit-icon"></span><span>Submit</span>
         </button>
+      </div>
+      <div class="gc-idebar__spacer"></div>
+      <div class="gc-idebar__actions">
+        <button class="gc-iconbtn" data-theme-toggle aria-label="Toggle theme"></button>
         <div class="gc-menu-anchor">
           <button class="gc-iconbtn" data-menu-button aria-label="Task options" id="gc-more"></button>
           <div class="gc-menu gc-menu--right" role="menu" hidden>
@@ -76,6 +82,16 @@
               <div data-panel="editorial" hidden id="gc-editorial"></div>
               <div data-panel="solutions" hidden id="gc-solutions"></div>
               <div data-panel="submissions" hidden id="gc-submissions"></div>
+            </div>
+            <div class="gc-panefoot gc-panefoot--desc">
+              <div class="gc-panefoot__acts">
+                <button class="gc-panefoot__act" id="gc-like" aria-label="Like task"></button>
+                <button class="gc-panefoot__act" id="gc-dislike" aria-label="Dislike task"></button>
+                <button class="gc-panefoot__act" id="gc-comment" aria-label="Comments"></button>
+                <button class="gc-panefoot__act" id="gc-share" aria-label="Share task"></button>
+                <button class="gc-panefoot__act" id="gc-help" aria-label="Help"></button>
+              </div>
+              <span class="gc-panefoot__online"><i></i>791 Online</span>
             </div>
           </div>
         </section>

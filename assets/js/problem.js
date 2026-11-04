@@ -102,6 +102,23 @@
     setIcon("gc-expand", "expand");
     setIcon("gc-refresh", "arrows-rotate");
     setIcon("gc-shell-chev", "chevron-down");
+
+    var logo = document.getElementById("gc-ide-logo");
+    if (logo) {
+      logo.innerHTML = UI.logoMark + '<span class="gc-logo__word">GitCode</span>';
+    }
+    var acts = [
+      ["gc-like", "thumbs-up", "71K"],
+      ["gc-dislike", "thumbs-down", "2.2K"],
+      ["gc-comment", "comment", "2.2K"],
+      ["gc-share", "arrow-up-right-from-square", ""],
+      ["gc-help", "circle-question", ""]
+    ];
+    acts.forEach(function (a) {
+      var node = document.getElementById(a[0]);
+      if (!node) return;
+      node.innerHTML = window.icon(a[1]) + (a[2] ? "<span>" + a[2] + "</span>" : "");
+    });
   }
 
   /* ------------------------------------------------------------ description */
@@ -112,25 +129,21 @@
       : "";
     var tags = p.tags
       .map(function (t) {
-        return '<a class="gc-chip" href="index.html?tag=' + encodeURIComponent(t) + '">#' + UI.esc(t) + "</a>";
+        return '<a class="gc-chip" href="index.html?tag=' + encodeURIComponent(t) + '">' + UI.esc(t) + "</a>";
       })
       .join("");
-    var category = p.category.charAt(0).toUpperCase() + p.category.slice(1);
 
     document.getElementById("gc-desc").innerHTML =
-      '<div class="gc-qhead"><h1 class="gc-qtitle"><span class="gc-qnum">' +
+      '<div class="gc-qhead"><h1 class="gc-qtitle">' +
       p.n +
-      ".</span> " +
+      ". " +
       UI.esc(p.title) +
-      '</h1><div class="gc-daily__meta">' +
-      UI.statusGlyph(p.status, p.premium) +
-      "<span>" +
-      UI.attempts(p) +
-      " attempts</span></div></div>" +
+      "</h1></div>" +
       '<div class="gc-qchips">' +
       UI.difficultyChip(p.difficulty) +
-      '<span class="gc-chip">' + UI.esc(category) + "</span>" +
+      '<span class="gc-chip">' + window.icon("tag") + "Topics</span>" +
       premium +
+      '<a class="gc-chip" href="#gc-hints">' + window.icon("lightbulb") + "Hint</a>" +
       tags +
       "</div>" +
       UI.renderStatement(p);

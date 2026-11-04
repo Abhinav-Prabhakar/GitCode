@@ -59,7 +59,7 @@
       } catch (e) {}
     }
     $$("[data-theme-toggle]").forEach(function (btn) {
-      if (btn.classList.contains("gc-menu__item")) {
+      if (btn.classList.contains("gc-menu__item") || btn.classList.contains("gc-mobilemenu__row")) {
         btn.innerHTML =
           window.icon(theme === "dark" ? "sun" : "moon") +
           "<span>" + (theme === "dark" ? "Light mode" : "Dark mode") + "</span>";
@@ -84,11 +84,14 @@
 
   /* ------------------------------------------------------------- navigation */
 
-  function navLink(item, active, compact) {
-    var current = active === item.id ? ' aria-current="page"' : "";
-    var cls = "gc-navlink" + (item.brand ? " gc-navlink--brand" : "");
+  function navLink(item, active) {
+    var on = active === item.id;
     return (
-      '<a class="' + cls + '" href="' + item.href + '"' + current + ">" + item.label + "</a>"
+      '<li class="gc-navitem' + (on ? " is-active" : "") + '">' +
+      '<a class="gc-navlink' + (item.brand ? " gc-navlink--brand" : "") + '" href="' + item.href + '"' +
+      (on ? ' aria-current="page"' : "") + ">" +
+      item.label +
+      "</a></li>"
     );
   }
 
@@ -99,31 +102,35 @@
       { id: "practice", label: "Practice", href: "index.html" },
       { id: "tracks", label: "Tracks", href: "index.html#tracks" },
       { id: "playground", label: "Playground", href: "index.html?view=playground" },
-      { id: "discuss", label: "Discuss", href: "index.html?view=discuss" }
+      { id: "discuss", label: "Discuss", href: "index.html?view=discuss" },
+      { id: "store", label: "Store", href: "index.html?premium=1", brand: true }
     ];
     host.className = "gc-nav";
     host.innerHTML =
+      '<nav id="leetcode-navbar" class="gc-navbar" aria-label="Primary">' +
+      '<div class="gc-nav__desktop">' +
       '<a class="gc-logo" href="index.html" aria-label="GitCode home">' +
       LOGO_MARK +
       '<span class="gc-logo__word">GitCode</span></a>' +
-      '<nav class="gc-navlinks" aria-label="Primary">' +
+      '<ul class="gc-navlinks">' +
       links
         .map(function (l) {
           return navLink(l, active === "dashboard" && l.id === "practice" ? "practice" : active);
         })
         .join("") +
-      '<a class="gc-navlink gc-navlink--brand" href="index.html?premium=1">Premium</a>' +
-      "</nav>" +
-      '<span class="gc-nav-spacer"></span>' +
-      '<div class="gc-nav-actions">' +
-      '<div class="gc-search">' +
+      "</ul>" +
+      '<div class="gc-navacts">' +
+      '<div class="gc-navsearch">' +
+      '<span class="gc-navsearch__icon">' +
       window.icon("magnifying-glass") +
-      '<input type="search" placeholder="Search tasks" aria-label="Search tasks" data-global-search>' +
-      "<kbd>/</kbd></div>" +
-      '<a class="gc-streak" href="index.html?streak=1" title="12 day streak">' +
+      "</span>" +
+      '<input type="search" placeholder="Search" aria-label="Search tasks" data-global-search autocomplete="off">' +
+      "</div>" +
+      '<a class="gc-streak" href="index.html?streak=1" title="12 day streak" aria-label="12 day streak">' +
       window.icon("fire") +
       "<span>12</span></a>" +
-      '<button class="gc-iconbtn" data-theme-toggle aria-label="Toggle theme"></button>' +
+      '<button class="gc-navicon" data-theme-toggle aria-label="Toggle theme"></button>' +
+      '<a class="gc-premiumbtn" href="index.html?premium=1">Premium</a>' +
       '<div class="gc-menu-anchor">' +
       '<button class="gc-avatar" aria-label="Account menu" aria-haspopup="menu" data-menu-button>AD</button>' +
       '<div class="gc-menu gc-menu--right" role="menu" hidden>' +
@@ -140,16 +147,76 @@
       '<div class="gc-menu__sep"></div>' +
       '<button class="gc-menu__item" role="menuitem" data-theme-toggle>' +
       window.icon("moon") +
-      '<span data-theme-label>Theme</span></button>' +
+      '<span data-theme-label>Light mode</span></button>' +
       '<div class="gc-menu__item" role="menuitem" aria-disabled="true">' +
       window.icon("gear") +
       "Settings" +
       '<span class="gc-menu__right">soon</span></div>' +
       "</div></div>" +
-      '<button class="gc-iconbtn gc-only-lg" data-rail-toggle aria-label="Toggle sidebar">' +
-      window.icon("bars") +
+      "</div>" +
+      "</div>" +
+      '<div class="gc-nav__mobile">' +
+      '<a class="gc-logo" href="index.html" aria-label="GitCode home">' +
+      LOGO_MARK +
+      '<span class="gc-logo__word">GitCode</span></a>' +
+      '<div class="gc-mobileacts">' +
+      '<button class="gc-navicon" data-focus-search aria-label="Search tasks">' +
+      window.icon("magnifying-glass") +
       "</button>" +
-      "</div>";
+      '<button class="gc-navicon" data-theme-toggle aria-label="Toggle theme"></button>' +
+      '<button class="gc-navicon gc-hamburger" data-mobile-nav aria-label="Open menu" aria-expanded="false" aria-controls="gc-mobilemenu">' +
+      '<span></span><span></span><span></span>' +
+      "</button>" +
+      "</div></div>" +
+      '<div class="gc-mobilemenu" id="gc-mobilemenu" hidden>' +
+      '<div class="gc-mobilemenu__links">' +
+      links
+        .map(function (l) {
+          return '<a href="' + l.href + '">' + l.label + "</a>";
+        })
+        .join("") +
+      "</div>" +
+      '<div class="gc-mobilemenu__rule"></div>' +
+      '<a class="gc-mobilemenu__row" href="index.html?view=bookmarks">Bookmarks</a>' +
+      '<a class="gc-mobilemenu__row" href="index.html?view=submissions">Submissions</a>' +
+      '<a class="gc-mobilemenu__row gc-mobilemenu__row--brand" href="index.html?premium=1">Premium</a>' +
+      '<button class="gc-mobilemenu__row" type="button" data-theme-toggle>' +
+      window.icon("moon") +
+      "<span>Light mode</span></button>" +
+      "</div>" +
+      "</nav>";
+
+    var mobileBtn = $("[data-mobile-nav]", host);
+    var mobileMenu = $("#gc-mobilemenu");
+    if (mobileBtn && mobileMenu) {
+      mobileBtn.addEventListener("click", function (e) {
+        e.stopPropagation();
+        var open = mobileMenu.hidden;
+        mobileMenu.hidden = !open;
+        mobileBtn.setAttribute("aria-expanded", String(open));
+        host.classList.toggle("is-menu-open", open);
+      });
+      mobileMenu.addEventListener("click", function (e) {
+        if (e.target.closest("a")) {
+          mobileMenu.hidden = true;
+          mobileBtn.setAttribute("aria-expanded", "false");
+          host.classList.remove("is-menu-open");
+        }
+        e.stopPropagation();
+      });
+    }
+    $$("[data-focus-search]", host).forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        var inputs = $$("[data-global-search]").filter(function (el) {
+          return el.getClientRects().length > 0;
+        });
+        var input = inputs[0];
+        if (input) {
+          input.focus();
+          input.select && input.select();
+        }
+      });
+    });
   };
 
   /* ---------------------------------------------------------------- menus */
@@ -187,9 +254,23 @@
 
     document.addEventListener("click", function () {
       closeAll(null);
+      var menu = document.getElementById("gc-mobilemenu");
+      var btn = document.querySelector("[data-mobile-nav]");
+      if (menu && !menu.hidden) {
+        menu.hidden = true;
+        if (btn) btn.setAttribute("aria-expanded", "false");
+        var nav = btn && btn.closest(".gc-nav");
+        if (nav) nav.classList.remove("is-menu-open");
+      }
     });
     document.addEventListener("keydown", function (e) {
-      if (e.key === "Escape") closeAll(null);
+      if (e.key === "Escape") {
+        closeAll(null);
+        var menu = document.getElementById("gc-mobilemenu");
+        var btn = document.querySelector("[data-mobile-nav]");
+        if (menu) menu.hidden = true;
+        if (btn) btn.setAttribute("aria-expanded", "false");
+      }
     });
   };
 
@@ -533,7 +614,7 @@
         return (
           '<div class="gc-example">' +
           '<div class="gc-example__label">' +
-          esc(ex.label || "Example " + (i + 1)) +
+          esc((ex.label || "Example " + (i + 1)).replace(/ · /g, ": ")) +
           "</div>" +
           "<pre><code>" +
           esc(ex.code) +
@@ -731,17 +812,29 @@
     var dows = ["S", "M", "T", "W", "T", "F", "S"];
     var out = dows
       .map(function (d) {
-        return '<span class="dow">' + d + "</span>";
+        return '<span class="gc-cal__dow" aria-hidden="true">' + d + "</span>";
       })
       .join("");
-    for (var i = 0; i < first; i++) out += "<span></span>";
+    for (var i = 0; i < first; i++) out += '<span class="gc-cal__day is-empty"></span>';
     for (var d = 1; d <= days; d++) {
-      var cls = "day";
-      if (d === today) cls += " is-today";
-      else if (d >= today - 3 && d < today) cls += " is-done";
-      out += '<span class="' + cls + '">' + d + "</span>";
+      if (d === today) {
+        out +=
+          '<span class="gc-cal__day is-today" aria-current="date"><span>' +
+          d +
+          "</span></span>";
+      } else {
+        var done = d < today && d >= today - 3;
+        out +=
+          '<span class="gc-cal__day' +
+          (done ? " is-done" : "") +
+          '"><span>' +
+          d +
+          "</span>" +
+          (done ? '<i class="gc-cal__dot"></i>' : "") +
+          "</span>";
+      }
     }
-    return '<div class="gc-cal">' + out + "</div>";
+    return '<div class="gc-cal" role="grid" aria-label="Daily challenge calendar">' + out + "</div>";
   };
 
   /* --------------------------------------------------------- global keys */

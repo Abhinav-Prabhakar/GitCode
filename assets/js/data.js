@@ -4,7 +4,7 @@
 
 (function () {
   var categories = [
-    { id: "all", label: "All Tasks", icon: "objects-column" },
+    { id: "all", label: "All Topics", icon: "objects-column" },
     { id: "recovery", label: "Recovery", icon: "clock-rotate-left" },
     { id: "conflicts", label: "Conflicts", icon: "code-merge" },
     { id: "rewrite", label: "Rewrite", icon: "code-branch" },

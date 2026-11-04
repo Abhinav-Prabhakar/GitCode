@@ -1,10 +1,9 @@
-// Dashboard behaviour: filtering, sorting, pagination, and the right rail.
+// Dashboard behaviour: filtering, sorting, search, bookmarks, and the rail.
 // All state is local. Nothing here talks to a server.
 
 (function () {
   var D = window.GCData;
   var UI = window.GCUI;
-  var PAGE_SIZE = 15;
   var params = new URLSearchParams(location.search);
 
   var state = {
@@ -12,8 +11,7 @@
     tag: params.get("tag") || "",
     status: params.get("status") || (params.get("view") === "bookmarks" ? "bookmarked" : "all"),
     sort: params.get("sort") || "number",
-    search: params.get("q") || "",
-    page: Math.max(1, parseInt(params.get("page"), 10) || 1)
+    search: params.get("q") || ""
   };
 
   var statusLabels = {
@@ -23,18 +21,19 @@
     todo: "Not started",
     bookmarked: "Bookmarked"
   };
-  var statusIcons = {
-    all: "objects-column",
-    solved: "square-check",
-    attempted: "clock-rotate-left",
-    todo: "circle-check",
-    bookmarked: "star"
-  };
   var sortLabels = {
     number: "Number",
     difficulty: "Difficulty",
     acceptance: "Acceptance",
     title: "Title"
+  };
+  var bannerTones = {
+    recovery: "dark-blue",
+    conflicts: "dark-green",
+    rebase: "dark-orange",
+    bisect: "dark-purple",
+    "cherry-pick": "dark-red",
+    history: "dark-gray"
   };
 
   var bookmarks = {};
@@ -65,6 +64,10 @@
 
   function categoryCount(id) {
     return id === "all" ? D.problems.length : count(function (p) { return p.category === id; });
+  }
+
+  function tagCount(tag) {
+    return count(function (p) { return p.tags.indexOf(tag) !== -1; });
   }
 
   function filtered() {
@@ -103,129 +106,117 @@
 
   UI.renderNav("dashboard");
 
-  /* ---------------------------------------------------------------- rail */
+  /* ------------------------------------------------------------- banners */
 
-  function renderRail() {
-    var host = UI.$("#gc-rail");
-    if (!host) return;
-    var solved = count(function (p) { return p.status === "solved"; });
-    var attempted = count(function (p) { return p.status === "attempted"; });
-    var starred = count(function (p) { return bookmarks[p.slug]; });
-
-    var cats = D.categories
-      .filter(function (c) { return c.id !== "all"; })
-      .map(function (c) {
-        var color = {
-          recovery: "#4c9aff",
-          conflicts: "#46c6c2",
-          rewrite: "#fac31d",
-          debugging: "#a78bfa",
-          history: "#ffa116",
-          collaboration: "#f8615c",
-          safety: "#e879f9"
-        }[c.id];
-        return (
-          '<a class="gc-rail__item gc-rail__item--sub" href="index.html?category=' +
-          c.id +
-          '" data-rail-category="' +
-          c.id +
-          '"><span class="gc-rail__dot" style="background:' +
-          color +
-          '"></span>' +
-          c.label +
-          '<span class="gc-rail__count">' +
-          categoryCount(c.id) +
-          "</span></a>"
-        );
-      })
-      .join("");
-
-    host.innerHTML =
-      '<div class="gc-rail__group">' +
-      '<a class="gc-rail__item is-active" href="index.html">' +
-      window.icon("objects-column") +
-      "Practice</a>" +
-      '<a class="gc-rail__item" href="index.html#tracks">' +
-      window.icon("code-branch") +
-      "Tracks</a>" +
-      '<a class="gc-rail__item" href="index.html?view=playground">' +
-      window.icon("terminal") +
-      "Playground</a>" +
-      '<a class="gc-rail__item gc-rail__item--brand" href="index.html?premium=1">' +
-      window.icon("trophy") +
-      "Premium" +
-      '<span class="gc-rail__count">new</span></a>' +
-      "</div>" +
-      '<div class="gc-rail__rule"></div>' +
-      '<div class="gc-rail__group">' +
-      '<div class="gc-rail__label">My lists</div>' +
-      '<a class="gc-rail__item gc-rail__item--sub" href="index.html?status=solved" data-rail-status="solved"><span class="gc-rail__dot" style="background:#46c6c2"></span>Solved<span class="gc-rail__count">' +
-      solved +
-      "</span></a>" +
-      '<a class="gc-rail__item gc-rail__item--sub" href="index.html?status=attempted" data-rail-status="attempted"><span class="gc-rail__dot" style="background:#fac31d"></span>Attempted<span class="gc-rail__count">' +
-      attempted +
-      "</span></a>" +
-      '<a class="gc-rail__item gc-rail__item--sub" href="index.html?status=bookmarked" data-rail-status="bookmarked"><span class="gc-rail__dot" style="background:#ffa116"></span>Bookmarked<span class="gc-rail__count">' +
-      starred +
-      "</span></a>" +
-      "</div>" +
-      '<div class="gc-rail__rule"></div>' +
-      '<div class="gc-rail__group"><div class="gc-rail__label">Categories</div>' +
-      cats +
-      "</div>" +
-      '<div class="gc-rail__rule"></div>' +
-      '<div class="gc-rail__group">' +
-      '<div class="gc-rail__label">Daily</div>' +
-      '<a class="gc-rail__item gc-rail__item--sub" href="problem.html?p=' +
-      D.daily.slug +
-      '"><span class="gc-rail__dot" style="background:#ffa116"></span>Today\'s task<span class="gc-rail__count">18h</span></a>' +
-      "</div>";
-  }
-
-  /* --------------------------------------------------------------- tracks */
-
-  function renderTracks() {
+  function renderBanners() {
     var host = UI.$("#gc-tracks");
     if (!host) return;
     host.innerHTML = D.tracks
       .map(function (t) {
         var pct = Math.round((t.done / t.total) * 100);
+        var tone = bannerTones[t.id] || "dark-gray";
         return (
-          '<a class="gc-track" href="' +
+          '<a class="gc-banner background_cover-background__OCnoq ' +
+          tone +
+          '" href="' +
           t.href +
-          '" style="--track-color:' +
-          t.color +
-          ";--track-tint:" +
-          t.tint +
           '">' +
-          '<div class="gc-track__top"><span class="gc-track__icon">' +
+          '<span class="gc-banner__icon">' +
           window.icon(t.icon) +
           "</span>" +
-          t.label +
-          '<span style="margin-left:auto;font-weight:500;color:hsl(var(--sd-muted-foreground))">' +
+          '<span class="gc-banner__eyebrow">' +
+          UI.esc(t.label) +
+          "</span>" +
+          '<span class="gc-banner__title">' +
+          UI.esc(t.title) +
+          "</span>" +
+          '<span class="gc-banner__meta">' +
+          UI.esc(t.meta) +
+          '<span class="gc-banner__count">' +
           t.done +
           "/" +
           t.total +
-          "</span></div>" +
-          '<div><div class="gc-track__title">' +
-          t.title +
-          '</div><div class="gc-track__meta">' +
-          t.meta +
-          "</div>" +
-          '<div class="gc-track__bar"><i style="width:' +
+          "</span></span>" +
+          '<span class="gc-banner__bar"><i style="width:' +
           pct +
-          '%"></i></div></div></a>'
+          '%"></i></span></a>'
         );
       })
       .join("");
   }
 
-  function scrollTracks(dir) {
-    var strip = UI.$("#gc-tracks");
-    if (strip) strip.scrollBy({ left: dir * 280, behavior: "smooth" });
+  /* ------------------------------------------------------------ keywords */
+
+  function renderKeywords() {
+    var host = UI.$("#gc-keywords");
+    if (!host) return;
+    var totals = {};
+    D.problems.forEach(function (p) {
+      p.tags.forEach(function (t) {
+        totals[t] = (totals[t] || 0) + 1;
+      });
+    });
+    var tags = Object.keys(totals).sort(function (a, b) {
+      return totals[b] - totals[a] || a.localeCompare(b);
+    });
+    var visible = tags.slice(0, 9);
+    var hidden = tags.slice(9);
+    host.innerHTML =
+      visible
+        .map(function (t) {
+          return (
+            '<a class="gc-keyword" href="index.html?tag=' +
+            encodeURIComponent(t) +
+            '"><span>' +
+            UI.esc(t) +
+            '</span><span class="gc-keyword__count">' +
+            totals[t] +
+            "</span></a>"
+          );
+        })
+        .join("") +
+      (hidden.length
+        ? '<button class="gc-keyword gc-keyword--expand" type="button" data-expand-tags>Expand' +
+          window.icon("chevron-down") +
+          "</button>" +
+          hidden
+            .map(function (t) {
+              return (
+                '<a class="gc-keyword is-extra" href="index.html?tag=' +
+                encodeURIComponent(t) +
+                '" hidden><span>' +
+                UI.esc(t) +
+                '</span><span class="gc-keyword__count">' +
+                totals[t] +
+                "</span></a>"
+              );
+            })
+            .join("")
+        : "");
   }
 
-  /* ---------------------------------------------------------------- pills */
+  /* --------------------------------------------------------------- pills */
+
+  var pillIcons = {
+    all: "objects-column",
+    recovery: "clock-rotate-left",
+    conflicts: "code-merge",
+    rewrite: "code-branch",
+    debugging: "diagram-project",
+    history: "rotate-right",
+    collaboration: "arrow-right-arrow-left",
+    safety: "shield-halved"
+  };
+  var pillTones = {
+    all: "",
+    recovery: "text-brand-orange",
+    conflicts: "text-blue",
+    rewrite: "text-purple",
+    debugging: "text-green-s",
+    history: "text-teal",
+    collaboration: "text-pink",
+    safety: "text-yellow"
+  };
 
   function renderPills() {
     var host = UI.$("#gc-pills");
@@ -234,49 +225,71 @@
       .map(function (c) {
         var on = state.category === c.id;
         return (
-          '<button class="gc-pill" role="tab" aria-selected="' +
+          '<button class="gc-pillbtn" role="tab" aria-selected="' +
           on +
           '" data-category="' +
           c.id +
-          '">' +
-          window.icon(c.icon) +
-          c.label +
-          '<span class="gc-pill__count">' +
+          '" title="' +
           categoryCount(c.id) +
+          ' tasks">' +
+          '<span class="gc-pill' +
+          (on ? " is-active" : "") +
+          '">' +
+          '<span class="gc-pill__icon ' +
+          (pillTones[c.id] || "") +
+          '">' +
+          window.icon(pillIcons[c.id] || c.icon) +
+          "</span>" +
+          UI.esc(c.label) +
           "</span></button>"
         );
       })
       .join("");
   }
 
+  function syncPillsNav() {
+    var host = UI.$("#gc-pills");
+    var btn = UI.$("#gc-pills-nav");
+    if (!host || !btn) return;
+    var more = host.scrollWidth - host.clientWidth > 2;
+    btn.hidden = !more || host.scrollLeft + host.clientWidth >= host.scrollWidth - 2;
+  }
+
   function syncPills() {
     UI.$$("[data-category]", UI.$("#gc-pills")).forEach(function (btn) {
-      btn.setAttribute("aria-selected", String(btn.getAttribute("data-category") === state.category));
+      var on = btn.getAttribute("data-category") === state.category;
+      btn.setAttribute("aria-selected", String(on));
+      var pill = UI.$(".gc-pill", btn);
+      if (pill) pill.classList.toggle("is-active", on);
     });
   }
 
   /* --------------------------------------------------------------- rows */
 
   function row(p) {
-    var premium = p.premium
-      ? '<span class="gc-row__lock" title="Premium task">' + window.icon("lock-keyhole") + "</span>"
-      : '<span class="gc-row__lock"></span>';
     var starred = bookmarks[p.slug];
+    var bars = "";
+    for (var b = 0; b < 8; b++) bars += "<i></i>";
+    var meter =
+      '<span class="gc-row__meter" aria-hidden="true">' +
+      bars +
+      (p.premium ? '<span class="gc-row__lock">' + window.icon("lock-keyhole") + "</span>" : "") +
+      "</span>";
     return (
       '<a class="gc-row" href="problem.html?p=' +
       encodeURIComponent(p.slug) +
       '" role="listitem" data-slug="' +
       p.slug +
       '">' +
+      '<span class="gc-row__status">' +
       UI.statusGlyph(p.status, p.premium) +
-      '<span class="gc-row__num">' +
+      "</span>" +
+      '<span class="gc-row__body">' +
+      '<span class="gc-row__title">' +
       p.n +
-      ".</span>" +
-      '<span class="gc-row__main"><span class="gc-row__title">' +
+      ". " +
       UI.esc(p.title) +
-      '</span><span class="gc-row__tag">#' +
-      UI.esc(p.tags[0]) +
-      "</span></span>" +
+      "</span>" +
       '<span class="gc-row__accept">' +
       p.acceptance.toFixed(1) +
       "%</span>" +
@@ -285,7 +298,8 @@
       '">' +
       p.difficulty +
       "</span>" +
-      premium +
+      meter +
+      "</span>" +
       '<span class="gc-row__star' +
       (starred ? " is-on" : "") +
       '" role="button" tabindex="0" data-star="' +
@@ -304,14 +318,11 @@
 
   function renderRows() {
     var list = filtered();
-    var pages = Math.max(1, Math.ceil(list.length / PAGE_SIZE));
-    if (state.page > pages) state.page = pages;
-    var start = (state.page - 1) * PAGE_SIZE;
-    var slice = list.slice(start, start + PAGE_SIZE);
     var host = UI.$("#gc-list");
     var empty = UI.$("#gc-empty");
+    if (!host) return;
 
-    host.innerHTML = slice.map(row).join("");
+    host.innerHTML = list.map(row).join("");
     empty.innerHTML = list.length
       ? ""
       : '<div class="gc-empty">' +
@@ -320,76 +331,21 @@
         '<div class="gc-empty__text">Try a broader search, or clear the category and status filters.</div>' +
         '<button class="gc-btn gc-btn--outline" data-clear-filters>Clear filters</button></div>';
 
-    renderPagination(pages, list.length);
-    renderProgress(list.length);
+    renderProgress();
   }
 
-  function renderPagination(pages, total) {
-    var host = UI.$("#gc-pagination");
-    if (!host) return;
-    if (!total) {
-      host.innerHTML = "";
-      return;
-    }
-    var page = state.page;
-    var buttons = [];
-    buttons.push(
-      '<button class="gc-page" data-page="' +
-        (page - 1) +
-        '" aria-label="Previous page"' +
-        (page === 1 ? " disabled" : "") +
-        ">" +
-        window.icon("chevron-left") +
-        "</button>"
-    );
-
-    var numbers = [];
-    for (var i = 1; i <= pages; i++) {
-      if (pages <= 7 || i === 1 || i === pages || Math.abs(i - page) <= 1) numbers.push(i);
-      else if (numbers[numbers.length - 1] !== "…") numbers.push("…");
-    }
-    numbers.forEach(function (n) {
-      if (n === "…") {
-        buttons.push('<span class="gc-page" aria-hidden="true">…</span>');
-      } else {
-        buttons.push(
-          '<button class="gc-page" data-page="' +
-            n +
-            '"' +
-            (n === page ? ' aria-current="page"' : "") +
-            ">" +
-            n +
-            "</button>"
-        );
-      }
-    });
-
-    buttons.push(
-      '<button class="gc-page" data-page="' +
-        (page + 1) +
-        '" aria-label="Next page"' +
-        (page === pages ? " disabled" : "") +
-        ">" +
-        window.icon("chevron-right") +
-        "</button>"
-    );
-    host.innerHTML = buttons.join("");
-  }
-
-  function renderProgress(visible) {
+  function renderProgress() {
     var solved = count(function (p) { return p.status === "solved"; });
     var host = UI.$("#gc-progress");
     if (host) {
       host.innerHTML =
         UI.progressRing(solved, D.problems.length, 18) +
-        "<span><strong style=\"font-weight:600;color:hsl(var(--sd-foreground))\">" +
+        '<span class="gc-progress__text">' +
         solved +
-        "</strong> / " +
+        "/" +
         D.problems.length +
-        " solved</span>";
+        " Solved</span>";
     }
-    var label = UI.$("#gc-result-count");
-    if (label) label.textContent = visible + " tasks";
   }
 
   /* -------------------------------------------------------------- aside */
@@ -397,88 +353,79 @@
   function renderAside() {
     var host = UI.$("#gc-aside");
     if (!host) return;
-    var solved = count(function (p) { return p.status === "solved"; });
-    var attempted = count(function (p) { return p.status === "attempted"; });
-    var pct = Math.round((solved / D.problems.length) * 100);
     var month = new Date().toLocaleString(undefined, { month: "long", year: "numeric" });
+    var monthShort = new Date()
+      .toLocaleString(undefined, { month: "short" })
+      .toUpperCase();
+    var day = new Date().getDate();
+    var solved = count(function (p) { return p.status === "solved"; });
 
     host.innerHTML =
-      '<section class="gc-card">' +
-      '<div class="gc-card__head"><span class="gc-card__title">Daily challenge</span>' +
-      '<span class="gc-daily__date">' +
-      window.icon("calendar") +
-      D.daily.date +
+      '<section class="gc-calcard">' +
+      '<div class="gc-calhead">' +
+      '<div class="gc-calhead__left">' +
+      '<span class="gc-calhead__day">Day ' +
+      day +
+      '</span><span class="gc-calhead__time">18:31:07 left</span>' +
+      '<span class="gc-calhead__utc">UTC</span>' +
+      "</div>" +
+      '<div class="gc-calhead__right">' +
+      '<button class="gc-calnav" type="button" aria-label="Previous month">' +
+      window.icon("chevron-left") +
+      "</button>" +
+      '<span class="gc-monthchip"><b>' +
+      monthShort +
+      "</b><i>" +
+      day +
+      "</i></span>" +
+      '<button class="gc-calnav" type="button" aria-label="Next month" disabled>' +
+      window.icon("chevron-right") +
+      "</button>" +
+      "</div></div>" +
+      '<div class="gc-calbody">' +
+      UI.renderCalendar() +
+      "</div>" +
+      '<div class="gc-dailybanner style_bannerBg__0aztv">' +
+      '<div class="gc-dailybanner__head"><span>Daily challenge</span><span class="gc-dailybanner__date">' +
+      UI.esc(D.daily.date) +
       "</span></div>" +
-      '<div class="gc-card__body gc-daily">' +
-      '<a class="gc-daily__title" href="problem.html?p=' +
+      '<a class="gc-dailybanner__title" href="problem.html?p=' +
       D.daily.slug +
       '">' +
       D.daily.n +
       ". " +
       UI.esc(D.daily.title) +
       "</a>" +
-      '<div class="gc-daily__meta">' +
+      '<div class="gc-dailybanner__meta">' +
       UI.difficultyChip(D.daily.difficulty) +
       "<span>" +
       D.daily.acceptance.toFixed(1) +
-      "% acceptance</span></div>" +
-      '<a class="gc-btn gc-btn--brand gc-btn--block" href="problem.html?p=' +
+      "% acceptance</span>" +
+      '<a class="gc-dailybanner__go" href="problem.html?p=' +
       D.daily.slug +
-      '">Start today\'s task</a>' +
-      "</div>" +
-      '<div class="gc-card__foot"><span>' +
+      '">Start' +
+      window.icon("arrow-up-right-from-square") +
+      "</a></div></div>" +
+      '<div class="gc-calcard__foot"><span>' +
       window.icon("fire") +
       " " +
       D.daily.day +
-      "-day streak</span><span>Ends in 18h</span></div>" +
+      "-day streak</span><span>3 days this week</span></div>" +
       "</section>" +
 
-      '<section class="gc-card" id="progress">' +
-      '<div class="gc-card__head"><span class="gc-card__title">Your progress</span>' +
-      '<a class="gc-progress" href="index.html?status=solved">View all</a></div>' +
-      '<div class="gc-card__body">' +
-      '<div class="gc-stat"><span class="gc-stat__value">' +
-      solved +
-      '</span><span class="gc-stat__label">of ' +
-      D.problems.length +
-      " solved</span></div>" +
-      '<div class="gc-track__bar" style="margin:10px 0 12px"><i style="width:' +
-      pct +
-      '%;background:hsl(var(--sd-success))"></i></div>' +
-      '<div class="gc-daily__meta" style="justify-content:space-between">' +
-      '<span><span class="gc-dot" style="display:inline-block;background:#46c6c2"></span> ' +
-      solved +
-      " solved</span>" +
-      '<span><span class="gc-dot" style="display:inline-block;background:#fac31d"></span> ' +
-      attempted +
-      " attempted</span>" +
-      '<span><span class="gc-dot" style="display:inline-block;background:hsl(var(--sd-muted-foreground)/.4)"></span> ' +
-      (D.problems.length - solved - attempted) +
-      " left</span></div>" +
-      "</div>" +
-      '<div class="gc-card__foot"><span>' +
-      window.icon("stopwatch") +
-      " 187 submissions</span><span>" +
-      D.stats.acceptance +
-      "% accepted</span></div>" +
-      "</section>" +
-
-      '<section class="gc-card">' +
-      '<div class="gc-card__head"><span class="gc-card__title">' +
-      month +
-      '</span><span class="gc-daily__date">' +
-      window.icon("fire") +
-      "12</span></div>" +
-      '<div class="gc-card__body">' +
-      UI.renderCalendar() +
-      "</div>" +
-      '<div class="gc-card__foot"><span>3 days this week</span><span>Keep the streak</span></div>' +
-      "</section>" +
-
-      '<section class="gc-card">' +
-      '<div class="gc-card__head"><span class="gc-card__title">Trending commands</span>' +
-      '<span class="gc-daily__date">This week</span></div>' +
-      '<div class="gc-card__body gc-trend">' +
+      '<section class="gc-trendcard">' +
+      '<div class="gc-trendcard__head"><span>Trending commands</span>' +
+      '<div class="gc-trendcard__nav">' +
+      '<button class="gc-calnav" type="button" aria-label="Previous">' +
+      window.icon("chevron-left") +
+      "</button>" +
+      '<button class="gc-calnav" type="button" aria-label="Next" disabled>' +
+      window.icon("chevron-right") +
+      "</button></div></div>" +
+      '<div class="gc-railsearch">' +
+      window.icon("magnifying-glass") +
+      "<span>Search a command…</span></div>" +
+      '<div class="gc-trend">' +
       D.trending
         .map(function (t, i) {
           var tag = t.label.replace(/^git /, "").split(" ")[0];
@@ -490,12 +437,18 @@
             '</span><span class="gc-trend__name">' +
             UI.esc(t.label) +
             '</span><span class="gc-trend__val">' +
-            UI.esc(t.value) +
+            UI.esc(t.value.replace(" attempts", "")) +
             "</span></a>"
           );
         })
         .join("") +
-      "</div></section>";
+      "</div></section>" +
+
+      '<footer class="gc-railfoot">' +
+      '<div class="gc-railfoot__row"><a href="index.html?view=cli">Install CLI</a><span>|</span><a href="index.html?view=support">Support</a><span>|</span><a href="index.html?view=terms">Terms</a></div>' +
+      '<div class="gc-railfoot__row"><a href="index.html?view=privacy">Privacy Policy</a><span>|</span><a href="index.html?view=more">More</a></div>' +
+      '<div class="gc-railfoot__copy">Copyright © 2026 GitCode</div>' +
+      "</footer>";
   }
 
   /* ------------------------------------------------------------- filters */
@@ -507,14 +460,16 @@
     UI.$$("[data-sort]").forEach(function (btn) {
       btn.setAttribute("aria-checked", String(btn.getAttribute("data-sort") === state.sort));
     });
-    var sl = UI.$("#gc-status-label");
-    if (sl) sl.textContent = statusLabels[state.status] || "All statuses";
     var si = UI.$("#gc-status-icon");
-    if (si) si.innerHTML = window.icon(statusIcons[state.status] || "objects-column");
-    var ol = UI.$("#gc-sort-label");
-    if (ol) ol.textContent = sortLabels[state.sort] || "Number";
+    if (si) si.innerHTML = window.icon("filter");
+    var dot = UI.$("#gc-status-dot");
+    if (dot) dot.hidden = false;
+    var statusBtn = UI.$("#gc-status-button");
+    if (statusBtn) statusBtn.setAttribute("title", "Filter: " + (statusLabels[state.status] || "All statuses"));
     var oi = UI.$("#gc-sort-icon");
     if (oi) oi.innerHTML = window.icon("arrow-down-arrow-up");
+    var sortBtn = oi && oi.closest("button");
+    if (sortBtn) sortBtn.setAttribute("title", "Sort: " + (sortLabels[state.sort] || "Number"));
   }
 
   function syncTagChip() {
@@ -541,8 +496,7 @@
     else p.delete("sort");
     if (state.search) p.set("q", state.search);
     else p.delete("q");
-    if (state.page > 1) p.set("page", state.page);
-    else p.delete("page");
+    p.delete("page");
     p.delete("view");
     p.delete("premium");
     p.delete("streak");
@@ -562,7 +516,6 @@
     state.tag = "";
     state.status = "all";
     state.search = "";
-    state.page = 1;
     UI.$$("[data-global-search]").forEach(function (input) { input.value = ""; });
     apply();
   }
@@ -572,7 +525,6 @@
   function bind() {
     function setSearch(value, source) {
       state.search = value;
-      state.page = 1;
       UI.$$("[data-global-search]").forEach(function (input) {
         if (input !== source) input.value = value;
       });
@@ -593,11 +545,36 @@
         if (!btn) return;
         state.category = btn.getAttribute("data-category");
         state.tag = "";
-        state.page = 1;
         apply();
-        var railActive = UI.$('.gc-rail [data-rail-category][href*="' + state.category + '"]');
-        UI.$$(".gc-rail__item").forEach(function (i) { i.classList.remove("is-active"); });
-        if (railActive) railActive.classList.add("is-active");
+      });
+    }
+
+    var pillsNav = UI.$("#gc-pills-nav");
+    if (pillsNav) {
+      pillsNav.innerHTML = window.icon("angles-right");
+      pillsNav.addEventListener("click", function () {
+        var host = UI.$("#gc-pills");
+        if (host) host.scrollBy({ left: 240, behavior: "smooth" });
+      });
+    }
+
+    var pillRow = UI.$("#gc-pills");
+    if (pillRow) {
+      pillRow.addEventListener("scroll", syncPillsNav, { passive: true });
+      window.addEventListener("resize", syncPillsNav);
+    }
+
+    var keywords = UI.$("#gc-keywords");
+    if (keywords) {
+      keywords.addEventListener("click", function (e) {
+        var expand = e.target.closest("[data-expand-tags]");
+        if (!expand) return;
+        var extra = UI.$$(".gc-keyword.is-extra", keywords);
+        var show = extra.length && extra[0].hidden;
+        extra.forEach(function (el) { el.hidden = !show; });
+        expand.innerHTML = show
+          ? "Collapse" + window.icon("chevron-up")
+          : "Expand" + window.icon("chevron-down");
       });
     }
 
@@ -611,7 +588,6 @@
         var item = D.bySlug(slug);
         if (item) item.starred = bookmarks[slug];
         saveBookmarks();
-        renderRail();
         renderRows();
         syncMenus();
         UI.toast(bookmarks[slug] ? "Bookmarked " + item.title : "Bookmark removed", "star");
@@ -620,53 +596,22 @@
       var status = e.target.closest("[data-status]");
       if (status) {
         state.status = status.getAttribute("data-status");
-        state.page = 1;
         apply();
         return;
       }
       var sort = e.target.closest("[data-sort]");
       if (sort) {
         state.sort = sort.getAttribute("data-sort");
-        state.page = 1;
         apply();
-        return;
-      }
-      var page = e.target.closest(".gc-page[data-page]");
-      if (page && !page.disabled) {
-        state.page = parseInt(page.getAttribute("data-page"), 10);
-        renderRows();
-        syncURL();
-        UI.$("#gc-list").scrollIntoView({ block: "start", behavior: "smooth" });
         return;
       }
       if (e.target.closest("[data-clear-tag]")) {
         state.tag = "";
-        state.page = 1;
         apply();
         return;
       }
       if (e.target.closest("[data-clear-filters]")) {
         clearFilters();
-        return;
-      }
-      var railCat = e.target.closest("[data-rail-category]");
-      if (railCat) {
-        e.preventDefault();
-        state.category = railCat.getAttribute("data-rail-category");
-        state.tag = "";
-        state.page = 1;
-        apply();
-        UI.$$(".gc-rail__item").forEach(function (i) { i.classList.remove("is-active"); });
-        railCat.classList.add("is-active");
-        UI.$("#gc-list").scrollIntoView({ block: "start", behavior: "smooth" });
-        return;
-      }
-      var railStatus = e.target.closest("[data-rail-status]");
-      if (railStatus) {
-        e.preventDefault();
-        state.status = railStatus.getAttribute("data-rail-status");
-        state.page = 1;
-        apply();
         return;
       }
     });
@@ -678,11 +623,6 @@
         star.click();
       }
     });
-
-    var prev = UI.$("#gc-track-prev");
-    var next = UI.$("#gc-track-next");
-    if (prev) { prev.innerHTML = window.icon("chevron-left"); prev.addEventListener("click", function () { scrollTracks(-1); }); }
-    if (next) { next.innerHTML = window.icon("chevron-right"); next.addEventListener("click", function () { scrollTracks(1); }); }
 
     var shuffle = UI.$("#gc-shuffle");
     if (shuffle) {
@@ -697,52 +637,19 @@
         location.href = "problem.html?p=" + encodeURIComponent(pick.slug);
       });
     }
-
-    var more = UI.$("#gc-more");
-    if (more) more.innerHTML = window.icon("ellipsis");
-
-    var progress = UI.$("#gc-progress");
-    if (progress) {
-      progress.addEventListener("click", function (e) {
-        e.preventDefault();
-        var card = UI.$("#progress");
-        if (card) card.scrollIntoView({ behavior: "smooth", block: "center" });
-      });
-    }
-
-    var railToggle = UI.$("[data-rail-toggle]");
-    if (railToggle) {
-      railToggle.addEventListener("click", function () {
-        var rail = UI.$("#gc-rail");
-        if (rail) rail.classList.toggle("is-open");
-      });
-    }
-
-    document.addEventListener("click", function (e) {
-      var rail = UI.$("#gc-rail");
-      if (!rail || !rail.classList.contains("is-open")) return;
-      if (!rail.contains(e.target) && !e.target.closest("[data-rail-toggle]")) {
-        rail.classList.remove("is-open");
-      }
-    });
-
-    document.addEventListener("keydown", function (e) {
-      if (e.key !== "Escape") return;
-      var rail = UI.$("#gc-rail");
-      if (rail) rail.classList.remove("is-open");
-    });
   }
 
   /* --------------------------------------------------------------- boot */
 
   UI.ready(function () {
-    renderRail();
-    renderTracks();
+    renderBanners();
+    renderKeywords();
     renderPills();
     renderAside();
     bind();
     apply();
-    UI.initEdgeFades("#gc-tracks, #gc-pills");
+    syncPillsNav();
+    UI.initEdgeFades("#gc-tracks, #gc-keywords");
     UI.initTheme();
     UI.initMenus();
     UI.initGlobalKeys();
