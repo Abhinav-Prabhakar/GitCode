@@ -14,6 +14,7 @@
   <a href="https://abhinav-prabhakar.github.io/gitcode/"><img src="https://img.shields.io/badge/%E2%96%B6%20live%20demo-gitcode-ffa116?style=for-the-badge" alt="Live demo"></a>
   <img src="https://img.shields.io/badge/HTML%20%7C%20CSS%20%7C%20JS-no%20build-2db55d?style=for-the-badge" alt="HTML, CSS and vanilla JS — no build step">
   <img src="https://img.shields.io/badge/tasks-44-0a84ff?style=for-the-badge" alt="44 tasks">
+  <a href="https://github.com/Abhinav-Prabhakar/gitcode/actions/workflows/pages.yml"><img src="https://github.com/Abhinav-Prabhakar/gitcode/actions/workflows/pages.yml/badge.svg" alt="Deploy status"></a>
 </p>
 
 <p align="center">
