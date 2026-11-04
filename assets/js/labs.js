@@ -120,7 +120,9 @@
     "tests/total.test.ts": "import { calculateTotal } from '../src/total';\n\ntest('adds line items', () => {\n  expect(calculateTotal([{ price: 2, quantity: 3 }])).toBe(6);\n});\n",
     "config/limits.yml": "rate_limit: 120\nburst: 20\nwindow_seconds: 60\n",
     "docs/quickstart.md": "# Quickstart\n\n1. Install dependencies with `npm install`.\n2. Copy `.env.example` to `.env.local`.\n3. Run `npm test`.\n",
+    "scripts/check.sh": "#!/usr/bin/env bash\nset -euo pipefail\nnpm test -- --runInBand\n",
     "scripts/flaky-check.sh": "#!/usr/bin/env bash\nset -euo pipefail\nnpm test -- --runInBand\n",
+    "scripts/integration-check.sh": "#!/usr/bin/env bash\nset -euo pipefail\nnpm test -- --runInBand\n",
     ".gitignore": "node_modules/\ndist/\n.env.local\n"
   };
 
@@ -145,7 +147,23 @@
   }
 
   function chk(name, test, opts) {
-    return { name: name, test: test, hidden: !!(opts && opts.hidden), hint: opts && opts.hint };
+    return {
+      name: name,
+      test: test,
+      hidden: !!(opts && opts.hidden),
+      guard: !!(opts && opts.guard),
+      hint: opts && opts.hint
+    };
+  }
+
+  // The last commit that touched a path, ignoring the seeded root commit.
+  function touched(r, sha) {
+    return changed(r, sha).slice().sort();
+  }
+
+  function subjectOf(r, ref) {
+    var sha = r.resolve(ref);
+    return sha && r.commits[sha] ? r.commits[sha].subject : "";
   }
 
   function text(r, path) {
@@ -216,15 +234,19 @@
       chk("The invoices migration is on main", function (r) {
         return r.treeOf("main")["db/migrate/014_invoices.sql"] != null;
       }, { hint: "The file was dropped by the reset. Replay only 4f1c9ab." }),
-      chk("The two commits made after the reset are still ancestors", function (r) {
-        return r.isAncestor("b7c1d90", "main") && r.isAncestor("c0ffee1", "main");
+      chk("The later invoice work survived", function (r) {
+        var tree = r.treeOf("main");
+        return tree["README.md"] != null && tree["README.md"].indexOf("Invoices are generated nightly") !== -1 &&
+          tree["package.json"] != null && tree["package.json"].indexOf('"version": "2.8.1"') !== -1;
       }, { hint: "Do not reset main backwards; the invoice copy and version bump must survive." }),
       chk("The bad experiment was not reintroduced", function (r) {
         return !r.isAncestor("9d2e113", "main") && treeText(r, "main", "src/total.ts").indexOf("experimental cache") === -1;
       }, { hint: "Cherry-pick 4f1c9ab, not its parent 9d2e113." }),
       chk("The working tree is clean", clean, { hint: "Stage or commit any remaining edits." }),
       chk("The recovery is a real commit", function (r) {
-        return r.treeOf("HEAD")["db/migrate/014_invoices.sql"] === r.files["db/migrate/014_invoices.sql"];
+        var path = "db/migrate/014_invoices.sql";
+        var committed = r.treeOf("HEAD")[path];
+        return committed != null && committed === r.files[path];
       }, { hidden: true, hint: "The migration must be committed, not left as an untracked file." })
     ],
     solution: ["git reflog --oneline", "git show --stat 4f1c9ab", "git cherry-pick 4f1c9ab"]
@@ -354,7 +376,12 @@
       }),
       chk("No recovery commit was created", function (r) {
         return between(r, "b7c1d90").length === 0;
-      }, { hidden: true, hint: "Apply the stash; do not commit the recovered work automatically." })
+      }, { guard: true, hint: "Apply the stash; do not commit the recovered work automatically." }),
+      chk("The recovered files match the dropped stash", function (r) {
+        return text(r, "src/session.ts").indexOf("session.userId != null") !== -1 &&
+          text(r, "src/total.ts").indexOf("Math.round(total * 1.2") !== -1 &&
+          r.files["scratch/checkout-notes.md"] != null;
+      }, { hidden: true, hint: "Apply the dangling stash commit as a whole; do not recreate one file by hand." })
     ],
     solution: ["git fsck --unreachable | grep commit", "git stash list", "git stash apply 8c1f0a2"]
   };
@@ -387,7 +414,11 @@
       chk("The working tree is clean", clean),
       chk("The newer saved-carts work is still an ancestor", function (r) {
         return r.isAncestor("b7c1d90", "main");
-      }, { hidden: true })
+      }, { guard: true }),
+      chk("The recovered commit kept its identity", function (r) {
+        var tip = r.commits[r.headSha()];
+        return !!tip && tip.subject === "cache invoice totals" && authorEmail(r, r.headSha()) === "grace@example.com";
+      }, { hidden: true, hint: "Cherry-pick the old commit; do not retype the change as a new commit." })
     ],
     solution: ["git reflog --date=iso -4", "git show --stat 4f1c9ab", "git cherry-pick 4f1c9ab"]
   };
@@ -420,7 +451,19 @@
       }, { hint: "Stage src/session.ts, not the local note." }),
       chk("HEAD did not move", function (r) {
         return r.branches.main === "b7c1d90";
-      }, { hidden: true })
+      }, { guard: true }),
+      chk("The rebuilt index reproduces HEAD", function (r) {
+        if (r.indexCorrupt) return false;
+        var head = r.treeOf("HEAD");
+        var tracked = Object.keys(head);
+        var indexed = Object.keys(r.index);
+        if (tracked.length !== indexed.length) return false;
+        return tracked.every(function (path) {
+          if (indexed.indexOf(path) === -1) return false;
+          if (path === "src/session.ts") return r.index[path] === r.files[path];
+          return r.index[path] === head[path];
+        });
+      }, { hidden: true, hint: "Move the corrupt index aside and run git reset to rebuild it from HEAD; only the intended file should be staged." })
     ],
     solution: ["git status", "mv .git/index .git/index.bak", "git reset", "git add src/session.ts"]
   };
@@ -454,7 +497,20 @@
       chk("The working tree is clean", clean),
       chk("No merge commit was needed", function (r) {
         return !isMerge(r, r.headSha());
-      }, { hidden: true })
+      }, { guard: true }),
+      chk("The rebased chain kept the original work", function (r) {
+        var sha = r.branches.main;
+        var chain = [];
+        while (sha && sha !== "c0ffee1") {
+          chain.unshift(sha);
+          var commit = r.commits[sha];
+          sha = commit && commit.parents[0] ? commit.parents[0] : null;
+        }
+        return sha === "c0ffee1" && chain.length === 3 &&
+          chain.some(function (item) { return subjectOf(r, item) === "feat: search filters"; }) &&
+          chain.some(function (item) { return subjectOf(r, item) === "feat: saved carts"; }) &&
+          chain.some(function (item) { return subjectOf(r, item) === "feat: checkout v2"; });
+      }, { hidden: true, hint: "Rebase all three local commits onto origin/main; do not squash or drop any." })
     ],
     solution: ["git reflog show origin/main", "git fetch origin", "git rebase origin/main", "git push origin main"]
   };
@@ -483,7 +539,7 @@
       }),
       chk("The merge has both parents", function (r) {
         return (r.commits[r.headSha()].parents || []).length === 2;
-      }, { hidden: true })
+      }, { hidden: true, hint: "Merge feature/tax and commit the resolved tree; a squash or rebase is not the requested merge." })
     ],
     solution: ["git merge feature/tax", "edit src/total.ts", "git add src/total.ts", "git commit --no-edit"],
     resolutions: { "src/total.ts": TOTAL_BOTH }
@@ -522,8 +578,16 @@
         return isMerge(r, r.headSha()) && clean(r);
       }),
       chk("The lockfile was regenerated, not hand-merged", function (r) {
-        return text(r, "package-lock.json").indexOf("lockfileVersion") !== -1;
-      }, { hidden: true })
+        if (!isMerge(r, r.headSha())) return false;
+        try {
+          var pkg = JSON.parse(text(r, "package.json"));
+          var lock = JSON.parse(text(r, "package-lock.json"));
+          return Object.keys(pkg.dependencies || {}).every(function (name) {
+            var entry = lock.packages && lock.packages["node_modules/" + name];
+            return !!entry && String(entry.version) === String(pkg.dependencies[name]).replace(/^[\^~]/, "");
+          });
+        } catch (e) { return false; }
+      }, { hidden: true, hint: "Regenerate the lockfile with npm install after choosing the manifest, so both dependencies are present." })
     ],
     solution: ["git merge feature/billing", "git checkout --theirs package.json", "npm install", "git add package.json package-lock.json", "git commit --no-edit"]
   };
@@ -548,9 +612,13 @@
       }),
       chk("No conflict entry remains", noMarkers),
       chk("The merge message explains the decision", function (r) {
-        var tip = r.commits[r.headSha()];
-        return tip && /audit|report/i.test(tip.subject + " " + tip.body);
-      }, { hidden: true })
+        return isMerge(r, r.headSha());
+      }, { guard: true }),
+      chk("The resolution recorded both decisions", function (r) {
+        return isMerge(r, r.headSha()) &&
+          r.treeOf("main")["legacy/report.rb"] == null &&
+          text(r, "docs/report-fix.md").indexOf("rounding") !== -1;
+      }, { hidden: true, hint: "Keep the deletion and add the rounding note in the same merge, then commit." })
     ],
     solution: ["git merge feature/audit", "git show feature/audit:legacy/report.rb", "git rm legacy/report.rb", "edit docs/report-fix.md", "git add docs/report-fix.md", "git commit --no-edit"],
     resolutions: { "docs/report-fix.md": "# Audit fix\n\nThe rounding fix from `legacy/report.rb` was preserved here before the file was removed.\n" }
@@ -580,8 +648,11 @@
       }),
       chk("The working tree is clean", clean),
       chk("The rebased commit is a single fix", function (r) {
-        return between(r, "main").length === 1;
-      }, { hidden: true })
+        return !r.rebaseState && r.isAncestor("main", "feature/guard") &&
+          between(r, "main").length === 1 &&
+          treeText(r, "feature/guard", "src/session/auth.ts").indexOf("anonymous") !== -1 &&
+          r.treeOf("feature/guard")["src/auth.ts"] == null;
+      }, { hidden: true, hint: "Resolve the conflict at the new path and continue; do not replay the fix on the old path." })
     ],
     solution: ["git rebase main", "edit src/session/auth.ts", "git rm src/auth.ts", "git add src/session/auth.ts", "git rebase --continue"],
     resolutions: { "src/session/auth.ts": "export function auth(user: { id: string }) {\n  if (!user.id) return 'anonymous';\n  return user.id;\n}\n" }
@@ -612,7 +683,12 @@
       chk("The resolution was recorded", function (r) {
         return r.rerereHits > 0 || Object.keys(r.rerere).length > 0;
       }, { hint: "Enable rerere before staging the resolved file." }),
-      chk("No conflict markers remain", noMarkers, { hidden: true })
+      chk("No conflict markers remain", noMarkers, { guard: true }),
+      chk("The merge joined both lines of work", function (r) {
+        return isMerge(r, r.headSha()) && r.isAncestor("main", r.headSha()) &&
+          text(r, "src/pricing.ts").indexOf("discount") !== -1 &&
+          text(r, "src/pricing.ts").indexOf("0.21") !== -1;
+      }, { hidden: true, hint: "Merge main into the release branch and keep both the EU rate and the discount code." })
     ],
     solution: ["git config rerere.enabled true", "git merge main", "edit src/pricing.ts", "git add src/pricing.ts", "git commit --no-edit"],
     resolutions: { "src/pricing.ts": "export const TAX_RATE = 0.21;\n\nexport function withTax(amount: number) {\n  return Math.round(amount * (1 + TAX_RATE) * 100) / 100;\n}\n\nexport function discount(amount: number) {\n  return amount * 0.9;\n}\n" }
@@ -645,7 +721,11 @@
       chk("Exactly two reviewable commits remain", function (r) {
         return between(r, "a1b2c3d").length === 2;
       }),
-      chk("The working tree is clean", clean, { hidden: true })
+      chk("The working tree is clean", clean, { guard: true }),
+      chk("The split replaced the merge with two commits", function (r) {
+        var commits = between(r, "a1b2c3d");
+        return commits.length === 2 && commits.every(function (sha) { return !isMerge(r, sha); });
+      }, { hidden: true, hint: "Reset the merge softly and rebuild it as two ordinary commits." })
     ],
     solution: ["git show --stat HEAD", "git reset --soft HEAD^", "git restore --staged src/user.ts", "git commit -m \"merge: record pricing resolution\"", "git add src/user.ts", "git commit -m \"fix: guard a null user\""]
   };
@@ -666,14 +746,16 @@
         return r.treeOf("main")["assets/logo.svg"] === "<svg>feature logo</svg>\n";
       }, { hint: "Choose the feature asset explicitly." }),
       chk("Both sides were extracted", function (r) {
-        return !!r.lastCopy && r.lastCopy.path.indexOf("/tmp/logo-ours") === 0;
-      }, { hint: "Copy ours to /tmp before switching to theirs." }),
+        var contents = (r.copies || []).map(function (copy) { return copy.content; });
+        return contents.indexOf("<svg>main logo</svg>\n") !== -1 &&
+          contents.indexOf("<svg>feature logo</svg>\n") !== -1;
+      }, { hint: "Copy ours and theirs to /tmp before choosing one." }),
       chk("No conflict stages remain", noMarkers),
       chk("The merge has both parents", function (r) {
         return isMerge(r, r.headSha());
-      }, { hidden: true })
+      }, { hidden: true, hint: "Complete the merge with a commit; the final history must keep both parents." })
     ],
-    solution: ["git merge feature/brand", "git checkout --ours assets/logo.svg", "cp assets/logo.svg /tmp/logo-ours.svg", "git checkout --theirs assets/logo.svg", "git add assets/logo.svg", "git commit --no-edit"]
+    solution: ["git merge feature/brand", "git checkout --ours assets/logo.svg", "cp assets/logo.svg /tmp/logo-ours.svg", "git checkout --theirs assets/logo.svg", "cp assets/logo.svg /tmp/logo-theirs.svg", "git add assets/logo.svg", "git commit --no-edit"]
   };
 
   /* =============================================================== rewrite */
@@ -712,7 +794,14 @@
       chk("The final tree is unchanged", function (r) {
         return treeText(r, "HEAD", "src/cart.ts").indexOf("CART_VERSION = 6") !== -1 && treeText(r, "HEAD", "tests/cart.test.ts").indexOf("adds tax") !== -1;
       }),
-      chk("The working tree is clean", clean, { hidden: true })
+      chk("The working tree is clean", clean, { guard: true }),
+      chk("The squashed branch has only feature and test commits", function (r) {
+        var commits = between(r, "main");
+        return commits.length === 2 &&
+          commits.some(function (sha) { return /^feat/.test(subjectOf(r, sha)); }) &&
+          commits.some(function (sha) { return /^test/.test(subjectOf(r, sha)); }) &&
+          commits.every(function (sha) { return !/^(fix|style|chore)/.test(subjectOf(r, sha)); });
+      }, { hidden: true, hint: "Keep one feature commit and one test commit; drop the fix/style churn." })
     ],
     solution: ["git log --oneline main..HEAD", "git reset --soft main", "git restore --staged tests/", "git commit -m \"feat: cart totals with tax\"", "git add tests/", "git commit -m \"test: cover cart totals\""]
   };
@@ -737,7 +826,12 @@
       chk("Only the tip was rewritten", function (r) {
         return (r.commits[r.headSha()].parents || [])[0] === "a1b2c3d";
       }),
-      chk("The working tree is clean", clean, { hidden: true })
+      chk("The working tree is clean", clean, { guard: true }),
+      chk("The amend replaced the tip instead of adding a commit", function (r) {
+        return between(r, "a1b2c3d").length === 1 &&
+          subjectOf(r, "HEAD") === "fix: round invoice totals to two decimals" &&
+          (r.commits[r.headSha()].parents || [])[0] === "a1b2c3d";
+      }, { hidden: true, hint: "Use git commit --amend so the old message is replaced, not followed by a new commit." })
     ],
     solution: ["git log -1 --oneline", "git commit --amend -m \"fix: round invoice totals to two decimals\" -m \"Refs #214\""]
   };
@@ -772,7 +866,7 @@
       chk("The working tree is clean", clean),
       chk("The secret is not in the working tree", function (r) {
         return r.files["config/prod.env"] == null;
-      }, { hidden: true })
+      }, { hidden: true, hint: "Remove the file from the working tree as well as from history." })
     ],
     solution: ["git log --all --oneline -- config/prod.env", "git filter-repo --path config/prod.env --invert-paths --force"]
   };
@@ -802,7 +896,14 @@
       chk("Each commit touches one concern", function (r) {
         var commits = between(r, "main");
         return commits.every(function (sha) { return changed(r, sha).length === 1; });
-      }, { hidden: true })
+      }, { guard: true }),
+      chk("The dependency order was rebuilt", function (r) {
+        var commits = between(r, "main").slice().reverse();
+        return commits.length === 2 &&
+          /^feat/.test(subjectOf(r, commits[0])) &&
+          /^test/.test(subjectOf(r, commits[1])) &&
+          commits.every(function (sha) { return !isMerge(r, sha); });
+      }, { hidden: true, hint: "The implementation must be committed before the test that imports it." })
     ],
     solution: ["git log --oneline main..HEAD", "git reset --soft main", "git restore --staged tests/", "git commit -m \"feat: refund calculation\"", "git add tests/", "git commit -m \"test: cover refunds\""]
   };
@@ -828,7 +929,12 @@
       chk("Both branches are clean", clean),
       chk("The docs branch did not move backwards", function (r) {
         return r.isAncestor("b7c1d90", "docs/quickstart");
-      }, { hidden: true })
+      }, { guard: true }),
+      chk("The docs commit now lives only on the docs branch", function (r) {
+        return treeText(r, "docs/quickstart", "docs/quickstart.md").indexOf("GITCODE_TOKEN") !== -1 &&
+          treeText(r, "main", "docs/quickstart.md").indexOf("GITCODE_TOKEN") === -1 &&
+          !r.isAncestor("c0ffee1", "main");
+      }, { hidden: true, hint: "Cherry-pick onto docs/quickstart, then remove the commit from main." })
     ],
     solution: ["git branch --show-current", "git log -1 --oneline", "git switch docs/quickstart", "git cherry-pick c0ffee1", "git switch main", "git reset --hard HEAD~1"]
   };
@@ -861,7 +967,11 @@
       chk("The final tree is unchanged", function (r) {
         return r.treeOf("HEAD")["api/client.ts"].indexOf("timeout: 5000") !== -1 && r.treeOf("HEAD")[".github/ci.yml"] != null;
       }),
-      chk("The working tree is clean", clean, { hidden: true })
+      chk("The working tree is clean", clean, { guard: true }),
+      chk("The mixed commit was split into three clean commits", function (r) {
+        var commits = between(r, "b7c1d90");
+        return commits.length === 3 && commits.every(function (sha) { return changed(r, sha).length === 1; });
+      }, { hidden: true, hint: "Reset softly to b7c1d90 and commit api, docs, and ci separately." })
     ],
     solution: ["git show --stat HEAD", "git reset --soft HEAD^", "git restore --staged README.md .github/ci.yml", "git commit -m \"feat(api): retry requests three times\"", "git add README.md", "git commit -m \"docs: document request retries\"", "git add .github/ci.yml", "git commit -m \"ci: run tests on ubuntu 24.04\""]
   };
@@ -897,7 +1007,10 @@
       }),
       chk("No commits were added or removed", function (r) {
         return between(r, "a1b2c3d").length === 7;
-      }, { hidden: true })
+      }, { guard: true }),
+      chk("The culprit came from a real bisect run", function (r) {
+        return (r.bisectRuns > 0 || r.bisectSteps >= 2) && r.bisectResult === "4f1c9ab" && r.headBranch() === "main" && !r.bisect;
+      }, { hidden: true, hint: "Mark a good and bad commit, run the seeded check script, then reset." })
     ],
     solution: ["git bisect start", "git bisect bad", "git bisect good v1.4.0", "git bisect run ./scripts/check.sh", "git bisect reset"]
   };
@@ -931,7 +1044,10 @@
       chk("The working tree is clean", clean),
       chk("No history was rewritten", function (r) {
         return r.commits["a1b2c3d"] != null && between(r, "a1b2c3d").length >= 7;
-      }, { hidden: true })
+      }, { guard: true }),
+      chk("The culprit came from a real bisect run", function (r) {
+        return (r.bisectRuns > 0 || r.bisectSteps >= 2) && r.bisectResult === "9d2e113" && r.headBranch() === "main" && !r.bisect;
+      }, { hidden: true, hint: "Mark a good and bad commit, run the seeded script, then reset." })
     ],
     solution: ["git bisect start", "git bisect bad", "git bisect good v1.2.0", "git bisect run ./scripts/flaky-check.sh", "git bisect reset", "edit docs/bisect-notes.md", "git add docs/bisect-notes.md", "git commit -m \"docs: record bisect confidence\""],
     resolutions: { "docs/bisect-notes.md": "# Flaky bisect\n\nThe predicate failed 4 of 5 runs at 9d2e113. Confidence: high, because the wrapper uses a 3/5 threshold and the raw runs are attached to the ticket.\n" }
@@ -960,7 +1076,13 @@
       chk("main was not changed", function (r) {
         return r.branches.main === "4f1c9ab";
       }),
-      chk("The release branch is clean", clean, { hidden: true })
+      chk("The release branch is clean", clean, { guard: true }),
+      chk("The hotfix sits directly on the release base", function (r) {
+        var tip = r.commits[r.branches["release/2.8"]];
+        return treeText(r, "release/2.8", "src/session.ts").indexOf("hotfix") !== -1 &&
+          !!tip && (tip.parents || [])[0] === "9d2e113" &&
+          r.branches.main === "4f1c9ab";
+      }, { hidden: true, hint: "Cherry-pick 4f1c9ab onto release/2.8; do not merge main into the release branch." })
     ],
     solution: ["git switch release/2.8", "git cherry-pick -x 4f1c9ab"]
   };
@@ -989,8 +1111,10 @@
       }),
       chk("Only documentation was added", function (r) {
         var files = changed(r, r.headSha());
-        return files.length === 1 && files[0] === "docs/regression.md";
-      }, { hidden: true })
+        var note = text(r, "docs/regression.md");
+        return files.length === 1 && files[0] === "docs/regression.md" &&
+          note.indexOf("formatMoney") !== -1 && /cents/i.test(note);
+      }, { hidden: true, hint: "Keep the change documentation-only and explain that the helper now takes cents, not dollars." })
     ],
     solution: ["git log -S formatMoney --oneline --all", "edit docs/regression.md", "git add docs/regression.md", "git commit -m \"docs: trace the formatMoney regression\""],
     resolutions: { "docs/regression.md": "# Regression trace\n\n`formatMoney` was removed in 4f1c9ab (\"refactor pricing helpers\") and replaced by `formatCurrency`, which takes cents instead of dollars.\n" }
@@ -1023,7 +1147,10 @@
       }),
       chk("No code was changed", function (r) {
         return treeText(r, "HEAD", "src/app.ts").indexOf("interaction = 'pricing'") !== -1;
-      }, { hidden: true })
+      }, { guard: true }),
+      chk("The merge bug came from a real bisect run", function (r) {
+        return (r.bisectRuns > 0 || r.bisectSteps >= 2) && r.bisectResult === "9d2e113" && r.headBranch() === "main" && !r.bisect;
+      }, { hidden: true, hint: "Bisect with a good and bad mark and the seeded integration script." })
     ],
     solution: ["git bisect start --first-parent main", "git bisect bad", "git bisect good feature/base", "git bisect run ./scripts/integration-check.sh", "git bisect reset", "edit docs/merge-bug.md", "git add docs/merge-bug.md", "git commit -m \"docs: record the merge interaction\""],
     resolutions: { "docs/merge-bug.md": "# Merge interaction\n\nThe failure only appears when 9d2e113 is merged with feature/base. Bisecting the first-parent history isolates the interaction; neither side fails alone.\n" }
@@ -1054,7 +1181,7 @@
       }),
       chk("The rename was called out as noise", function (r) {
         return /rename/i.test(text(r, "docs/blame.md"));
-      }, { hidden: true })
+      }, { hidden: true, hint: "Distinguish the real guard change from the later mass rename." })
     ],
     solution: ["git blame -L 40,48 src/session.ts", "git blame -C -C -L 40,48 src/session.ts", "edit docs/blame.md", "git add docs/blame.md", "git commit -m \"docs: identify the session guard regression\""],
     resolutions: { "docs/blame.md": "# Blame through a rename\n\nThe faulty `if (!session.userId)` condition was introduced in 9d2e113 under the old path `src/auth.ts`. The mass rename 4f1c9ab is not the culprit.\n" }
@@ -1085,7 +1212,11 @@
       }),
       chk("The fix branch still exists", function (r) {
         return r.branches["fix/session-guard"] != null;
-      }, { hidden: true })
+      }, { guard: true }),
+      chk("The worktree was used without disturbing the draft", function (r) {
+        return r.worktreeHistory.length > 0 && r.worktrees.length === 0 &&
+          text(r, "src/app.ts").indexOf("draft = true") !== -1 && r.stash.length === 0;
+      }, { hidden: true, hint: "Add the worktree there, review it, remove it, and keep your local draft untouched." })
     ],
     solution: ["git worktree add ../gc-review fix/session-guard", "git worktree list", "git worktree remove ../gc-review"]
   };
@@ -1126,7 +1257,15 @@
         return commits.some(function (sha) { return touchedOnly(r, sha, "src/checkout.ts"); }) &&
           commits.some(function (sha) { return touchedOnly(r, sha, "tests/checkout.test.ts"); }) &&
           commits.some(function (sha) { return touchedOnly(r, sha, "README.md"); });
-      }, { hidden: true })
+      }, { guard: true }),
+      chk("The cleaned history has one feature, test, and docs commit", function (r) {
+        var commits = between(r, "main");
+        return commits.length === 3 &&
+          commits.some(function (sha) { return /^feat/.test(subjectOf(r, sha)); }) &&
+          commits.some(function (sha) { return /^test/.test(subjectOf(r, sha)); }) &&
+          commits.some(function (sha) { return /^docs/.test(subjectOf(r, sha)); }) &&
+          commits.every(function (sha) { return !isMerge(r, sha); });
+      }, { hidden: true, hint: "Squash away the style/revert noise and keep exactly three reviewable commits." })
     ],
     solution: ["git log --oneline main..HEAD", "git reset --soft main", "git restore --staged tests/ README.md", "git commit -m \"feat: express checkout\"", "git add tests/", "git commit -m \"test: cover express checkout\"", "git add README.md", "git commit -m \"docs: document express checkout\""]
   };
@@ -1155,7 +1294,13 @@
       chk("The code is unchanged", function (r) {
         return r.treeOf("HEAD")["src/billing.ts"].indexOf("billing = 2") !== -1;
       }),
-      chk("The working tree is clean", clean, { hidden: true })
+      chk("The working tree is clean", clean, { guard: true }),
+      chk("The rewrite preserved history and authorship", function (r) {
+        var shas = Object.keys(r.commits).filter(function (sha) { return !r.commits[sha].unreachable; });
+        return shas.length === 6 &&
+          shas.every(function (sha) { return authorEmail(r, sha) === "ada@example.com" || r.commits[sha].parents.length === 0; }) &&
+          subjectOf(r, r.branches.main) === "chore: billing deps";
+      }, { hidden: true, hint: "Rewrite the email in place so the six commits keep their messages and order." })
     ],
     solution: ["git log --format='%h %ae %s' main..HEAD", "git filter-repo --email-map ada@personal.test=ada@example.com --force"]
   };
@@ -1183,7 +1328,13 @@
       }),
       chk("No tracked changes remain", function (r) {
         return trackedClean(r);
-      }, { hidden: true })
+      }, { guard: true }),
+      chk("The artifact is untracked but still present on disk", function (r) {
+        return r.files["dist/app"] != null &&
+          r.index["dist/app"] == null &&
+          r.treeOf("HEAD")["dist/app"] == null &&
+          text(r, ".gitignore").split("\n").indexOf("dist/app") !== -1;
+      }, { hidden: true, hint: "git rm --cached keeps the file; add it to .gitignore and commit the removal." })
     ],
     solution: ["git ls-files dist/app", "du -h dist/app", "git rm --cached dist/app", "printf '\\ndist/app\\n' >> .gitignore", "git add .gitignore", "git commit -m \"chore: stop tracking the release binary\""]
   };
@@ -1218,7 +1369,11 @@
       }),
       chk("No merge was introduced", function (r) {
         return !isMerge(r, r.headSha());
-      }, { hidden: true })
+      }, { guard: true }),
+      chk("The restored file matches the pre-deletion version", function (r) {
+        return treeText(r, "main", "config/limits.yml") === treeText(r, "b7c1d90", "config/limits.yml") &&
+          !isMerge(r, r.headSha());
+      }, { hidden: true, hint: "Restore the file from the commit before the deletion and commit the exact content." })
     ],
     solution: ["git log --diff-filter=D --oneline -- config/limits.yml", "git show 9d2e113^:config/limits.yml", "git checkout 9d2e113^ -- config/limits.yml", "git add config/limits.yml", "git commit -m \"restore: bring back config/limits.yml\""]
   };
@@ -1248,7 +1403,7 @@
       chk("The working tree is clean", clean),
       chk("The merge base moved to main", function (r) {
         return r.mergeBase("main", "feature") === r.branches.main;
-      }, { hidden: true })
+      }, { hidden: true, hint: "Rebase the copied branch onto main; equivalent patches should be dropped." })
     ],
     solution: ["git merge-base main feature", "git log --oneline --left-right main...feature", "git switch feature", "git rebase main"]
   };
@@ -1281,7 +1436,13 @@
         var style = r.exec("git show --no-patch --format=%P HEAD");
         return style.lines[0].text.indexOf("b7c1d90") === 0;
       }),
-      chk("The working tree is clean", clean, { hidden: true })
+      chk("The working tree is clean", clean, { guard: true }),
+      chk("The replacement changed the effective parents without rewriting the object", function (r) {
+        var original = r.commits["c0ffee1"];
+        var parents = r.replacements["c0ffee1"];
+        return !!original && original.parents.length === 1 && original.parents[0] === "4f1c9ab" &&
+          !!parents && parents[0] === "b7c1d90" && parents[1] === "9d2e113";
+      }, { hidden: true, hint: "Use git replace --graft; the original commit object must stay intact." })
     ],
     solution: ["git show --no-patch --format='%P' HEAD", "git rev-parse main release/2.8", "git replace --graft HEAD main release/2.8", "git show --no-patch --format='%P' HEAD"]
   };
@@ -1318,9 +1479,14 @@
       chk("Local work survived", function (r) {
         return r.treeOf("main")["src/cart.ts"] != null;
       }),
-      chk("The working tree is clean", clean, { hidden: true })
+      chk("The working tree is clean", clean, { guard: true }),
+      chk("The sync produced no merge commits", function (r) {
+        var commits = between(r, "4f1c9ab");
+        return commits.every(function (sha) { return !isMerge(r, sha); }) &&
+          r.remotes.origin.branches.main === r.branches.main;
+      }, { hidden: true, hint: "Fetch upstream, rebase onto upstream/main, then push the linear branch." })
     ],
-    solution: ["git remote add upstream https://example.com/org/repo.git", "git fetch upstream", "git rebase upstream/main", "git push --force-with-lease origin main"]
+    solution: ["git fetch upstream", "git rebase upstream/main", "git push --force-with-lease origin main"]
   };
 
   LABS["push-a-rebased-branch-safely"] = {
@@ -1346,8 +1512,10 @@
       }),
       chk("The working tree is clean", clean),
       chk("The push used a lease", function (r) {
-        return r.remotes.origin.branches["feature/cart"] != null;
-      }, { hidden: true })
+        return !!r.lastPush && r.lastPush.lease === true && r.lastPush.force === false &&
+          r.lastPush.remote === "origin" && r.lastPush.branch === "feature/cart" &&
+          r.remotes.origin.branches["feature/cart"] === r.branches["feature/cart"];
+      }, { hidden: true, hint: "Use git push --force-with-lease after fetching the teammate's commit; a plain merge plus push does not check the lease." })
     ],
     solution: ["git push", "git fetch origin", "git log --oneline HEAD..origin/feature/cart", "git rebase origin/feature/cart", "git push --force-with-lease origin feature/cart"]
   };
@@ -1377,7 +1545,12 @@
       chk("The diff is clean", function (r) {
         return between(r, "origin/main").every(function (sha) { return changed(r, sha).length === 1; });
       }),
-      chk("The working tree is clean", clean, { hidden: true })
+      chk("The working tree is clean", clean, { guard: true }),
+      chk("The PR was rebuilt on the new base", function (r) {
+        return r.isAncestor("origin/main", "feature/cart") &&
+          !r.isAncestor("7a0be42", "feature/cart") &&
+          between(r, "origin/main").length === 1;
+      }, { hidden: true, hint: "Use rebase --onto origin/main 7a0be42 feature/cart so only the coupon commit remains." })
     ],
     solution: ["git fetch origin", "git rebase --onto origin/main 7a0be42 feature/cart"]
   };
@@ -1406,11 +1579,14 @@
         return r.headBranch() === "main";
       }),
       chk("The review used a three-dot diff", function (r) {
-        return r.mergeBase("main", "pr-482") === "a1b2c3d";
-      }, { hidden: true })
+        var note = text(r, "docs/review-482.md");
+        return note.indexOf("session.userId == null") !== -1 &&
+          note.indexOf("src/total.ts") !== -1 &&
+          r.headBranch() === "main";
+      }, { hidden: true, hint: "Review the PR diff without checking it out; the note should name the actual changed line." })
     ],
     solution: ["git fetch origin pull/482/head:pr-482", "git diff --stat main...pr-482", "git diff main...pr-482 -- src/session.ts", "edit docs/review-482.md", "git add docs/review-482.md", "git commit -m \"docs: review PR 482\""],
-    resolutions: { "docs/review-482.md": "# Review: PR 482\n\nFiles that need attention: `src/session.ts` (guard change) and `src/total.ts` (rounding flag). The three-dot diff against `main` matches the PR page.\n" }
+    resolutions: { "docs/review-482.md": "# Review: PR 482\n\nFiles that need attention: `src/session.ts` (the guard changed to `session.userId == null`) and `src/total.ts` (rounding flag). The three-dot diff against `main` matches the PR page.\n" }
   };
 
   LABS["land-a-stack-of-dependent-prs"] = {
@@ -1446,7 +1622,13 @@
       chk("No layer was merged into another", function (r) {
         return r.rangeCommits("main", "feature/layer-4", false).every(function (sha) { return !isMerge(r, sha); });
       }),
-      chk("The working tree is clean", clean, { hidden: true })
+      chk("The working tree is clean", clean, { guard: true }),
+      chk("Every layer is exactly one commit above its parent", function (r) {
+        return r.isAncestor("main", "feature/layer-2") &&
+          r.rangeCommits("main", "feature/layer-2", false).length === 1 &&
+          r.rangeCommits("feature/layer-2", "feature/layer-3", false).length === 1 &&
+          r.rangeCommits("feature/layer-3", "feature/layer-4", false).length === 1;
+      }, { hidden: true, hint: "Rebase each layer onto the landed layer below it, one commit at a time." })
     ],
     solution: ["git rebase --onto main b7c1d90 feature/layer-2", "git rebase --onto feature/layer-2 9d2e113 feature/layer-3", "git rebase --onto feature/layer-3 4f1c9ab feature/layer-4"]
   };
@@ -1477,7 +1659,14 @@
       chk("The checkout work survived", function (r) {
         return r.treeOf("main")["src/app.ts"].indexOf("VERSION = 3") !== -1;
       }),
-      chk("The working tree is clean", clean, { hidden: true })
+      chk("The working tree is clean", clean, { guard: true }),
+      chk("The revert kept the merge but removed only its changes", function (r) {
+        var tip = r.commits[r.headSha()];
+        return !!tip && /^Revert "Merge branch 'feature\/search'"/.test(tip.subject) &&
+          r.isAncestor("4f1c9ab", "main") &&
+          r.treeOf("main")["src/search.ts"] == null &&
+          r.treeOf("main")["src/app.ts"].indexOf("VERSION = 3") !== -1;
+      }, { hidden: true, hint: "Revert the merge with -m 1; keep the merge in history and preserve the checkout work." })
     ],
     solution: ["git revert -m 1 4f1c9ab"]
   };
@@ -1508,7 +1697,12 @@
       }),
       chk("The rebase added one commit", function (r) {
         return between(r, "main").length === 1;
-      }, { hidden: true })
+      }, { guard: true }),
+      chk("The scratch work went through the stash", function (r) {
+        return r.stashDropped.length > 0 &&
+          text(r, "scratch/notes.md").indexOf("Theory: the TTL") !== -1 &&
+          r.treeOf("feature/session")["scratch/notes.md"].indexOf("TTL") === -1;
+      }, { hidden: true, hint: "Stash the unrelated note before continuing the rebase, then pop it afterwards." })
     ],
     solution: ["git status --short", "git stash push -- scratch/notes.md", "edit src/session.ts", "git add src/session.ts", "git rebase --continue", "git stash pop"],
     resolutions: { "src/session.ts": SESSION.replace("  if (!user) {\n    return null;\n  }", "  if (!user) {\n    return null;\n  }\n\n  if (!user.id) return null;\n  if (user.id === 'anonymous') return null;") }
@@ -1547,7 +1741,11 @@
       chk("The working tree is clean", clean),
       chk("The branch is still main", function (r) {
         return r.headBranch() === "main";
-      }, { hidden: true })
+      }, { guard: true }),
+      chk("The abandoned rebase left no partial work", function (r) {
+        return !r.rebaseState && r.branches.main === "4f1c9ab" &&
+          r.treeOf("main")["src/app.ts"].indexOf("partial") === -1;
+      }, { hidden: true, hint: "git rebase --abort restores the original tip and discards the partial commit." })
     ],
     solution: ["git status", "git rebase --abort", "git log --oneline -1"]
   };
@@ -1574,7 +1772,13 @@
       }),
       chk("No tracked changes remain", function (r) {
         return trackedClean(r);
-      }, { hidden: true })
+      }, { guard: true }),
+      chk("The local file is ignored and untracked", function (r) {
+        return r.files[".env.local"] != null &&
+          r.index[".env.local"] == null &&
+          r.treeOf("HEAD")[".env.local"] == null &&
+          text(r, ".gitignore").split("\n").indexOf(".env.local") !== -1;
+      }, { hidden: true, hint: "Untrack the file, ignore it, and commit the change without deleting the local copy." })
     ],
     solution: ["git ls-files .env.local", "git rm --cached .env.local", "printf '.env.local\\n' >> .gitignore", "git add .gitignore", "git commit -m \"chore: stop tracking local environment\""]
   };
@@ -1601,7 +1805,7 @@
       }, { hint: "Try to commit on main once to exercise the hook." }),
       chk("The override allows an emergency commit", function (r) {
         return r.headBranch() === "main" && /emergency/i.test((r.commits[r.headSha()] || {}).subject || "");
-      }, { hidden: true })
+      }, { hidden: true, hint: "Exercise the hook once without the override, then use the documented override for the emergency commit." })
     ],
     solution: ["edit .git/hooks/pre-commit", "git switch main", "git commit --allow-empty -m \"quick fix\"", "GITCODE_ALLOW_MAIN=1 git commit --allow-empty -m \"emergency: release hotfix\""],
     resolutions: {
@@ -1631,17 +1835,25 @@
         return /saved filters/i.test(text(r, "docs/release-2.8.0.md"));
       }),
       chk("The reverted cache work is excluded", function (r) {
-        return !/cache/i.test(text(r, "docs/release-2.8.0.md"));
-      }, { hint: "Reverted commits should not appear in user-visible notes." }),
+        var note = text(r, "docs/release-2.8.0.md");
+        if (!/cache/i.test(note)) return true;
+        return /revert|removed|not shipped|excluded|dropped/i.test(note);
+      }, { hint: "Reverted commits should not appear in user-visible notes; if you mention the cache, say it was reverted." }),
       chk("The note is committed", function (r) {
         return r.treeOf("HEAD")["docs/release-2.8.0.md"] != null && clean(r);
       }),
       chk("The tag range is the source of truth", function (r) {
         return r.tags["v2.7.0"] === "a1b2c3d" && r.tags["v2.8.0"] === "e3d4c5b";
-      }, { hidden: true })
+      }, { guard: true }),
+      chk("The release note was written after the tagged history", function (r) {
+        var note = text(r, "docs/release-2.8.0.md");
+        return r.isAncestor("e3d4c5b", r.headSha()) && r.headSha() !== "e3d4c5b" &&
+          note.indexOf("v2.7.0") !== -1 && note.indexOf("v2.8.0") !== -1 &&
+          changed(r, r.headSha()).indexOf("docs/release-2.8.0.md") !== -1;
+      }, { hidden: true, hint: "Commit the finished note on top of v2.8.0 and name the tag range the notes describe." })
     ],
     solution: ["git log --oneline v2.7.0..v2.8.0", "git diff --stat v2.7.0 v2.8.0", "edit docs/release-2.8.0.md", "git add docs/release-2.8.0.md", "git commit -m \"docs: draft the 2.8.0 release notes\""],
-    resolutions: { "docs/release-2.8.0.md": "# Release 2.8.0\n\n## Billing\n\n- Retry failed charges up to three times.\n\n## Search\n\n- Saved filters are now available.\n" }
+    resolutions: { "docs/release-2.8.0.md": "# Release v2.8.0\n\nChanges since v2.7.0.\n\n## Billing\n\n- Retry failed charges up to three times.\n\n## Search\n\n- Saved filters are now available.\n" }
   };
 
   (typeof window !== "undefined" ? window : globalThis).GCLabs = LABS;

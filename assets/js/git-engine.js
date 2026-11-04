@@ -258,6 +258,8 @@
     this.replacements = {};
     this.bisect = null;
     this.bisectResult = null;
+    this.bisectRuns = 0;
+    this.bisectSteps = 0;
     this.bisectPath = cfg.bisectPath || null;
     this.bisectFirstBad = cfg.bisectFirstBad || null;
     this.mergeState = null;
@@ -268,6 +270,9 @@
     this.rerereHits = 0;
     this.lastTreeCommit = null;
     this.lastCommand = "";
+    this.copies = [];
+    this.lastCopy = null;
+    this.lastPush = null;
     this.themeHint = cfg.themeHint || null;
 
     this.build(cfg);
@@ -995,6 +1000,7 @@
       if (content == null) return fail(["cp: " + src + ": No such file or directory"]);
       if (dst && dst.indexOf("/tmp/") === 0) {
         this.lastCopy = { path: dst, content: content };
+        this.copies.push({ path: dst, content: content });
         return result([]);
       }
       this.writePath(dst, content);
@@ -2123,7 +2129,18 @@
     if (cfg.todo != null) this.rebaseState.todo = cfg.todo;
   };
 
+  Lab.prototype.rebaseDirtyPaths = function () {
+    return this.unstaged().filter(function (row) { return row.status !== "??"; });
+  };
+
   Lab.prototype.startRebase = function (plan, interactive) {
+    var dirty = this.rebaseDirtyPaths();
+    if (dirty.length) {
+      return fail([
+        "error: cannot rebase: you have unstaged changes",
+        "hint: commit or stash them before rebasing"
+      ].concat(dirty.map(function (row) { return "\t" + row.path; })));
+    }
     this.rebaseState = {
       plan: plan,
       todo: plan.todo.slice(),
@@ -2146,6 +2163,13 @@
   Lab.prototype.continueRebase = function () {
     var state = this.rebaseState;
     if (!state) return fail(["fatal: no rebase in progress"]);
+    var dirty = this.rebaseDirtyPaths();
+    if (dirty.length) {
+      return fail([
+        "error: cannot continue the rebase: you have unstaged changes",
+        "hint: commit or stash them before continuing"
+      ].concat(dirty.map(function (row) { return "\t" + row.path; })));
+    }
     var output = [];
     if (state.pending) {
       if (Object.keys(this.unmerged).length) {
@@ -2450,14 +2474,13 @@
       var parentSha = commit.parents[(mainline || 1) - 1];
       var baseTree = parentSha ? self.commits[parentSha].tree : {};
       var current = copyFiles(self.treeOf(self.headSha()));
-      Object.keys(commit.tree).forEach(function (path) {
-        if (baseTree[path] !== commit.tree[path]) {
-          if (baseTree[path] == null) delete current[path];
-          else current[path] = baseTree[path];
-        }
-      });
-      Object.keys(baseTree).forEach(function (path) {
-        if (!Object.prototype.hasOwnProperty.call(commit.tree, path) && current[path] == null) delete current[path];
+      var paths = {};
+      Object.keys(baseTree).forEach(function (path) { paths[path] = true; });
+      Object.keys(commit.tree).forEach(function (path) { paths[path] = true; });
+      Object.keys(paths).forEach(function (path) {
+        if (baseTree[path] === commit.tree[path]) return;
+        if (baseTree[path] == null) delete current[path];
+        else current[path] = baseTree[path];
       });
       self.index = copyFiles(current);
       self.files = copyFiles(current);
@@ -2534,7 +2557,10 @@
       });
       if (sub === "pop") {
         var at = this.stash.indexOf(found);
-        if (at !== -1) this.stash.splice(at, 1);
+        if (at !== -1) {
+          this.stash.splice(at, 1);
+          this.stashDropped.push(found);
+        }
       }
       return result(output);
     }
@@ -2600,6 +2626,24 @@
 
   /* ---------------------------------------------------------------- bisect */
 
+  Lab.prototype.buildBisectPath = function (state) {
+    if (!state || state.path || !state.good || !state.bad) return;
+    var good = this.resolve(state.good);
+    var chain = [];
+    var cursor = this.resolve(state.bad);
+    var seen = {};
+    while (cursor && !seen[cursor]) {
+      seen[cursor] = true;
+      chain.unshift(cursor);
+      if (cursor === good) break;
+      var commit = this.commits[cursor];
+      cursor = commit && commit.parents[0] ? commit.parents[0] : null;
+    }
+    state.path = chain;
+    state.low = chain.length ? 0 : null;
+    state.high = chain.length ? chain.length - 1 : null;
+  };
+
   Lab.prototype.cmdBisect = function (args) {
     var sub = args[0];
     if (sub === "start") {
@@ -2614,24 +2658,18 @@
         bad: null,
         good: null
       };
-      var firstBad = this.bisectFirstBad;
-      if (!this.bisect.path && startArgs.length >= 2) {
-        this.bisect.good = this.resolve(startArgs[0]);
-        this.bisect.bad = this.resolve(startArgs[1]);
-      }
-      var out = ["status: waiting for both good and bad commits"];
-      if (startArgs.length) {
-        var goodTry = this.resolve(startArgs[0]);
-        var badTry = this.resolve(startArgs[startArgs.length - 1]);
-        if (goodTry && badTry) {
-          this.bisect.good = goodTry;
-          this.bisect.bad = badTry;
-          this.bisect.low = 0;
-          this.bisect.high = (this.bisect.path ? this.bisect.path.length : 4) - 1;
-          out = ["status: waiting for both good and bad commits"];
+      if (!this.bisect.path && startArgs.length) {
+        var badSha = this.resolve(startArgs[0]);
+        if (!badSha) return fail(["fatal: bad revision '" + startArgs[0] + "'"]);
+        this.bisect.bad = badSha;
+        if (startArgs.length > 1) {
+          var goodSha = this.resolve(startArgs[1]);
+          if (!goodSha) return fail(["fatal: bad revision '" + startArgs[1] + "'"]);
+          this.bisect.good = goodSha;
         }
+        this.buildBisectPath(this.bisect);
       }
-      return result(out);
+      return result(["status: waiting for both good and bad commits"]);
     }
     if (sub === "reset") {
       if (this.bisect) {
@@ -2648,11 +2686,35 @@
     if (!this.bisect) return fail(["You need to start by 'git bisect start'"]);
 
     if (sub === "run") {
+      var state = this.bisect;
+      var hasRange = state.good && state.bad;
+      var hasMarks = state.path && state.low != null && state.high != null;
+      if (!hasRange && !hasMarks) {
+        return fail(["error: bisect is not ready", "hint: mark a good and a bad commit first."]);
+      }
+      this.buildBisectPath(state);
+      if (!state.path || !state.path.length) return fail(["error: the good commit is not an ancestor of the bad commit"]);
+      var script = args[1];
+      if (script && script.indexOf("/") !== -1) {
+        var scriptPath = script.replace(/^\.\//, "");
+        if (this.readFile(scriptPath) == null) return fail(["error: cannot run " + script + ": No such file or directory"]);
+      }
       var resultSha = this.bisectFirstBad;
-      if (!resultSha && this.bisect.path && this.bisect.path.length) resultSha = this.bisect.path[this.bisect.path.length - 1];
+      if (!resultSha && state.path.length) resultSha = state.path[state.high];
       if (!resultSha) return fail(["error: no bad commit configured for this lab"]);
+      if (state.path.indexOf(resultSha) === -1) {
+        return fail(["error: the marked range does not contain the first bad commit", "hint: check the good and bad revisions."]);
+      }
+      var resultIndex = state.path.indexOf(resultSha);
+      if (state.low != null && resultIndex < state.low) {
+        return fail(["error: the first bad commit is outside the marked range", "hint: check the good and bad revisions."]);
+      }
+      if (state.high != null && resultIndex > state.high) {
+        return fail(["error: the first bad commit is outside the marked range", "hint: check the good and bad revisions."]);
+      }
       this.bisectResult = resultSha;
-      this.bisect.result = resultSha;
+      state.result = resultSha;
+      this.bisectRuns += 1;
       this.head = { type: "detached", sha: resultSha };
       this.applyTree(resultSha, "switch");
       var badCommit = this.commits[resultSha];
@@ -2674,25 +2736,14 @@
     var sha = sub === "bad" && (args[1] === "HEAD" || !args[1]) ? this.headSha() : this.resolve(ref);
     if (!sha) return fail(["fatal: bad revision '" + ref + "'"]);
     var state = this.bisect;
+    this.bisectSteps += 1;
     if (!state.path) {
       if (sub === "bad") state.bad = sha;
       else state.good = sha;
       if (!state.bad || !state.good) {
         return result(["status: waiting for " + (state.bad ? "good" : "bad") + " commit"]);
       }
-      var chain = [];
-      var cursor = this.resolve(state.bad);
-      var seen = {};
-      while (cursor && !seen[cursor]) {
-        seen[cursor] = true;
-        chain.unshift(cursor);
-        if (cursor === this.resolve(state.good)) break;
-        var c = this.commits[cursor];
-        cursor = c && c.parents[0] ? c.parents[0] : null;
-      }
-      state.path = chain;
-      state.low = 0;
-      state.high = chain.length - 1;
+      this.buildBisectPath(state);
     } else {
       var index = state.path.indexOf(sha);
       if (index === -1) return fail(["error: commit is not in the bisect range"]);
@@ -2858,6 +2909,14 @@
     }
     remote.branches[branch] = local;
     this.remoteFetch[remoteName] = clone(remote.branches);
+    this.lastPush = {
+      remote: remoteName,
+      branch: branch,
+      lease: lease,
+      force: force,
+      before: remoteSha || null,
+      after: local
+    };
     var out = ["To " + remote.url];
     if (remoteSha && !fastForward) out.push(" + " + remoteSha.slice(0, 7) + "..." + local.slice(0, 7) + " " + branch + " -> " + branch + " (forced update)");
     else out.push("   " + (remoteSha ? remoteSha.slice(0, 7) + ".." : "") + local.slice(0, 7) + "  " + branch + " -> " + branch);

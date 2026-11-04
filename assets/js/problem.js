@@ -274,7 +274,7 @@
         window.icon("clock-rotate-left") +
         '<div class="gc-empty__title">No submissions yet</div>' +
         '<div class="gc-empty__text">Run the checks, then submit. Accepted and failed attempts are stored in this browser.</div>' +
-        '<button class="gc-btn gc-btn--outline" data-run>Run tests</button>' +
+        '<button class="gc-btn gc-btn--outline" data-run>Run visible checks</button>' +
         "</div></div>";
       return;
     }
@@ -790,28 +790,32 @@
 
   /* --------------------------------------------------------------- results */
 
-  function evaluate() {
-    var checks = (lab && lab.checks ? lab.checks : []).map(function (check) {
-      var pass = false;
-      var error = "";
-      try {
-        pass = !!check.test(repo);
-      } catch (e) {
-        error = e.message;
-      }
-      return {
-        name: check.name,
-        hidden: !!check.hidden,
-        hint: check.hint || "",
-        pass: pass,
-        error: error
-      };
-    });
+  function evaluate(includeHidden) {
+    var checks = (lab && lab.checks ? lab.checks : [])
+      .filter(function (check) { return includeHidden || !check.hidden; })
+      .map(function (check) {
+        var pass = false;
+        var error = "";
+        try {
+          pass = !!check.test(repo);
+        } catch (e) {
+          error = e && e.message ? String(e.message) : String(e);
+        }
+        return {
+          name: check.name,
+          hidden: !!check.hidden,
+          guard: !!check.guard,
+          hint: check.hint || "",
+          pass: pass,
+          error: error
+        };
+      });
     var passed = checks.filter(function (check) { return check.pass; }).length;
     return {
       checks: checks,
       passed: passed,
       total: checks.length,
+      includeHidden: !!includeHidden,
       solved: checks.length > 0 && passed === checks.length
     };
   }
@@ -819,6 +823,9 @@
   function resultHtml(result) {
     var ok = result.solved;
     var failed = result.total - result.passed;
+    var includeHidden = !!result.includeHidden;
+    var verdict = ok ? (includeHidden ? "Accepted" : "Ready to submit") : "Wrong Answer";
+    var countLabel = includeHidden ? " checks passed · " : " visible checks passed · ";
     var checks = result.checks
       .map(function (check, index) {
         var name = check.hidden ? "Hidden check " + (index + 1) : check.name;
@@ -839,30 +846,39 @@
 
     return (
       '<div class="gc-results"><div class="gc-result-head"><span class="gc-result-verdict ' +
-      (ok ? "gc-result-verdict--pass" : "gc-result-verdict--fail") +
+      (ok ? (includeHidden ? "gc-result-verdict--pass" : "gc-result-verdict--idle") : "gc-result-verdict--fail") +
       '">' +
-      (ok ? "Accepted" : "Wrong Answer") +
+      verdict +
       '</span><span class="gc-result-sub">' +
       result.passed +
       " / " +
       result.total +
-      " checks passed · " +
+      countLabel +
       (result.ms || 1) +
       " ms" +
       (result.archived ? " · archived submission" : "") +
       "</span></div>" +
       checks +
+      (includeHidden
+        ? ""
+        : '<div class="gc-callout" style="margin-top:12px">' +
+          window.icon("lock-keyhole") +
+          '<div class="gc-callout__body"><strong>Hidden check withheld</strong>Run shows the visible checks only. Submit adds the hidden objective check.</div></div>') +
       '<div class="gc-callout ' +
       (ok ? "gc-callout--success" : "gc-callout--danger") +
       '">' +
       window.icon(ok ? "circle-check" : "triangle-exclamation") +
       '<div class="gc-callout__body"><strong>' +
       (ok
-        ? "All checks passed"
+        ? includeHidden
+          ? "All checks passed"
+          : "All visible checks passed"
         : failed + (failed === 1 ? " check failed" : " checks failed")) +
       "</strong>" +
       (ok
-        ? "The repository matches the expected outcome. Submit to record the result."
+        ? includeHidden
+          ? "The repository matches the expected outcome."
+          : "Submit to run the hidden check and record the result."
         : "Read the failing check, adjust the repository in the terminal, and run again.") +
       "</div></div>" +
       '<div style="display:flex;gap:8px;margin-top:14px">' +
@@ -872,16 +888,20 @@
     );
   }
 
-  function renderResult(mode, result) {
+  function renderResult(mode, result, includeHidden) {
     var host = document.getElementById("gc-result");
     if (!host) return;
     if (mode === "judging") {
+      var total = (lab && lab.checks ? lab.checks : []).filter(function (check) {
+        return includeHidden || !check.hidden;
+      }).length;
       host.innerHTML =
         '<div class="gc-results"><div class="gc-result-head">' +
         '<span class="gc-result-verdict gc-result-verdict--idle">Judging…</span>' +
         '<span class="gc-result-sub">Running ' +
-        (lab && lab.checks ? lab.checks.length : 0) +
-        " checks against the current repository state</span></div>" +
+        total +
+        (includeHidden ? " checks" : " visible checks") +
+        " against the current repository state</span></div>" +
         '<div class="gc-callout">' +
         window.icon("flask") +
         '<div class="gc-callout__body"><strong>Working</strong>Reading the index, refs, and working tree.</div></div></div>';
@@ -892,8 +912,8 @@
         '<div class="gc-empty">' +
         window.icon("flask") +
         '<div class="gc-empty__title">No test run yet</div>' +
-        '<div class="gc-empty__text">Start in the terminal, then run the checks against the live repository. Nothing leaves this browser.</div>' +
-        '<button class="gc-btn gc-btn--outline" data-run>Run tests</button>' +
+        '<div class="gc-empty__text">Start in the terminal, then run the visible checks against the live repository. Submit adds the hidden check. Nothing leaves this browser.</div>' +
+        '<button class="gc-btn gc-btn--outline" data-run>Run visible checks</button>' +
         "</div>";
       return;
     }
@@ -913,7 +933,7 @@
     }
     if (judging) return;
     var started = Date.now();
-    var result = evaluate();
+    var result = evaluate(false);
     result.ms = Math.max(1, Date.now() - started);
     showResultTab();
     renderResult("run", result);
@@ -924,8 +944,8 @@
     });
     UI.toast(
       result.solved
-        ? "All checks passed"
-        : result.passed + "/" + result.total + " checks passed",
+        ? "All visible checks passed"
+        : result.passed + "/" + result.total + " visible checks passed",
       result.solved ? "circle-check" : "flask"
     );
   }
@@ -938,10 +958,10 @@
     if (judging) return;
     judging = true;
     showResultTab();
-    renderResult("judging");
-    var started = Date.now();
+    renderResult("judging", null, true);
     setTimeout(function () {
-      var result = evaluate();
+      var started = Date.now();
+      var result = evaluate(true);
       result.ms = Math.max(1, Date.now() - started);
       judging = false;
       Progress.recordSubmission(p.slug, result);
@@ -1147,6 +1167,7 @@
         passed: record.passed,
         total: record.total,
         solved: record.solved,
+        includeHidden: true,
         ms: record.ms,
         archived: true
       };

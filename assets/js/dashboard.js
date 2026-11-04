@@ -430,6 +430,7 @@
     if (!host) return;
     var monthShort = new Date().toLocaleString(undefined, { month: "short" }).toUpperCase();
     var day = new Date().getDate();
+    var activity = Progress && Progress.activity ? Progress.activity() : { streak: 0, daysThisWeek: 0, activeDays: {} };
     var remaining = 18 + ":" + String(31 - (new Date().getMinutes() % 30)).padStart(2, "0") + ":07";
 
     host.innerHTML =
@@ -451,7 +452,7 @@
       "</button>" +
       "</div></div>" +
       '<div class="mx-[10px] grid grid-cols-7 text-xs text-label-3 dark:text-dark-label-3">' +
-      UI.renderCalendar() +
+      UI.renderCalendar(activity.activeDays) +
       "</div>" +
       '<div class="mx-[10px] mb-2 mt-3 overflow-hidden rounded-md gc-daily">' +
       '<div class="flex items-center justify-between px-3 pt-2 text-xs">' +
@@ -466,8 +467,8 @@
       '<a class="ml-auto inline-flex items-center gap-1 text-[13px] font-medium text-brand-orange hover:underline" href="problem.html?p=' + D.daily.slug + '">Start' +
       window.icon("arrow-up-right-from-square") + "</a></div></div>" +
       '<div class="mx-4 flex items-center justify-between border-t border-sd-border py-2 text-xs text-label-3 dark:text-dark-label-3">' +
-      '<span class="flex items-center gap-1"><span class="text-brand-orange">' + window.icon("fire") + "</span>" + D.daily.day + "-day streak</span>" +
-      "<span>3 days this week</span></div>" +
+      '<span class="flex items-center gap-1"><span class="text-brand-orange">' + window.icon("fire") + "</span>" + (activity.streak ? activity.streak + "-day streak" : "No streak yet") + "</span>" +
+      "<span>" + (activity.daysThisWeek ? activity.daysThisWeek + (activity.daysThisWeek === 1 ? " day" : " days") + " this week" : "No activity this week") + "</span></div>" +
       "</div></div>" +
 
       '<div class="mt-4 pt-0.5 md:top-3">' +
@@ -806,7 +807,7 @@
       UI.toast("Premium is a visual state in this build.", "trophy");
     }
     if (params.get("streak")) {
-      UI.toast("12-day streak — keep it going.", "fire");
+      UI.toast("No streak yet — solve a task to start one.", "fire");
     }
   });
 })();

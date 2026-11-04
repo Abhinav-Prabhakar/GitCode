@@ -1,0 +1,10 @@
+{
+  "name": "gitcode",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Static Git practice labs with a deterministic in-browser engine",
+  "scripts": {
+    "test": "node tools/audit-labs.js",
+    "audit:labs": "node tools/audit-labs.js --verbose"
+  }
+}

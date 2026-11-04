@@ -56,10 +56,7 @@
     (problems || []).forEach(function (problem) {
       var status = P.status(problem.slug);
       if (status) problem.status = status;
-      else if (problem.status === "solved" || problem.status === "attempted") {
-        // The dataset ships with a few illustrative statuses. Keep them until
-        // the visitor has progress of their own.
-      }
+      else problem.status = null;
     });
     return problems;
   };
@@ -71,8 +68,8 @@
     state.tasks[slug] = {
       status: solved ? "solved" : "attempted",
       attempts: (previous.attempts || 0) + 1,
-      passed: info.passed == null ? previous.passed : info.passed,
-      total: info.total == null ? previous.total : info.total,
+      passed: solved && previous.passed != null ? previous.passed : info.passed == null ? previous.passed : info.passed,
+      total: solved && previous.total != null ? previous.total : info.total == null ? previous.total : info.total,
       updatedAt: now()
     };
     save();
@@ -114,6 +111,61 @@
     };
     save();
     return record;
+  };
+
+  function dayKey(value) {
+    var d = new Date(value);
+    if (isNaN(d.getTime())) return "";
+    return (
+      d.getFullYear() +
+      "-" +
+      ("0" + (d.getMonth() + 1)).slice(-2) +
+      "-" +
+      ("0" + d.getDate()).slice(-2)
+    );
+  }
+
+  // Real activity for the dashboard calendar and streak. Nothing is seeded:
+  // an untouched browser reports no days, no streak, no submissions.
+  P.activity = function () {
+    var days = {};
+    Object.keys(state.tasks || {}).forEach(function (slug) {
+      var entry = state.tasks[slug];
+      if (entry && entry.updatedAt) {
+        var key = dayKey(entry.updatedAt);
+        if (key) days[key] = true;
+      }
+    });
+    Object.keys(state.submissions || {}).forEach(function (slug) {
+      (state.submissions[slug] || []).forEach(function (record) {
+        if (!record || !record.at) return;
+        var key = dayKey(record.at);
+        if (key) days[key] = true;
+      });
+    });
+
+    var now = new Date();
+    var today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    var daysThisWeek = 0;
+    for (var i = 0; i < 7; i++) {
+      var recent = new Date(today.getTime() - i * 86400000);
+      if (days[dayKey(recent)]) daysThisWeek += 1;
+    }
+
+    var streak = 0;
+    var cursor = new Date(today.getTime());
+    if (!days[dayKey(cursor)]) cursor = new Date(cursor.getTime() - 86400000);
+    while (days[dayKey(cursor)]) {
+      streak += 1;
+      cursor = new Date(cursor.getTime() - 86400000);
+    }
+
+    return {
+      activeDays: days,
+      days: Object.keys(days).length,
+      daysThisWeek: daysThisWeek,
+      streak: streak
+    };
   };
 
   P.submissions = function (slug) {

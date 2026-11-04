@@ -812,7 +812,7 @@
 
   /* ------------------------------------------------------------ calendar */
 
-  UI.renderCalendar = function () {
+  UI.renderCalendar = function (activeDays) {
     var now = new Date();
     var year = now.getFullYear();
     var month = now.getMonth();
@@ -826,6 +826,9 @@
       })
       .join("");
     for (var i = 0; i < first; i++) out += '<span class="h-8 w-8"></span>';
+    function key(d) {
+      return year + "-" + ("0" + (month + 1)).slice(-2) + "-" + ("0" + d).slice(-2);
+    }
     for (var d = 1; d <= days; d++) {
       if (d === today) {
         out +=
@@ -833,7 +836,7 @@
           d +
           "</span></span>";
       } else {
-        var done = d < today && d >= today - 3;
+        var done = !!(activeDays && activeDays[key(d)]);
         out +=
           '<span class="hover:text-label-3 dark:hover:text-dark-label-3 group relative flex h-8 w-8 cursor-pointer items-center justify-center rounded-full hover:bg-fill-3 dark:hover:bg-dark-fill-3">' +
           d +

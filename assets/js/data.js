@@ -112,7 +112,7 @@
 
   var problems = [
     P(1, "recover-a-lost-commit", "Recover a Lost Commit", "Easy", 68.4, "recovery",
-      ["reflog", "reset", "recovery"], "attempted", false,
+      ["reflog", "reset", "recovery"], null, false,
       "A hard reset threw away a commit you still need. The reflog remembers it.",
       "You ran <code>git reset --hard HEAD~2</code> to undo a bad change, then realized the older of the two dropped commits also contained the migration your teammate needs. Nothing has been pushed. The reflog still has both commits.",
       "Restore <code>4f1c9ab</code> onto <code>main</code>, keep the two commits made after the reset, and leave <code>bad-change</code> out of the branch.",
@@ -128,7 +128,7 @@
       "The reflog is a local safety net, not a backup. It records every change to HEAD with a timestamp, so a discarded commit is still reachable by hash until it is garbage-collected. Cherry-picking that hash replays the change on top of the current branch and leaves the newer commits alone. A reset would rewrite the branch tip; here the task only asks for the one lost change."
     ),
     P(2, "restore-a-deleted-branch", "Restore a Deleted Branch", "Easy", 61.2, "recovery",
-      ["branch", "reflog", "recovery"], "solved", false,
+      ["branch", "reflog", "recovery"], null, false,
       "A merged branch was deleted, then the merge was reverted.",
       "A teammate deleted <code>feature/invoices</code> after merging it. The merge was later reverted, and now the invoices work is gone from <code>main</code>. The branch is not on the remote.",
       "Recreate <code>feature/invoices</code> at its last commit and restore its files on <code>main</code> without reverting the revert.",
@@ -155,7 +155,7 @@
       "Dropped stashes are dangling commits. fsck lists them, and the stash commit's parents hold the index and untracked tree. Recovering is a matter of recreating the stash ref or checking out the tree into the working directory."
     ),
     P(5, "find-a-commit-after-a-hard-reset", "Find a Commit After a Hard Reset", "Medium", 52.6, "recovery",
-      ["reset", "reflog", "recovery"], "solved", false,
+      ["reset", "reflog", "recovery"], null, false,
       "A reset moved the branch, but the old tip is still reachable.",
       "A script ran <code>git reset --hard origin/main</code> and discarded a local commit that was never pushed. The reset happened one hour ago.",
       "Identify the discarded commit and reapply it, preserving its original message and author.",
@@ -183,7 +183,7 @@
     ),
 
     P(8, "resolve-a-three-way-merge-conflict", "Resolve a Three-Way Merge Conflict", "Medium", 57.3, "conflicts",
-      ["merge", "conflicts", "index"], "solved", false,
+      ["merge", "conflicts", "index"], null, false,
       "Two branches edited the same function for different reasons.",
       "Merging <code>feature/tax</code> into <code>main</code> stops in a conflict: both sides changed <code>calculate_total()</code>. <code>main</code> added a discount, the feature added tax rounding.",
       "Resolve the conflict so both behaviours survive, stage the file, and finish the merge with the original merge message.",
@@ -192,7 +192,7 @@
       "A content conflict is a three-way comparison: base, ours, theirs. Resolve by combining intent, then stage the result. The merge commit is created by <code>git commit</code>, using the prepared message."
     ),
     P(9, "untangle-a-conflict-in-a-lockfile", "Untangle a Conflict in a Lockfile", "Easy", 71.8, "conflicts",
-      ["merge", "lockfile", "conflicts"], "solved", false,
+      ["merge", "lockfile", "conflicts"], null, false,
       "A lockfile conflict should never be hand-merged.",
       "A merge conflicts in <code>package-lock.json</code>. Both branches added dependencies; the file is 9,000 lines and contains resolved URLs.",
       "Resolve the conflict by regenerating the lockfile from the merged manifest, then verify the install is reproducible.",
@@ -201,7 +201,7 @@
       "Lockfiles are generated artifacts. Resolve the human-editable manifest, then let the package manager produce a consistent lockfile. Committing a hand-merged lockfile invites non-reproducible installs."
     ),
     P(10, "resolve-a-modify-delete-conflict", "Resolve a Modify/Delete Conflict", "Medium", 48.2, "conflicts",
-      ["merge", "rm", "conflicts"], "attempted", false,
+      ["merge", "rm", "conflicts"], null, false,
       "One branch edited a file the other branch deleted.",
       "<code>main</code> deleted <code>legacy/report.rb</code>; <code>feature/audit</code> fixed a bug in it. The merge reports a modify/delete conflict.",
       "Keep the deletion, preserve the bug fix somewhere useful, and record why in the merge commit.",
@@ -212,9 +212,9 @@
     P(11, "rebase-across-a-renamed-file", "Rebase Across a Renamed File", "Hard", 31.5, "conflicts",
       ["rebase", "rename", "conflicts"], "todo", false,
       "A rebase lost track of a file after a rename.",
-      "You renamed <code>src/auth.js</code> to <code>src/session/auth.js</code> on <code>main</code>. A feature branch still edits the old path, and rebasing produces a delete/modify conflict on every commit.",
+      "You renamed <code>src/auth.ts</code> to <code>src/session/auth.ts</code> on <code>main</code>. A feature branch still edits the old path, and rebasing produces a delete/modify conflict on every commit.",
       "Rebase the feature branch onto <code>main</code> with rename detection enabled, and keep the feature's edits in the new location.",
-      [{ label: "Example", code: "$ git rebase main\nCONFLICT (modify/delete): src/auth.js deleted in HEAD and modified in 4f1c9ab." }],
+      [{ label: "Example", code: "$ git rebase main\nCONFLICT (modify/delete): src/auth.ts deleted in HEAD and modified in 4f1c9ab." }],
       ["<code>-X find-renames</code> helps Git pair the paths.", "If a commit still conflicts, resolve it once and continue; later commits usually follow."],
       "Rebase replays commits one at a time, so a rename on the upstream side can look like a deletion. Rename detection plus one careful resolution usually carries the rest of the series."
     ),
@@ -239,15 +239,15 @@
     P(14, "recover-both-sides-of-a-binary-conflict", "Recover Both Sides of a Binary Conflict", "Medium", 41.9, "conflicts",
       ["merge", "checkout", "binaries"], "todo", false,
       "A binary conflict replaced the asset you needed.",
-      "A merge conflicts on <code>assets/logo.png</code>. The working tree contains one side, and you need to compare both before choosing.",
+      "A merge conflicts on <code>assets/logo.svg</code>. The working tree contains one side, and you need to compare both before choosing.",
       "Extract both versions of the binary, choose the correct one, and complete the merge without leaving conflict entries in the index.",
-      [{ label: "Example", code: "$ git checkout --ours assets/logo.png\n$ cp assets/logo.png /tmp/logo-ours.png\n$ git checkout --theirs assets/logo.png" }],
+      [{ label: "Example", code: "$ git checkout --ours assets/logo.svg\n$ cp assets/logo.svg /tmp/logo-ours.svg\n$ git checkout --theirs assets/logo.svg" }],
       ["<code>--ours</code> and <code>--theirs</code> write each stage into the working tree.", "Stage the chosen file to clear all three index stages."],
       "Binary files cannot be text-merged, so Git gives you the two stages. Extracting both and choosing explicitly is safer than accepting a side by default, especially for assets that affect rendering."
     ),
 
     P(15, "squash-a-noisy-feature-branch", "Squash a Noisy Feature Branch", "Medium", 63.1, "rewrite",
-      ["rebase", "squash", "history"], "solved", false,
+      ["rebase", "squash", "history"], null, false,
       "Twelve fixup commits should land as one coherent change.",
       "A feature branch contains twelve commits: three fixes for the first commit, four typo commits, and five real steps. The final tree is correct.",
       "Squash the branch into two commits - one for the feature, one for the tests - without changing the final tree.",
@@ -256,7 +256,7 @@
       "Interactive rebase is a plan, not a command history. Squashing preserves the final tree while removing noise that makes review and revert harder. Verify with a tree comparison, not by reading the new log."
     ),
     P(16, "reword-the-last-commit", "Reword the Last Commit", "Easy", 79.4, "rewrite",
-      ["commit", "amend", "message"], "solved", false,
+      ["commit", "amend", "message"], null, false,
       "A commit message has a typo and needs context.",
       "The last commit says <code>fix stuff</code>. It actually fixes the invoice rounding bug described in issue 214.",
       "Reword the last commit to <code>fix: round invoice totals to two decimals</code> and add the issue reference in the body.",
@@ -283,7 +283,7 @@
       "Reordering is only safe when each intermediate commit is self-contained. If the earlier commit depends on the later one, reordering requires splitting or squashing; otherwise CI will fail at the intermediate step."
     ),
     P(19, "move-a-commit-to-another-branch", "Move a Commit to Another Branch", "Easy", 66.2, "rewrite",
-      ["cherry-pick", "branch", "recovery"], "solved", false,
+      ["cherry-pick", "branch", "recovery"], null, false,
       "A commit landed on the wrong branch.",
       "You committed a documentation fix directly on <code>main</code>. It belongs on <code>docs/quickstart</code>, and <code>main</code> must not contain it.",
       "Copy the commit to <code>docs/quickstart</code>, remove it from <code>main</code>, and keep both branches buildable.",
@@ -302,25 +302,25 @@
     ),
 
     P(21, "find-the-first-bad-commit", "Find the First Bad Commit", "Medium", 58.7, "debugging",
-      ["bisect", "debugging", "regression"], "solved", false,
+      ["bisect", "debugging", "regression"], null, false,
       "A test passed last month and fails now.",
-      "A regression appeared somewhere in the last 120 commits. You have a reliable test command, and checking out old commits by hand would take hours.",
+      "A regression appeared somewhere in the last eight commits. You have a reliable test command, and checking out old commits by hand would take a while.",
       "Use bisect to identify the first commit where the test fails, then inspect that commit without checking it out manually.",
-      [{ label: "Example", code: "$ git bisect start\n$ git bisect bad\n$ git bisect good v1.4.0\nBisecting: 59 revisions left to test after this (roughly 6 steps)" }],
+      [{ label: "Example", code: "$ git bisect start\n$ git bisect bad\n$ git bisect good v1.4.0\nBisecting: 3 revisions left to test after this (roughly 2 steps)" }],
       ["Mark the current tip bad and a known-good tag good.", "Run the same command at every step, then <code>git bisect reset</code>."],
       "Bisect is binary search over history. Its value depends on a deterministic test: a flaky command produces a wrong answer. Six steps cover 64 commits, which is why the workflow beats manual checkout."
     ),
     P(22, "bisect-a-flaky-test", "Bisect a Flaky Test", "Hard", 23.4, "debugging",
       ["bisect", "flaky", "debugging"], "todo", false,
       "The failing test only fails one run in five.",
-      "A test fails intermittently across the last 80 commits. A normal bisect gives inconsistent good/bad marks.",
+      "A test fails intermittently across the last eight commits. A normal bisect gives inconsistent good/bad marks.",
       "Produce a defensible first-bad commit despite the flake, and document the confidence level.",
       [{ label: "Example", code: "$ git bisect run ./scripts/flaky-check.sh\nrunning ./scripts/flaky-check.sh\n... exit code 1\n" }],
       ["Make the check run the test several times and require a threshold.", "Keep the raw results; a bisect with flaky marks is not evidence."],
       "Bisect assumes a stable predicate. For a flaky test, wrap the test in a script that retries and returns a deterministic exit code. If the failure rate is too close to the threshold, report the ambiguity instead of a false first-bad commit."
     ),
     P(23, "cherry-pick-a-hotfix-to-a-release-branch", "Cherry-Pick a Hotfix to a Release Branch", "Easy", 72.5, "debugging",
-      ["cherry-pick", "release", "backport"], "solved", false,
+      ["cherry-pick", "release", "backport"], null, false,
       "A fix on main is needed on the release branch now.",
       "A one-line fix for a crash landed on <code>main</code>. <code>release/2.8</code> cannot take a merge because it has diverged, but it needs the fix today.",
       "Cherry-pick the fix onto <code>release/2.8</code>, resolve any context drift, and keep the original author.",
@@ -329,7 +329,7 @@
       "Cherry-pick is the right tool for a backport because it does not drag unrelated history to the release branch. The <code>-x</code> trailer preserves provenance for the next person who compares branches."
     ),
     P(24, "isolate-a-regression-with-log-s", "Isolate a Regression with git log -S", "Medium", 49.6, "debugging",
-      ["log", "pickaxe", "debugging"], "attempted", false,
+      ["log", "pickaxe", "debugging"], null, false,
       "A function disappeared and no commit message mentions it.",
       "A helper called <code>formatMoney</code> stopped being called. Commit messages are unhelpful, and the code was moved between files.",
       "Find the commit that changed the number of occurrences of <code>formatMoney</code> and explain what replaced it.",
@@ -366,7 +366,7 @@
     ),
 
     P(28, "clean-up-a-messy-commit-history", "Clean Up a Messy Commit History", "Medium", 60.4, "history",
-      ["rebase", "squash", "history"], "attempted", false,
+      ["rebase", "squash", "history"], null, false,
       "A branch mixes formatting, fixes, and feature work.",
       "Before review, a branch has 24 commits: an initial feature, a revert, a re-apply, and a dozen formatting commits. The final tree is correct.",
       "Produce a history a reviewer can follow: one feature commit, one test commit, and no reverted noise.",
@@ -384,7 +384,7 @@
       "Author rewriting is a metadata change, but it rewrites hashes. Keep the tree identical by verifying the diff is empty, and coordinate the force-push before anyone else builds on the branch."
     ),
     P(30, "remove-a-build-artifact-committed-by-mistake", "Remove a Build Artifact Committed by Mistake", "Easy", 76.1, "history",
-      ["rm", "gitignore", "history"], "solved", false,
+      ["rm", "gitignore", "history"], null, false,
       "A 200 MB build artifact is in the repository.",
       "A compiled binary was committed in the last release. It is still tracked, and every clone downloads it.",
       "Untrack the artifact, add it to <code>.gitignore</code>, and keep the working file on disk.",
@@ -392,13 +392,13 @@
       ["<code>git rm --cached</code> stops tracking without deleting the file.", "Removing it from old commits is a separate, optional step."],
       "Untracking stops future growth; history rewriting shrinks existing clones. Most teams should do the first immediately and schedule the second, because rewriting shared history has a coordination cost."
     ),
-    P(31, "recover-a-file-deleted-ten-commits-ago", "Recover a File Deleted Ten Commits Ago", "Easy", 69.8, "history",
-      ["log", "checkout", "recovery"], "solved", false,
+    P(31, "recover-a-file-deleted-ten-commits-ago", "Recover a File Deleted Seven Commits Ago", "Easy", 69.8, "history",
+      ["log", "checkout", "recovery"], "todo", false,
       "A config file vanished and nobody noticed for a week.",
-      "A config file was deleted ten commits ago. The deletion commit is not obvious, and the file is not in the current tree.",
+      "A config file was deleted seven commits ago. The deletion commit is not obvious, and the file is not in the current tree.",
       "Find the last commit that contained the file and restore it without reverting the commits made since.",
-      [{ label: "Example", code: "$ git log --diff-filter=D --oneline -- config/limits.yml\n4f1c9ab remove legacy limits" }],
-      ["<code>--diff-filter=D</code> narrows log to deletions.", "<code>git show 4f1c9ab^:config/limits.yml</code> prints the file from before the deletion."],
+      [{ label: "Example", code: "$ git log --diff-filter=D --oneline -- config/limits.yml\n9d2e113 chore: remove legacy limits" }],
+      ["<code>--diff-filter=D</code> narrows log to deletions.", "<code>git show 9d2e113^:config/limits.yml</code> prints the file from before the deletion."],
       "A file deleted in history still exists in its parent commit. Restoring it is a checkout from that commit, which composes cleanly with the newer history and avoids a revert that would also remove later edits."
     ),
     P(32, "make-two-branches-share-history-again", "Make Two Branches Share History Again", "Hard", 25.6, "history",
@@ -421,16 +421,16 @@
     ),
 
     P(34, "sync-a-fork-without-polluting-history", "Sync a Fork Without Polluting History", "Easy", 74.3, "collaboration",
-      ["remote", "rebase", "fork"], "solved", false,
+      ["remote", "rebase", "fork"], null, false,
       "Your fork has merge commits from every upstream sync.",
-      "Your fork's <code>main</code> contains 20 <code>Merge branch 'main' of upstream</code> commits. You need the latest upstream code with a linear history.",
+      "Your fork's <code>main</code> contains merge commits from past upstream syncs. You need the latest upstream code with a linear history.",
       "Sync the fork, rebase your local work on the upstream tip, and push without adding merge commits.",
-      [{ label: "Example", code: "$ git remote add upstream https://example.com/org/repo.git\n$ git fetch upstream\n$ git rebase upstream/main" }],
+      [{ label: "Example", code: "$ git fetch upstream\n$ git rebase upstream/main" }],
       ["Fetch upstream, then rebase your local branch onto it.", "Push the rewritten branch with <code>--force-with-lease</code>."],
       "A fork is a normal remote. Fetching upstream and rebasing keeps your patches on top of the current base; merging upstream instead records a merge commit for every sync, which is noise in a fork's history."
     ),
     P(35, "push-a-rebased-branch-safely", "Push a Rebased Branch Safely", "Medium", 53.4, "collaboration",
-      ["push", "lease", "rebase"], "attempted", false,
+      ["push", "lease", "rebase"], null, false,
       "A rebase succeeded, and the push was rejected.",
       "You rebased a shared feature branch and the remote rejects a normal push. A teammate pushed to the same branch ten minutes ago.",
       "Publish the rebased branch without overwriting the teammate's new commit.",
@@ -467,7 +467,7 @@
     ),
 
     P(39, "undo-a-bad-merge-that-was-already-pushed", "Undo a Bad Merge That Was Already Pushed", "Medium", 56.8, "safety",
-      ["revert", "merge", "safety"], "attempted", false,
+      ["revert", "merge", "safety"], null, false,
       "A merge broke production and other people have pulled it.",
       "A merge of <code>feature/search</code> broke the checkout page and is already on <code>main</code>. Two teammates have built on it.",
       "Undo the merge on the shared branch without rewriting published history, then prepare a clean re-merge later.",
@@ -485,7 +485,7 @@
       "A rebase sequencer needs a clean index and working tree for the paths it touches. A path-limited stash removes the unrelated edit temporarily without disturbing the conflict resolution already staged."
     ),
     P(41, "recover-from-a-failed-interactive-rebase", "Recover from a Failed Interactive Rebase", "Easy", 65.9, "safety",
-      ["rebase", "abort", "safety"], "solved", false,
+      ["rebase", "abort", "safety"], null, false,
       "An interactive rebase went wrong halfway through.",
       "You started an interactive rebase, dropped a commit by mistake, and are now several steps in. The branch has not been pushed.",
       "Return the branch to its exact pre-rebase state, then redo the rebase with the correct plan.",
@@ -494,7 +494,7 @@
       "The rebase sequencer records the original tip before starting. Abort uses that record to restore the branch, which makes experimentation safe. Only after a successful push does the old tip become expensive to recover."
     ),
     P(42, "untrack-a-file-without-deleting-it", "Untrack a File Without Deleting It", "Easy", 81.2, "safety",
-      ["rm", "cached", "gitignore"], "solved", false,
+      ["rm", "cached", "gitignore"], null, false,
       "A local config file should not be tracked.",
       "<code>.env.local</code> is tracked and contains machine-specific settings. Teammates keep committing their own values by accident.",
       "Stop tracking the file for everyone while keeping each developer's local copy, and prevent it from being added again.",
@@ -512,7 +512,7 @@
       "A local hook is a guardrail, not an access control. It should fail loudly, explain the fix, and provide an override for legitimate emergencies. Server-side protection remains the real enforcement."
     ),
     P(44, "find-what-changed-between-two-tags", "Find What Changed Between Two Tags", "Easy", 70.6, "safety",
-      ["diff", "log", "tags"], "solved", false,
+      ["diff", "log", "tags"], null, false,
       "A release note needs the real changes between two tags.",
       "You need to summarize what changed between <code>v2.7.0</code> and <code>v2.8.0</code>. The log contains merge commits and backports.",
       "List the user-visible changes, grouped by area, and exclude commits that were reverted before the release.",
@@ -534,8 +534,7 @@
     title: "Recover a Lost Commit",
     difficulty: "Easy",
     acceptance: 68.4,
-    tags: ["reflog", "reset"],
-    day: 12
+    tags: ["reflog", "reset"]
   };
 
   var trending = [
@@ -550,9 +549,9 @@
     solved: problems.filter(function (p) { return p.status === "solved"; }).length,
     attempted: problems.filter(function (p) { return p.status === "attempted"; }).length,
     total: problems.length,
-    streak: 12,
-    submissions: 187,
-    acceptance: 64
+    streak: 0,
+    submissions: 0,
+    acceptance: 0
   };
 
   function bySlug(slug) {

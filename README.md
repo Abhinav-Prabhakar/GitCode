@@ -14,7 +14,7 @@
   <a href="https://abhinav-prabhakar.github.io/GitCode/"><img src="https://img.shields.io/badge/%E2%96%B6%20live%20demo-GitCode-ffa116?style=for-the-badge" alt="Live demo"></a>
   <img src="https://img.shields.io/badge/HTML%20%7C%20CSS%20%7C%20JS-no%20build-2db55d?style=for-the-badge" alt="HTML, CSS and vanilla JS — no build step">
   <img src="https://img.shields.io/badge/labs-44%2F44%20validated-0a84ff?style=for-the-badge" alt="All 44 labs validated">
-  <a href="https://github.com/Abhinav-Prabhakar/GitCode/actions/workflows/pages.yml"><img src="https://github.com/Abhinav-Prabhakar/GitCode/actions/workflows/pages.yml/badge.svg" alt="Deploy status"></a>
+  <a href="https://github.com/Abhinav-Prabhakar/GitCode/actions/workflows/labs.yml"><img src="https://github.com/Abhinav-Prabhakar/GitCode/actions/workflows/labs.yml/badge.svg" alt="Lab audit status"></a>
 </p>
 
 <p align="center">
@@ -48,9 +48,13 @@ Each task seeds its own deterministic repository. The terminal is a working Git 
 trees, refs, reflog, merge, rebase, cherry-pick, stash, bisect, filter-repo — and Run / Submit inspect
 the live index and refs. Nothing is prerecorded.
 
+**Run** shows the visible outcome checks and never reveals the hidden one. **Submit** runs the full
+set, including the hidden objective check, and records the result. Because this is a static site, the
+check code ships to the browser: hidden means withheld from the UI, not cryptographically secret.
+
 <img src="docs/screenshots/result-dark.png" alt="Accepted result after recovering a lost commit" width="100%">
 
-<p align="center"><sub><b>Run</b> · visible and hidden checks read the live repository · accepted in 1 ms</sub></p>
+<p align="center"><sub><b>Run</b> · visible checks read the live repository · Submit adds the hidden objective check</sub></p>
 
 <table>
   <tr>
@@ -69,11 +73,11 @@ the live index and refs. Nothing is prerecorded.
 
 <table>
   <tr>
-    <td width="50%"><img src="docs/screenshots/checks-dark.png" alt="Visible and hidden checks after a run" width="100%"></td>
+    <td width="50%"><img src="docs/screenshots/checks-dark.png" alt="Visible and hidden checks after submission" width="100%"></td>
     <td width="50%"><img src="docs/screenshots/solutions-dark.png" alt="Official solution with an executable transcript" width="100%"></td>
   </tr>
   <tr>
-    <td align="center"><sub><b>Checks</b> · visible + hidden · hint appears on failure</sub></td>
+    <td align="center"><sub><b>Checks</b> · Run shows visible checks · Submit adds the hidden one</sub></td>
     <td align="center"><sub><b>Solutions</b> · the official transcript runs end to end</sub></td>
   </tr>
 </table>
@@ -159,6 +163,21 @@ The pages also work from `file://`; the scripts are classic `<script>` tags, not
 The full design contract — palette, dimensions, component anatomy, responsive rules — lives in
 **[`design.md`](./design.md)**.
 
+## Lab audit
+
+The labs are checked in Node without a browser:
+
+```bash
+npm test              # audit every lab
+npm run audit:labs    # same harness, verbose
+```
+
+The harness loads `data.js`, `git-engine.js`, and `labs.js` in a VM, seeds all 44 repositories, runs
+each official solution, and asserts that every check passes. It also asserts that every lab fails at
+seed, that every hidden check is objective-specific, and that seeded shortcut solutions (stash-less
+rebases, merge-instead-of-lease pushes, blob copies, bisect-without-good/bad, note-only answers) are
+rejected. The same command runs in `.github/workflows/labs.yml`.
+
 <details>
 <summary><b>File map</b></summary>
 
@@ -180,6 +199,11 @@ assets/
   js/labs.js                44 seeded labs, checks, solutions, resolutions
   js/progress.js            localStorage status, attempts and submissions
 
+tools/
+  audit-labs.js             seed/solution/check harness
+  fixtures/                 alternate and shortcut solutions
+
+progress.md                 audit findings and fix status
 docs/screenshots/           every image above
 _reference/                 capture manifest + collector
 ```
