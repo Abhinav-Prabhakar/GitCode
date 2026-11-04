@@ -10,8 +10,8 @@ results; every task, graph, and terminal line is local data.
 
 Two screens:
 
-- `index.html` — the dashboard: track cards, category filters, search, problem rows,
-  pagination, bookmarks, daily challenge, and a highlights rail.
+- `index.html` — the dashboard: feature banners, keyword tags, category pills, search,
+  all matching problem rows, bookmarks, daily challenge calendar, and a trending rail.
 - `problem.html?p=<slug>` — the question page: description, editorial, solutions,
   submissions, a commit-graph workspace, and a terminal with Run/Submit output.
 
@@ -71,11 +71,12 @@ assets/
       leetcode-question.css
       leetcode-extras.css
     app.css                token aliases + every authored gc-* component
+  fonts/                   TypoRound (the rounded Premium/promo face)
   js/
     icons.js               Font Awesome geometry + icon()
     data.js                44 tasks, 7 categories, 6 tracks, daily/trending/stats
     ui.js                  nav, theme, menus, modals, tabs, splitters, fades
-    dashboard.js           filtering, search, pagination, bookmarks
+    dashboard.js           filtering, search, bookmarks, rail
     problem.js             statement, panels, terminal, run/submit simulation
 _reference/
   MANIFEST.md              source URLs, byte counts, hashes
@@ -116,8 +117,8 @@ The full contract lives in [`design.md`](./design.md). The short version:
 ## What is wired
 
 - Category, difficulty, status, and tag filtering; search across title, slug, and tags;
-  sorting by difficulty or acceptance; pagination with URL sync.
-- Bookmarking (in-memory per load), bookmarked-only view, and empty states.
+  sorting by difficulty or acceptance; URL sync for every filter.
+- Bookmarking (persisted in `localStorage`), bookmarked-only view, and empty states.
 - Theme toggle in the nav, the question IDE bar, and the options menu — all stay in sync.
 - Tabs, splitter drag and keyboard resize, focus mode, terminal clear, and simulated
   Run/Submit output driven by each task's `status`.
@@ -125,7 +126,7 @@ The full contract lives in [`design.md`](./design.md). The short version:
 
 ## What is intentionally not wired
 
-- No persistence beyond the theme; reloading resets bookmarks and terminal output.
+- No persistence beyond the theme and bookmarks; reloading resets terminal output.
 - No real Git execution, authentication, or network calls.
 - Solutions, submissions, and the editorial are representative static content.
 - Nav links that have no second screen (`Tracks`, `Playground`, `Discuss`, `Premium`)
@@ -138,10 +139,10 @@ The full contract lives in [`design.md`](./design.md). The short version:
 The build was checked in headless Chromium at **1440, 1024, 768, 480, 360, and 320 px**, in
 both themes, on both pages:
 
-- Zero console errors and zero failed requests (including the Menlo webfont, which is
-  overridden locally).
+- Zero console errors and zero failed requests (the TypoRound files are vendored under
+  `assets/fonts/`).
 - No horizontal overflow at any tested width.
-- Filtering, pagination, URL sync, search, tag chips, bookmarks, tabs, theme toggles,
+- Filtering, URL sync, search, tag chips, bookmarks, tabs, theme toggles,
   menus, modals, and the terminal were exercised end to end.
 
 To reproduce the visual pass, start the server and use Playwright or your browser's device

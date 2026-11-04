@@ -77,25 +77,30 @@ background: hsl(var(--sd-accent));
 color: #a8a8a8;
 ```
 
-### 3.2 Semantic tokens (the ones to use)
+### 3.2 Surfaces and text (measured from the page)
 
-Measured from the live site on 2026-11-04.
+The dashboard and question page use LeetCode's **legacy layer palette**, not the newer
+`--sd-*` canvas values. `app.css` exposes them as `--gc-*` aliases so authored components
+speak one vocabulary. The `--sd-*` tokens still power vendor utilities (the search field,
+progress ring, menus); do not assume they equal the page canvas.
 
-| Token | Dark | Light | Use |
+| Alias | Dark | Light | Use |
 | --- | --- | --- | --- |
-| `--sd-background` | `0 0% 6%` · #0f0f0f | `0 0% 100%` · #ffffff | Page canvas |
-| `--sd-background-gray` | `0 0% 6%` | `0 0% 94.1%` · #f0f0f0 | Question-page canvas (sits behind panes) |
-| `--sd-foreground` | `0 0% 96%` · #f5f5f5 | `0 0% 10%` · #1a1a1a | Primary text |
-| `--sd-muted-foreground` | `0 0% 66%` · #a8a8a8 | `0 0% 45%` · #737373 | Secondary text, metadata |
-| `--sd-card` | `0 0% 15%` · #262626 | `0 0% 100%` | Raised card |
-| `--sd-popover` | `0 0% 20%` · #333333 | `0 0% 100%` | Menus, dialogs |
-| `--sd-secondary` | `0 0% 22%` · #383838 | `0 0% 96%` | Neutral buttons, chips |
-| `--sd-muted` | `0 0% 22%` | `0 0% 94%` | Inert fills |
-| `--sd-accent` | `0 0% 100% / .08` | `0 0% 0% / .04` | Hover wash, ghost-button hover |
-| `--sd-border` | `0 0% 100% / .10` | `0 0% 0% / .08` | Dividers, card outlines |
-| `--sd-input` | `0 0% 100% / .14` | `0 0% 0% / .06` | Input outlines |
-| `--sd-ring` | `240 4.9% 83.9%` | `240 10% 3.9%` | Focus ring |
-| `--sd-radius` | `0.5rem` (8 px) | same | Base corner radius |
+| `--gc-page` | `#1a1a1a` | `#ffffff` | Dashboard canvas / body |
+| `--gc-layer` | `#282828` | `#ffffff` | Navbar, rail cards, sticky chrome |
+| `--gc-pane` | `#262626` | `#ffffff` | Question panes (layer-01) |
+| `--gc-label-1` | `#ffffff` | `#262626` | Primary text |
+| `--gc-label-2` | `#eff1f6bf` | `#262626bf` | Secondary text, nav links |
+| `--gc-label-3` | `#eff2f699` | `#3c3c4399` | Tertiary metadata, calendar days |
+| `--gc-label-4` | `#ebebf54d` | `#3c3c434d` | Disabled / faint rules |
+| `--gc-wash` | `rgba(255,255,255,.08)` | `rgba(0,0,0,.04)` | Inputs, icon buttons, hover |
+| `--gc-zebra` | `rgba(255,255,255,.06)` | `rgba(0,0,0,.02)` | Odd problem rows |
+| `--gc-hairline` | `rgba(255,255,255,.10)` | `rgba(0,0,0,.08)` | Dividers |
+| `--gc-green` | `#2db55d` | `#2db55d` | Calendar today, online dot |
+| `--gc-blue` | `#0a84ff` | `#0a84ff` | Informational links |
+
+Question-page canvas is `#0f0f0f` dark / `#f0f0f0` light (`--sd-background-gray`); panes sit
+on it at `#262626` / `#ffffff`. The dashboard canvas is `#1a1a1a` / `#ffffff`.
 
 ### 3.3 Meaning colours
 
@@ -113,24 +118,26 @@ Measured from the live site on 2026-11-04.
 the copied markup does. New components may use `text-sd-easy|medium|hard`; both resolve to
 the same hue family.
 
-### 3.4 The legacy palette (still load-bearing)
+### 3.4 Legacy utility classes are the source of truth
 
-A second, older token family is baked into a lot of markup: `--dark-layer-1`, `--dark-layer-bg`,
-`--dark-fill-{1..4}`, `--dark-label-{1..4}`, `--dark-gray-*`, `--blue-*`, `--green-s`,
-`--red-s`, `--brand-orange`. They are Tailwind *colours*, not CSS vars, so use them only
-through the utilities the reference markup already uses (`dark:bg-dark-layer-1`,
-`text-label-2`, `dark:text-dark-label-2`). Do not write `var(--dark-layer-1)` — it does not
-exist as a variable.
+The captured markup is built from Tailwind colour utilities, not from CSS variables:
+`dark:bg-dark-layer-1`, `bg-fill-3`, `text-label-2`, `dark:text-dark-label-2`,
+`text-difficulty-easy`. Use those class names verbatim in copied markup. The measured
+values behind the common ones:
 
-Observed values worth knowing:
-
-| Surface | Dark value | Where seen |
+| Utility | Dark result | Light result |
 | --- | --- | --- |
-| Navbar | `#282828` (rgb 40,40,40) | `#leetcode-navbar` |
-| Page | `#1a1a1a` | `body` under `.dark` |
-| Problem row zebra | `rgba(255,255,255,.06)` | alternate rows |
-| Tab bar | `rgba(255,255,255,.06)` | question-page tab strips |
-| Row hover | `--sd-accent` wash | everywhere |
+| `bg-dark-layer-1` / `bg-layer-1` | `#282828` | `#ffffff` |
+| `bg-dark-layer-bg` | `#1a1a1a` | `#ffffff` |
+| `bg-fill-3` / `dark:bg-dark-fill-3` | `rgba(255,255,255,.10)` | `rgba(0,10,32,.05)` |
+| `bg-fill-quaternary` | `rgba(255,255,255,.06)` | `rgba(0,0,0,.02)` |
+| `text-dark-label-1` | `#ffffff` | `#262626` |
+| `text-dark-label-2` | `rgba(239,241,246,.75)` | `rgba(38,38,38,.75)` |
+| `text-dark-label-3` | `rgba(239,242,246,.60)` | `rgba(60,60,67,.60)` |
+| `shadow-dark-down-01` | layered 2/4/8 px black shadow | light equivalent |
+
+The legacy family (`--dark-*`, `--blue-*`, `--green-s`) is still Tailwind *colour*, not a
+runtime CSS variable. Do not write `var(--dark-layer-1)`; use the utility.
 
 ### 3.5 Gradients
 
@@ -203,8 +210,8 @@ acceptance %, counts, and timers so columns do not jitter.
 - **Two weights per view, max:** 400 prose, 500/600 for emphasis and titles. No 700+.
 - **No letter-spacing on prose.** Small caps / tracking is not part of this system.
 - **Links** are `--sd-info`, no underline by default, underline on hover inside prose.
-- **Prose measure:** the description pane is ~454 px wide at 486 px pane width. Do not let
-  problem statements run wider than 72 characters.
+- **Prose measure:** the split pane determines the width; cap prose at 72 characters and
+  never let it run edge-to-edge on an ultrawide pane.
 - **Inline code** in prose: 12 px mono, `rgba(255,255,255,.07)` background, 5 px radius,
   2 px padding, colour `rgba(239,241,246,.75)`.
 
@@ -222,18 +229,22 @@ the 2 px hairline paddings inherited from the reference markup.
 | Element | Size |
 | --- | --- |
 | Top navbar | **50 px** (dashboard), **48 px** (question IDE bar) |
+| Page offset below navbar | **56 px** (`mt-14`) |
 | Problem row | **44 px**, radius **8 px** |
-| Filter pill | **40 px** tall (`px-4 py-[10px]`), fully rounded |
-| Toolbar control (search, icon buttons) | **32 px** |
-| Tab strip | **36 px** |
+| Filter pill | **40 px** tall, `0 16px` padding, fully rounded, **16 px** text |
+| Keyword tag | 14 px text + 18 px count badge, 20 px gap |
+| Toolbar control (search, icon buttons) | **32 px**; search **200 px** wide |
+| Tab strip / tab button | **36 px** strip, **28 px** tab, radius **5 px** |
 | Difficulty chip | **24 px** tall, padding `4px 8px`, fully rounded |
-| Topic chip | 24 px, caption type |
-| Dashboard content max-width | **1100 px** (`--gc-content-max`) |
-| Dashboard right rail (aside) | **272 px** (`--gc-aside-w`) |
-| Dashboard left rail (library) | **240 px** (`--gc-rail-w`) |
-| Shell max-width | **1680 px**, centred |
-| Track card | **268 × 132 px** (232 × 120 below 900 px) |
-| Panes on question page | 50/50 split, **8 px** workspace padding, **8 px** gutter |
+| Dashboard content | **1100 px** outer, `0 24px` padding → **1052 px** inner |
+| Dashboard right rail | **270 px** (`w-[270px]`) |
+| Right-rail card | 270 px wide, radius **8 px**, layer `#282828` |
+| Feature banners | **268 × 132 px**, radius **8 px**, horizontal carousel |
+| Question panes | split pane, **10 px** workspace sides/bottom, **8 px** gutter, radius **5 px** |
+| Splitter hit area | **8 px** |
+
+At 1440 px the three-column dashboard resolves to content `x=27` (inner `x=51`) and rail
+`x=1154`, exactly as measured from the reference.
 
 ### 5.3 Shape
 
@@ -246,34 +257,34 @@ the 2 px hairline paddings inherited from the reference markup.
 
 ### 5.4 The two shells
 
-**Dashboard shell** — page scrolls, content is centred.
+**Dashboard shell** — page scrolls. There is **no left sidebar** on the problem set; the
+reference stores it off-canvas at width 0.
 
 ```
-┌ navbar 50px ────────────────────────────────────────────────────┐
-│ [rail 240] │  content max 1100                [aside 272]       │
-│  Library…  │  track cards 268×132                             │
-│  My Lists… │  category pills (40px)                            │
-│            │  toolbar (32px controls)                          │
-│            │  problem rows (44px, 8px radius, 1px gap)         │
-└────────────┴───────────────────────────────────────────────────┘
+┌ navbar 50px ──────────────────────────────────────────────────────┐
+│  content 1100 outer / 1052 inner          [rail 270]              │
+│  feature banners 268×132 (4-up carousel)  calendar + daily        │
+│  keyword tags 21px                        trending commands       │
+│  category pills 40px                      footer links            │
+│  toolbar 32px                                                     │
+│  problem rows 44px, radius 8, no gap                              │
+└───────────────────────────────────────────────────────────────────┘
 ```
 
-The shell is a grid: `240px minmax(0,1fr)`. The content column is itself a grid:
-`minmax(0,1fr) 272px` with a **28 px** gap and **20/24/64 px** padding. Below 1280 the
-aside is removed from the grid and the content re-centres; below 1024 the rail leaves the
-grid and becomes a fixed overlay.
+Content and rail are a flex row with a **27 px** gap, left offset **27 px**, right margin
+16 px. Below 1280 px the rail is removed and the content fills up to 1100 px.
 
 **Question shell** — no page scroll; panes scroll internally.
 
 ```
-┌ IDE bar 48px: [‹ All tasks] [‹ ›] 1. Title        [Run] [Submit] ⋯ ┐
+┌ IDE bar 48px: [logo] [‹ All tasks] [‹ ›] 1. Title   [▶] [Submit] ⋯ ┐
 │ ┌ Description ─────────┐ ┌ Terminal ──────────────────────────┐ │
-│ │ tab bar 36px         │ │ tab bar 36px                       │ │
-│ │ scrollable prose     │ │ scrollable output                  │ │
+│ │ tab strip 36px       │ │ tab strip 36px                     │ │
+│ │ prose 14/21          │ │ scrollable output                  │ │
 │ │                      ├─┼────────────────────────────────────┤ │
-│ │                      │ │ Workspace / Test Result            │ │
+│ │ action bar 36px      │ │ Workspace / Test Result            │ │
 │ └──────────────────────┘ └────────────────────────────────────┘ │
-│  8px padding · 8px gutters · draggable 8px splitters             │
+│  10px sides/bottom · 8px gutter · 8px splitters · pane radius 5px │
 └──────────────────────────────────────────────────────────────────┘
 ```
 
@@ -295,13 +306,13 @@ nav placement.
 
 - **Mark:** 22×22 rounded square, `#ffa116` fill, white git-branch glyph (one trunk, two
   branches, three nodes). Reads at 16 px.
-- **Wordmark:** `GitCode` in 600 weight, `hsl(var(--sd-foreground))`, 17 px, tracking `-0.01em`.
+- **Wordmark:** `GitCode` in 600 weight, `var(--gc-label-1)`, 17 px, tracking `-0.01em`.
 - **Clear space:** 8 px minimum on all sides. Never place the mark on orange.
-- **Dashboard nav:** mark + wordmark. The wordmark (`.gc-logo__word`) is hidden at ≤720 px;
-  the mark remains as the home link.
-- **Question page:** the lockup is absent. The IDE bar opens with a back chevron and
-  "All tasks", because the task title already occupies the centre. Do not add a second logo
-  to the question shell.
+- **Dashboard nav:** mark + wordmark. The wordmark is shown at ≥1024 px and below 768 px;
+  between **768–1023 px** it is hidden so the icon logo and four links fit. At mobile the
+  wordmark returns beside the mark.
+- **Question page:** the lockup is present at the start of the 48 px IDE bar, followed by
+  the "All tasks" back control. This mirrors LeetCode's logo → Problem List order.
 
 Premium is never a logo variant — it is the orange "Premium" pill in the nav.
 
@@ -309,8 +320,9 @@ Premium is never a logo variant — it is the orange "Premium" pill in the nav.
 
 ## 7. Iconography
 
-- 50 icons lifted from the live site live in `assets/js/icons.js` as `{viewBox, inner}`.
-  Render with `icon('terminal', 'h-4 w-4')` — it returns a complete `<svg>`.
+- The icon set lifted from the live site lives in `assets/js/icons.js` as
+  `{viewBox, inner}` (75+ glyphs). Render with `icon('terminal', 'h-4 w-4')` — it returns a
+  complete `<svg>`.
 - Geometry is Font Awesome 6 Free (the site's icon set). **Do not mix icon families.**
 - Default size is `1em`, so icon size follows the text around it. Set explicit
   `h-4 w-4` (16 px) / `h-3.5 w-3.5` (14 px) only when the icon is standalone.
@@ -363,21 +375,25 @@ side by side.
 
 ### 8.2 Pills / segmented filters *(copied)*
 
-The category row is LeetCode's filter pill:
+The category row is LeetCode's filter pill, reproduced with the original classes:
 
 ```html
-<a class="relative last:mr-12" data-e2e-active="true">
-  <div class="flex items-center space-x-2 whitespace-nowrap rounded-full px-4 py-[10px]
-              text-base leading-tight bg-gray-8 dark:bg-white text-label-r
-              dark:text-dark-label-r shadow-level2 dark:shadow-dark-level2">
-    <svg class="mr-2 hidden h-[18px] w-[18px] lg:block">…</svg>
-    All Topics
-  </div>
-</a>
+<button class="gc-pillbtn" role="tab" aria-selected="true" data-category="all">
+  <span class="gc-pill is-active">
+    <span class="gc-pill__icon">…</span>All Topics
+  </span>
+</button>
 ```
 
-Selected = inverted (white in dark mode). Unselected = `bg-fill-3 text-label-2` with a
-`hover:bg-fill-2` step. **Never** colour a selected pill orange; inversion is the signal.
+The visual pill is **40 px** tall, `0 16px` padding, **16 px / 20 px** text, fully rounded,
+with an **18 px** icon. Selected = inverted: `bg-white text-[#262626]` plus
+`shadow-level2` (light mode inverts to `#262626` on white). Unselected =
+`rgba(255,255,255,.10)` on dark / `rgba(0,10,32,.05)` on light, `dark-label-2` text, with a
+`fill-2` hover step. **Never** colour a selected pill orange; inversion is the signal.
+Icon colours come from the vendor scale: orange, blue, green, purple, teal, pink, yellow.
+
+Pills sit in a horizontally scrolling strip with a **16 px** gap. An `angles-right` button
+(34 px wide, page-coloured fade) appears when the strip overflows; it scrolls by 240 px.
 
 ### 8.3 Chips *(copied)*
 
@@ -403,46 +419,48 @@ never a checkbox:
 
 ### 8.5 Problem row *(copied structure, `.gc-row` modifiers)*
 
-44 px, radius 8, zebra every other row with `bg-fill-quaternary`, hover `--sd-accent`.
-Column order and widths, left to right:
+44 px, radius 8, odd rows `bg-fill-quaternary` (`rgba(255,255,255,.06)` dark /
+`rgba(0,0,0,.02)` light). The row is one `<a>` with this anatomy:
 
 ```
-[status 16] [daily 14?] [number 38] [title flex] [topic tag*] [accept 64] [difficulty 64]
-[premium lock 20?] [bookmark 28] [chevron 16 on hover]
+[status 16] │ 18px gap │ [title flex] [accept 70 centered] [difficulty auto, mx 16]
+            [premium meter 23] [bookmark 28]
 ```
 
-Title is 14/20 **500**; number is 13 px at 400 in `--sd-muted-foreground`, right-aligned and
-suffixed with a period (`1. Two Sum`). Acceptance is 64 px, right-aligned, secondary text,
-and is hidden below 720 px. The topic tag (`#reflog`) is a hairline chip that fades in on
-row hover and is hidden below 900 px. The whole row is one `<a>`; inner controls
-(`.gc-row__star`, a `span role="button"`) stop propagation.
+- Title is **14/20, weight 500**, and includes the number: `1. Recover a Lost Commit`.
+- Acceptance is **70 px**, centered, 14 px, `#a8a8a8`; hidden below 720 px.
+- Difficulty is 14 px in the exact rubric colour (`#46c6c2`, `#fac31d`, `#f8615c`), with
+  16 px margins.
+- The premium meter is eight 2×8 px bars at 20% opacity, with a 12 px lock when the task is
+  premium. It is hidden below 720 px in the mobile layout.
+- The bookmark is a 28 px hover-only control (`opacity: 0` until row hover/focus); it is
+  hidden below 720 px.
+- Hover is a 300 ms background transition; inner controls stop propagation.
 
 ### 8.6 Tab bar *(copied look, `.gc-tabbar` implementation)*
 
-A 36 px strip with a `hsl(var(--sd-foreground) / .04)` wash and a 1 px bottom border,
-full-bleed at the top of a pane. Markup is `.gc-tabbar > .gc-tabbar__scroll[role=tablist]
-+ .gc-tabbar__tools`. A tab is `padding: 0 12px`, 13 px text, gap 7, icon at 14 px in a
-role colour:
+A **36 px** strip painted `rgba(255,255,255,.06)` over the `#262626` pane (composite
+`#323232`), radius `8px 8px 0 0`. Tabs are **28 px** pills inside it, radius **5 px**,
+`padding: 4px 8px`, **14 px** text, icon at 14 px:
 
 | Tab | Icon | Icon colour |
 | --- | --- | --- |
-| Description | `book-open` | `--sd-info` |
-| Editorial | `memo` | `--sd-medium` |
-| Solutions | `code` | `--sd-info` |
-| Submissions | `clock-rotate-left` | `--sd-info` |
-| Terminal | `terminal` | `--sd-green-500` |
-| Testcase | `flask` | `--sd-green-500` |
+| Description | `book-open` | `#007bff` |
+| Editorial | `memo` | `#fac31d` |
+| Solutions | `code` | `#007bff` |
+| Submissions | `clock-rotate-left` | `#007bff` |
+| Terminal | `terminal` | `#2db55d` |
+| Testcase | `flask` | `#2db55d` |
 
-Selected = foreground text at weight 500 + a 1 px top rule inset 8 px (`::before`),
-no fill. Unselected = `--sd-muted-foreground`, hover wash. Never use underlines.
+Selected = `dark-label-1` text at weight 500, transparent fill. Unselected =
+`dark-label-2`, hover `rgba(255,255,255,.08)`. There is **no underline**; the active tab is
+a filled text-weight change only. This is the biggest difference from the earlier
+LeetCode-adjacent pass: the old 36 px full-height tab with a top rule is gone.
 
-Behaviour (`UI.initTabs`): arrow keys rove between tabs, `Home`/`End` jump to the ends, and
-the selected tab is scrolled into view with `scrollIntoView({ inline: "nearest" })`. The
-scroll strip gets an edge fade (§8.14) when it overflows. The tool cluster on the right
-(bookmark, focus) uses 26 px icon buttons with 13 px icons so the strip stays 36 px.
-
-Tab panels follow ARIA: `role="tabpanel"` with `aria-labelledby` pointing at the tab. Only
-the active panel is rendered; inactive panels carry `hidden`.
+Behaviour (`UI.initTabs`): arrow keys rove, `Home`/`End` jump, selected tabs scroll into
+view, and the strip gets an edge fade when it overflows. The right-hand tool cluster
+(bookmark, focus, clear, copy) is 26 px and fades in on pane hover, matching LeetCode's
+`hover_show_toolbar` behaviour. Panels are `role="tabpanel"` with `hidden` on inactive.
 
 ### 8.7 Progress ring *(copied)*
 
@@ -505,9 +523,9 @@ a spinner for a sub-200 ms load.
 
 ### 8.14 Edge fades (new — `.gc-fade-x`)
 
-Horizontal strips that scroll (track cards, filter pills, tab bars) must advertise the
-overflow. `UI.initEdgeFades(selector)` adds `.gc-fade-x` once per element and toggles two
-state classes from the element's own `scrollLeft` / `clientWidth` / `scrollWidth`:
+Horizontal strips that scroll (feature banners, keyword tags, tab strips) must advertise
+the overflow. `UI.initEdgeFades(selector)` adds `.gc-fade-x` once per element and toggles
+two state classes from the element's own `scrollLeft` / `clientWidth` / `scrollWidth`:
 
 | State | Effect |
 | --- | --- |
@@ -550,6 +568,54 @@ returns focus to the trigger, one menu open at a time, `role="menu"` with
 `disabled` attribute (so they remain discoverable).
 
 ---
+
+### 8.17 Feature banners *(new — `.gc-banner`)*
+
+The top of the dashboard is a four-up carousel of 268 × 132 px cards, 14 px gap, radius 8.
+Each card reuses the vendor cover surfaces (`background_cover-background__OCnoq` plus
+`dark-blue`, `dark-green`, `dark-orange`, `dark-purple`, `dark-red`, `dark-gray`) so the
+gradient treatment is LeetCode's own. Content order:
+
+```
+[icon watermark 22px, top right]
+[EYEBROW 11px / 600 / .78 opacity / uppercase]
+[Title 18px / 24px / 600]
+[meta 12px + count]  ← pushed to the bottom
+[3px progress rail]
+```
+
+The strip scrolls horizontally with an edge fade; the fourth card clips exactly as it does
+on the reference at 1440 px.
+
+### 8.18 Keyword tags *(new — `.gc-keyword`)*
+
+A single 21 px row under the banners, 34 px below them. Each tag is 14 px text plus an
+18 px count badge (`12 px`, `bg-fill-3`, radius 10). Gaps are 20 px. The row is clipped and
+scrollable, with an `Expand` control that reveals the remaining tags. Hover turns the label
+blue. Clicking a tag filters the list via `?tag=`.
+
+### 8.19 Rail cards *(new — `.gc-calcard`, `.gc-trendcard`)*
+
+The 270 px rail holds two layer-1 cards (`#282828`, radius 8, layered 2/4/8 px shadow)
+and a footer.
+
+- **Calendar card:** 36 px header (`Day N`, countdown at 10 px, `UTC` chip at 11 px,
+  prev/next at 18 px, 34 × 40 month tile), 7-column grid of 32 px cells, weekday cells
+  26 px, today a 28 px green circle, completed days a 4 px red dot. Below it, a 77 px
+  orange-tinted daily banner with the challenge title, difficulty, acceptance and a Start
+  link. Footer: streak and week count.
+- **Trending card:** 36 px header with carousel arrows, a 32 px search-looking field, and
+  34 px rows with rank, mono command, and attempts.
+- **Footer:** three 12 px rows of links and copyright, exactly like the reference's
+  Download App / Support / Terms block.
+
+### 8.20 Mobile header *(new)*
+
+Below 768 px the 50 px bar shows logo + wordmark on the left, then a search icon and a
+three-line hamburger. The hamburger animates to an X over 200 ms and reveals a disclosure
+panel (`hidden` when closed) with the four primary links, Bookmarks, Submissions, Premium,
+and the theme row. The desktop search collapses to a 32 px icon between 768–1023 px and
+expands to 240 px on focus with a 300 ms width transition.
 
 ## 9. Motion
 
@@ -602,29 +668,29 @@ duration to `1ms` and stop the cursor blink.
 
 ## 12. Responsive
 
-The breakpoints are max-width media queries at **1279, 1023, 900, 720, 560, 480 px**. They
-are chosen by content collapse, not by device names.
+Max-width media queries at **1279, 1023, 900, 767, 720, 480 px**. Breakpoints follow the
+reference's Tailwind steps (`xl`, `lg`, `md`) and the content's own collapse points.
 
 | Breakpoint | Dashboard | Question page |
 | --- | --- | --- |
-| ≥ 1280 | rail 240 + content (1100 max) + aside 272 | 50/50 panes, splitters live |
-| 1024–1279 | aside hides; content re-centres at 1100 + 48 padding | unchanged |
-| ≤ 1023 | rail leaves the grid and becomes a fixed 240 px overlay with a scrim; nav search hides; main padding drops to 18/16 | unchanged |
-| ≤ 900 | nav drops the 4th link and Premium; row topic tag hides; track cards shrink to 232×120 | panes stack — description 46 vh, terminal fills the rest; splitters hide |
-| ≤ 720 | wordmark hides; nav drops to 3 links; streak hides; rows tighten (8 px gaps, 28 px number, 48 px difficulty); acceptance hides; toolbar wraps and search goes full-width; pills drop to 34 px; Submit label hides | description title 20/28; prose padding 16; terminal padding 12; graph drops refs |
-| ≤ 560 | — | IDE bar compacts: back label, divider, prev/next, and the bar's theme button hide; Run and Submit keep their labels |
-| ≤ 480 | toolbar's icon cluster wraps; search takes a full row | — |
+| ≥ 1280 | content 1100 + rail 270, `x=27 / 51`, `x=1154` | 50/50 panes, splitters live |
+| 1024–1279 | rail removed; content centred, width ≤1100, `0 16px` padding | unchanged |
+| ≤ 1023 | nav wordmark hides, search collapses to a 32 px icon (expands on focus), streak and Premium hide | prev/next hide; centre actions leave absolute centring |
+| 768–1023 | desktop nav remains (icon logo + 4 links + search icon + theme + avatar) | unchanged |
+| ≤ 767 | mobile header: logo + wordmark, search, hamburger; full menu drops below the bar; theme moves into the menu | unchanged |
+| ≤ 900 | content `x=16`; row topic tag hides | panes stack — description 46 vh, terminal fills the rest; splitters hide |
+| ≤ 720 | acceptance and bookmark hide; premium meter stays; toolbar stays on one row with a flexible search; progress text drops to 12 px | title stays 24/32; pane padding 16; terminal padding 12 |
+| ≤ 560 | — | IDE bar compacts: back label, divider, logo wordmark hide |
+| ≤ 480 | toolbar controls tighten (30 px buttons, 14 px ring, 11 px progress) | — |
 
 Rules:
 
 - Never shrink the 44 px row height.
-- Never let the description pane go under 360 px; below 900 px it is full-width instead.
-- The mobile rail is `visibility: hidden` when closed so its links leave the tab order, and
-  `Escape` closes it. Tapping the scrim closes it too.
-- At ≤1023 px every row's bookmark star is permanently visible (it is hover-only on
-  desktop), because hover does not exist on touch.
-- Header controls never disappear without a replacement: back chevron, title, Run, Submit,
-  and the options menu remain at every width.
+- Content offset stays **56 px** below the navbar at every width.
+- The description pane is full-width below 900 px; never narrower than 360 px.
+- The mobile menu is a disclosure, not a drawer: `hidden` removes it from the tab order, and
+  `Escape` closes it.
+- No horizontal page overflow at 320 px, in either theme.
 
 ---
 
@@ -638,7 +704,11 @@ README.md                  how to run, what is wired, QA notes
 assets/
   css/
     vendor/                untouched LeetCode CSS (3 files)
-    app.css                tokens, gc-* components, overrides
+    app.css                tokens, gc-* components, parity rules
+  fonts/
+    Typo_Round_Regular.subset.woff2
+    Typo_Round_Regular.woff
+    Typo_Round_Bold.woff   rounded display face used by Premium/promo labels
   js/
     icons.js               generated icon set + icon()
     data.js                problem dataset, categories, tracks, stats
@@ -687,24 +757,35 @@ Everything that mutates the DOM is scoped to a `[data-page]` root; shared helper
 ## 15. Token quick reference (copy-paste)
 
 ```css
-/* surfaces */
-background: hsl(var(--sd-background));
-background: hsl(var(--sd-card));
-background: hsl(var(--sd-popover));
-background: hsl(var(--sd-secondary));
-background: hsl(var(--sd-accent));      /* hover wash */
+/* page surfaces */
+background: var(--gc-page);            /* #1a1a1a / #fff */
+background: var(--gc-layer);           /* #282828 / #fff */
+background: var(--gc-pane);            /* #262626 / #fff */
+background: var(--gc-wash);            /* inputs + icon buttons */
+background: var(--gc-zebra);           /* odd rows */
 
 /* type */
-color: hsl(var(--sd-foreground));
-color: hsl(var(--sd-muted-foreground));
-color: hsl(var(--sd-easy));             /* also --sd-medium, --sd-hard */
+color: var(--gc-label-1);              /* #fff / #262626 */
+color: var(--gc-label-2);              /* 75% */
+color: var(--gc-label-3);              /* 60% */
+color: var(--gc-label-4);              /* 30% */
 
-/* lines */
-border: 1px solid hsl(var(--sd-border));
-border-radius: var(--sd-radius);        /* 8px */
-border-radius: calc(var(--sd-radius) - 3px); /* 5px */
+/* ruled lines + shape */
+border: 1px solid var(--gc-hairline);
+border-radius: 8px;                    /* cards, rows, banners */
+border-radius: 5px;                    /* panes, tabs, inline code */
 
-/* brand */
-color: #ffa116;
-background: rgb(255 161 22 / 0.12);
+/* meaning */
+color: #46c6c2;                        /* easy */
+color: #fac31d;                        /* medium */
+color: #f8615c;                        /* hard */
+color: #ffa116;                        /* brand / premium */
+color: #2db55d;                        /* today / online */
+
+/* copied markup — prefer the vendor utility */
+class="dark:bg-dark-layer-1 dark:text-dark-label-2 text-difficulty-easy"
 ```
+
+Rules of thumb: **surfaces** come from `--gc-*`, **hover/inputs** use `--gc-wash`,
+**text** uses `--gc-label-*`, and any component that has a LeetCode class equivalent uses
+the vendor class instead of writing colour by hand.
