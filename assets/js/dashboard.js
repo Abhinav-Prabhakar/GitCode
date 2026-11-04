@@ -571,6 +571,7 @@
     syncTagChip();
     renderRows();
     syncURL();
+    if (window.gcSyncRail) window.gcSyncRail();
   }
 
   function clearFilters() {
@@ -701,6 +702,83 @@
     }
   }
 
+  /* --------------------------------------------------------- left rail */
+
+  function renderRail() {
+    var host = UI.$("#sidebarWidthContainer");
+    var toggle = UI.$("#gc-rail-toggle");
+    if (!host || !toggle) return;
+
+    UI.$$("[data-rail-icon]", toggle).forEach(function (n) {
+      n.innerHTML = window.icon(n.getAttribute("data-rail-icon"));
+    });
+
+    var solved = D.problems.filter(function (p) { return p.status === "solved"; }).length;
+    var pct = Math.round((solved / D.problems.length) * 100);
+
+    host.innerHTML =
+      '<div class="gc-rail__group">' +
+      '<a class="gc-rail__row" href="index.html"><span class="gc-rail__icon">' + window.icon("books") + "</span>Problem list</a>" +
+      '<a class="gc-rail__row" href="problem.html?p=' + encodeURIComponent(D.daily.slug) + '"><span class="gc-rail__icon">' + window.icon("calendar") + "</span>Daily challenge</a>" +
+      "</div>" +
+      '<div class="gc-rail__group"><div class="gc-rail__label">Topics</div>' +
+      D.categories
+        .map(function (c) {
+          return (
+            '<button type="button" class="gc-rail__row" data-rail-category="' + c.id + '">' +
+            '<span class="gc-rail__icon">' + window.icon(c.icon) + "</span>" + UI.esc(c.label) +
+            '<span class="gc-rail__count">' + categoryCount(c.id) + "</span></button>"
+          );
+        })
+        .join("") +
+      "</div>" +
+      '<div class="gc-rail__foot">' +
+      '<div class="text-sm font-medium">' + solved + " / " + D.problems.length + " solved</div>" +
+      '<div class="gc-rail__bar"><span style="width:' + pct + '%"></span></div>' +
+      "</div>";
+
+    var open = false;
+    var panel = UI.$("#nav-panel-scroll");
+    function setOpen(next) {
+      open = next;
+      panel.classList.toggle("gc-rail-open", open);
+      host.classList.toggle("gc-rail-open", open);
+      toggle.setAttribute("aria-expanded", String(open));
+      toggle.setAttribute("aria-label", open ? "Close navigation" : "Open navigation");
+    }
+    toggle.addEventListener("click", function (e) {
+      e.stopPropagation();
+      setOpen(!open);
+    });
+    host.addEventListener("click", function (e) {
+      var row = e.target.closest("[data-rail-category]");
+      if (!row) {
+        if (e.target.closest("a")) setOpen(false);
+        return;
+      }
+      state.category = row.getAttribute("data-rail-category");
+      state.tag = "";
+      apply();
+      syncRailSelection();
+      setOpen(false);
+    });
+    function syncRailSelection() {
+      UI.$$("[data-rail-category]", host).forEach(function (n) {
+        n.classList.toggle("is-on", n.getAttribute("data-rail-category") === state.category);
+      });
+    }
+    syncRailSelection();
+    document.addEventListener("click", function (e) {
+      if (!open) return;
+      if (e.target.closest("#nav-panel-scroll") || e.target.closest("#gc-rail-toggle")) return;
+      setOpen(false);
+    });
+    document.addEventListener("keydown", function (e) {
+      if (open && e.key === "Escape") setOpen(false);
+    });
+    window.gcSyncRail = syncRailSelection;
+  }
+
   /* --------------------------------------------------------------- boot */
 
   UI.ready(function () {
@@ -708,6 +786,7 @@
     renderKeywords();
     renderPills();
     renderAside();
+    renderRail();
     bind();
     apply();
     syncPillsNav();

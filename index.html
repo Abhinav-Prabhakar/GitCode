@@ -35,10 +35,18 @@
 <body>
   <div id="gc-nav"><!-- rendered by ui.js --></div>
 
+  <div class="fixed z-base-4 left-4 lc-dsw-xl:left-6" style="top: 74px;">
+    <button type="button" id="gc-rail-toggle" aria-label="Open navigation" aria-expanded="false" aria-controls="nav-panel-scroll"
+      class="group relative inline-flex h-6 w-6 cursor-pointer items-center justify-center rounded-full border border-sd-border bg-sd-secondary p-0 text-sd-secondary-foreground transition-all hover:bg-sd-blue-400 hover:text-white">
+      <span class="relative flex text-[12px] leading-[normal] p-[1px] group-hover:hidden" data-rail-icon="sidebar"></span>
+      <span class="relative hidden text-[12px] leading-[normal] p-[1px] text-white group-hover:flex" data-rail-icon="angles-right"></span>
+    </button>
+  </div>
+
   <main id="main-content" class="mx-auto w-full grow lg:max-w-screen-xl flex bg-white p-0 dark:bg-dark-layer-bg md:max-w-none md:p-0 lc-dsw-xl:max-w-none">
     <div class="flex w-full flex-1">
       <div class="z-base-2 relative">
-        <div class="h-full overflow-y-auto bg-white transition-[top] duration-300 z-base-3 left-0 top-0 dark:bg-dark-layer-bg fixed w-0" id="nav-panel-scroll">
+        <div class="h-full overflow-y-auto bg-white transition-[top] duration-300 z-base-3 left-0 top-0 dark:bg-dark-layer-bg fixed w-0" id="nav-panel-scroll" style="top: 50px">
           <div class="relative h-max min-h-full border-sd-border">
             <div class="flex flex-col gap-1 overflow-x-hidden p-4 pt-6 transition-all px-0" id="sidebarWidthContainer"></div>
           </div>
