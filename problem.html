@@ -197,20 +197,25 @@
                   <div data-panel="solutions" hidden id="gc-solutions"></div>
                   <div data-panel="submissions" hidden id="gc-submissions"></div>
                 </div>
-                <div class="flex w-full items-center justify-between gap-2 bg-layer-01 p-1 dark:bg-layer-01">
-                  <div class="flex items-center gap-1">
-                    <button type="button" id="gc-like" class="flex h-7 items-center gap-1 rounded-lg px-2 py-1 text-sm font-medium text-text-secondary hover:bg-fill-secondary dark:text-text-secondary" aria-label="Like task"></button>
-                    <div class="h-7 w-[1px] bg-border-tertiary dark:bg-border-tertiary"></div>
-                    <button type="button" id="gc-dislike" class="flex h-7 w-7 items-center justify-center rounded-lg p-1.5 text-sm font-medium text-text-secondary hover:bg-fill-secondary dark:text-text-secondary" aria-label="Dislike task"></button>
-                    <button type="button" id="gc-comment" class="flex h-7 items-center gap-1 rounded-lg px-2 py-1 text-sm font-medium text-text-secondary hover:bg-fill-secondary dark:text-text-secondary" aria-label="Comments"></button>
+                <div class="flex w-full items-center gap-2 bg-layer-01 p-1 dark:bg-layer-01">
+                  <div class="flex items-center gap-2">
+                    <div class="flex">
+                      <div class="mr-1 flex overflow-hidden rounded-lg bg-fill-secondary dark:bg-fill-secondary">
+                        <button type="button" id="gc-like" class="relative inline-flex h-7 items-center justify-center gap-1 px-2 text-sm font-medium text-text-secondary dark:text-text-secondary" aria-label="Like task"></button>
+                        <div class="h-auto w-[1px] bg-layer-01 dark:bg-layer-01"></div>
+                        <button type="button" id="gc-dislike" class="relative inline-flex h-7 w-7 items-center justify-center gap-2 text-sm font-medium text-text-secondary dark:text-text-secondary" aria-label="Dislike task"></button>
+                      </div>
+                      <button type="button" id="gc-comment" class="relative inline-flex h-7 items-center justify-center gap-2 px-2 text-sm font-medium text-text-secondary dark:text-text-secondary" aria-label="Comments"></button>
+                    </div>
+                    <div class="h-4 w-[1px] bg-border-tertiary dark:bg-border-tertiary"></div>
+                    <div class="flex gap-2">
+                      <button type="button" id="gc-bookmark" class="relative inline-flex h-7 w-7 items-center justify-center rounded text-sm text-text-secondary hover:text-text-primary dark:text-text-secondary dark:hover:text-text-primary" aria-label="Bookmark task"></button>
+                      <button type="button" id="gc-share" class="relative inline-flex h-7 w-7 items-center justify-center rounded text-sm text-text-secondary hover:text-text-primary dark:text-text-secondary dark:hover:text-text-primary" aria-label="Share task"></button>
+                      <button type="button" id="gc-help" class="relative inline-flex h-7 w-7 items-center justify-center rounded text-sm text-text-secondary hover:text-text-primary dark:text-text-secondary dark:hover:text-text-primary" aria-label="Help"></button>
+                    </div>
                   </div>
                   <div class="flex-1"></div>
-                  <div class="flex items-center gap-2">
-                    <button type="button" id="gc-bookmark" class="flex h-7 w-7 items-center justify-center rounded p-1.5 text-sm text-text-secondary hover:bg-sd-accent dark:text-text-secondary" aria-label="Bookmark task"></button>
-                    <button type="button" id="gc-share" class="flex h-7 w-7 items-center justify-center rounded p-1.5 text-sm text-text-secondary hover:bg-sd-accent dark:text-text-secondary" aria-label="Share task"></button>
-                    <button type="button" id="gc-help" class="flex h-7 w-7 items-center justify-center rounded p-1.5 text-sm text-text-secondary hover:bg-sd-accent dark:text-text-secondary" aria-label="Help"></button>
-                  </div>
-                  <div class="mr-2 flex items-center gap-1 text-caption font-medium text-text-secondary">
+                  <div class="gc-online mr-2 flex items-center gap-1 text-caption font-medium text-text-secondary">
                     <div class="h-1.5 w-1.5 rounded-full bg-sd-green-500"></div>
                     <div>791 Online</div>
                   </div>

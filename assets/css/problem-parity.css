@@ -998,7 +998,8 @@ html.dark {
   #gc-ide .gc-debug-wrap,
   #gc-ide .gc-debug-div,
   #gc-ide #gc-hint,
-  #gc-ide #gc-timer {
+  #gc-ide #gc-timer,
+  #gc-ide .gc-online {
     display: none;
   }
   #gc-ide .gc-nav-premium {

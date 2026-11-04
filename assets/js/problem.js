@@ -1004,7 +1004,7 @@
     if (!btn) return;
     var on = !!bookmarks[p.slug];
     btn.classList.toggle("is-on", on);
-    btn.innerHTML = window.icon("bookmark");
+    btn.innerHTML = window.icon("star");
     btn.setAttribute("aria-pressed", String(on));
     btn.setAttribute("aria-label", on ? "Remove bookmark" : "Bookmark task");
     btn.title = on ? "Remove bookmark" : "Bookmark";
