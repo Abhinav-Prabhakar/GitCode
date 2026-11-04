@@ -126,10 +126,10 @@
     <!-- workspace -->
     <main class="flex w-full min-w-[var(--nav-min-w,0px)] flex-grow overflow-y-hidden p-[10px] pt-0">
       <div class="relative flex h-full w-full">
-        <div class="flexlayout__layout" style="position:relative;width:100%;height:100%">
+        <div class="flexlayout__layout" style="position:relative;width:100%">
 
           <!-- description -->
-          <div class="flexlayout__tabset flexlayout__tabset-active" data-tabgroup style="left:0;top:0;width:486px;height:642px;position:absolute" id="gc-desc-tabset">
+          <div class="flexlayout__tabset flexlayout__tabset-active" data-tabgroup id="gc-desc-tabset">
             <div class="flexlayout__tabset_tabbar_outer flexlayout__tabset_tabbar_outer_top flexlayout__tabset-selected flexlayout__tabset_tabbar_hover_show_toolbar" style="height:36px">
               <div class="flexlayout__tabset_tabbar_inner flexlayout__tabset_tabbar_inner_top">
                 <div class="flexlayout__tabset_tabbar_inner_tab_container flexlayout__tabset_tabbar_inner_tab_container_top" style="left:0" role="tablist" aria-label="Task views">
@@ -189,7 +189,7 @@
               </div>
             </div>
             <div class="flexlayout__tabset_content"></div>
-            <div class="flexlayout__tab" style="left:0;top:36px;position:absolute;--width:486px;--height:606px">
+            <div class="flexlayout__tab">
               <div class="flex h-full w-full flex-col">
                 <div class="flex w-full flex-1 flex-col gap-4 overflow-y-auto px-4 py-5 gc-scroll" id="gc-desc-scroll">
                   <div data-panel="desc" id="gc-desc"></div>
@@ -224,10 +224,10 @@
             </div>
           </div>
 
-          <div class="flexlayout__splitter flexlayout__splitter_vert" style="left:486px;top:0;width:8px;height:642px" role="separator" aria-orientation="vertical" aria-label="Resize description"></div>
+          <div class="flexlayout__splitter flexlayout__splitter_vert" role="separator" aria-orientation="vertical" aria-label="Resize description"></div>
 
           <!-- terminal -->
-          <div class="flexlayout__tabset" data-tabgroup style="left:494px;top:0;width:486px;height:598px;position:absolute" id="gc-code-tabset">
+          <div class="flexlayout__tabset" data-tabgroup id="gc-code-tabset">
             <div class="flexlayout__tabset_tabbar_outer flexlayout__tabset_tabbar_outer_top flexlayout__tabset_tabbar_hover_show_toolbar" style="height:36px">
               <div class="flexlayout__tabset_tabbar_inner flexlayout__tabset_tabbar_inner_top">
                 <div class="flexlayout__tabset_tabbar_inner_tab_container flexlayout__tabset_tabbar_inner_tab_container_top" style="left:0" role="tablist" aria-label="Terminal views">
@@ -247,7 +247,7 @@
               <div class="flexlayout__tab_toolbar"></div>
             </div>
             <div class="flexlayout__tabset_content"></div>
-            <div class="flexlayout__tab" style="left:0;top:36px;position:absolute;--width:486px;--height:562px">
+            <div class="flexlayout__tab">
               <div class="relative flex h-full min-h-0 flex-col overflow-hidden rounded bg-layer-01 dark:bg-layer-01" id="gc-editor">
                 <div class="flex h-8 items-center justify-between border-b border-border-quaternary py-1 pl-[10px] pr-[10px] dark:border-border-quaternary">
                   <div class="flex h-full flex-nowrap items-center">
@@ -283,10 +283,10 @@
             </div>
           </div>
 
-          <div class="flexlayout__splitter flexlayout__splitter_horz" style="left:494px;top:598px;width:486px;height:8px" role="separator" aria-orientation="horizontal" aria-label="Resize terminal"></div>
+          <div class="flexlayout__splitter flexlayout__splitter_horz" role="separator" aria-orientation="horizontal" aria-label="Resize terminal"></div>
 
           <!-- workspace -->
-          <div class="flexlayout__tabset" data-tabgroup style="left:494px;top:606px;width:486px;height:236px;position:absolute" id="gc-testcase-tabset">
+          <div class="flexlayout__tabset" data-tabgroup id="gc-testcase-tabset">
             <div class="flexlayout__tabset_tabbar_outer flexlayout__tabset_tabbar_outer_top flexlayout__tabset_tabbar_hover_show_toolbar" style="height:36px">
               <div class="flexlayout__tabset_tabbar_inner flexlayout__tabset_tabbar_inner_top">
                 <div class="flexlayout__tabset_tabbar_inner_tab_container flexlayout__tabset_tabbar_inner_tab_container_top" style="left:0" role="tablist" aria-label="Workbench views">
@@ -322,7 +322,7 @@
               </div>
             </div>
             <div class="flexlayout__tabset_content"></div>
-            <div class="flexlayout__tab" style="left:0;top:36px;position:absolute;--width:486px;--height:200px">
+            <div class="flexlayout__tab">
               <div class="flex h-full w-full flex-col overflow-y-auto gc-scroll" id="gc-workbench">
                 <div data-panel="workspace" id="gc-workspace"></div>
                 <div data-panel="result" hidden id="gc-result"></div>

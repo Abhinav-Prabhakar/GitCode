@@ -32,6 +32,70 @@
   background: var(--fill-tertiary);
 }
 
+/* Pane geometry. At 1440 x 900 the reference measures a 1420 x 842 layout:
+   description 486 x 642, code 486 x 598, testcase 486 x 236 at y = 606, with
+   an 8px splitter between the columns and rows. Declare it as variables so the
+   same proportions hold at any viewport instead of freezing pixel heights.
+   --gc-main-h accounts for the 48px nav and the 10px bottom padding; below
+   560px tall the layout stops shrinking and main scrolls instead. */
+#gc-ide .flexlayout__layout {
+  --gc-pane-w: 486px;
+  --gc-main-h: max(calc(100vh - 58px), 560px);
+  height: var(--gc-main-h);
+}
+#gc-ide main {
+  overflow-y: auto;
+}
+#gc-ide .flexlayout__tab {
+  left: 0 !important;
+  top: 36px !important;
+  width: 100% !important;
+  height: calc(100% - 36px) !important;
+}
+#gc-ide #gc-desc-tabset {
+  left: 0;
+  top: 0;
+  width: var(--gc-pane-w);
+  height: calc(var(--gc-main-h) - 200px);
+}
+#gc-ide #gc-code-tabset {
+  left: calc(var(--gc-pane-w) + 8px);
+  top: 0;
+  width: var(--gc-pane-w);
+  height: calc(var(--gc-main-h) - 244px);
+}
+#gc-ide #gc-testcase-tabset {
+  left: calc(var(--gc-pane-w) + 8px);
+  top: calc(var(--gc-main-h) - 236px);
+  width: var(--gc-pane-w);
+  height: 236px;
+}
+#gc-ide #gc-desc-tabset,
+#gc-ide #gc-code-tabset,
+#gc-ide #gc-testcase-tabset {
+  position: absolute;
+}
+#gc-ide .flexlayout__splitter_vert {
+  left: var(--gc-pane-w);
+  top: 0;
+  width: 8px;
+  height: calc(var(--gc-main-h) - 200px);
+}
+#gc-ide .flexlayout__splitter_horz {
+  left: calc(var(--gc-pane-w) + 8px);
+  top: calc(var(--gc-main-h) - 244px);
+  width: var(--gc-pane-w);
+  height: 8px;
+}
+
+/* Between 901 and 999px two 486px panes plus padding no longer fit. Split the
+   available width evenly instead of letting the code pane run off-screen. */
+@media (min-width: 901px) and (max-width: 999px) {
+  #gc-ide .flexlayout__layout {
+    --gc-pane-w: calc((100vw - 28px) / 2);
+  }
+}
+
 /* LeetCode reveals pane tools on hover; keep the bar visually empty at rest. */
 #gc-ide .flexlayout__tabset_tabbar_hover_show_toolbar .flexlayout__tab_toolbar {
   display: none;
