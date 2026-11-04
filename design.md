@@ -138,6 +138,30 @@ Only two are allowed, both already defined by LeetCode's CSS: the premium text g
 (`.premium-text-yellow-gradinet`) and the progress-ring stroke gradient
 (`#007AFF → #73B6FF`). Do not invent gradient buttons.
 
+One exception exists in `app.css`: the edge-fade mask (§8.14) uses a black-to-transparent
+`linear-gradient` as a `mask-image`. It paints no colour, so it is not a visual gradient.
+
+### 3.6 Theme switching
+
+Dark is canonical: `<html class="dark">`. **Light mode is not "dark removed".** The vendor
+build redefines the token block inside `@media (prefers-color-scheme: dark) { :root:not(.light) { … } }`,
+so a bare `<html>` still resolves as dark on a dark OS. Moving to light means explicitly
+setting `.light`:
+
+```js
+document.documentElement.classList.toggle("dark", theme === "dark");
+document.documentElement.classList.toggle("light", theme === "light");
+```
+
+Both class names are therefore load-bearing. Never add or remove one without the other.
+
+- The choice persists in `localStorage["gc-theme"]`.
+- `?theme=light|dark` forces a theme for review, persists it, and is removed from the URL
+  the next time the user toggles (so a forced link does not win forever).
+- Every toggle in the DOM is `[data-theme-toggle]`; `UI.initTheme()` labels it and wires it.
+  There are three: dashboard nav, question IDE bar, question options menu. All three stay in
+  sync because `applyTheme` rewrites each one.
+
 ---
 
 ## 4. Typography
@@ -204,10 +228,12 @@ the 2 px hairline paddings inherited from the reference markup.
 | Tab strip | **36 px** |
 | Difficulty chip | **24 px** tall, padding `4px 8px`, fully rounded |
 | Topic chip | 24 px, caption type |
-| Dashboard content max-width | **1100 px** (`lc-dsw-xl:max-w-[1100px]`) |
-| Dashboard right rail | **270 px** (`w-[270px]`) |
-| Sidebar (nav panel) | 224–240 px when open; collapsed by default on the dashboard |
-| Panes on question page | 50/50 split, **10 px** outer padding, **8 px** gutter |
+| Dashboard content max-width | **1100 px** (`--gc-content-max`) |
+| Dashboard right rail (aside) | **272 px** (`--gc-aside-w`) |
+| Dashboard left rail (library) | **240 px** (`--gc-rail-w`) |
+| Shell max-width | **1680 px**, centred |
+| Track card | **268 × 132 px** (232 × 120 below 900 px) |
+| Panes on question page | 50/50 split, **8 px** workspace padding, **8 px** gutter |
 
 ### 5.3 Shape
 
@@ -223,27 +249,32 @@ the 2 px hairline paddings inherited from the reference markup.
 **Dashboard shell** — page scrolls, content is centred.
 
 ```
-┌ navbar 50px ─────────────────────────────────────────────┐
-│ [sidebar 224] │  content max 1100                [rail 270]│
-│  Library…     │  track cards (135px tall)                  │
-│  My Lists…    │  category pills (40px)                     │
-│               │  toolbar (32px controls)                   │
-│               │  problem rows (44px, 8px radius, 1px gap)  │
-└───────────────┴────────────────────────────────────────────┘
+┌ navbar 50px ────────────────────────────────────────────────────┐
+│ [rail 240] │  content max 1100                [aside 272]       │
+│  Library…  │  track cards 268×132                             │
+│  My Lists… │  category pills (40px)                            │
+│            │  toolbar (32px controls)                          │
+│            │  problem rows (44px, 8px radius, 1px gap)         │
+└────────────┴───────────────────────────────────────────────────┘
 ```
+
+The shell is a grid: `240px minmax(0,1fr)`. The content column is itself a grid:
+`minmax(0,1fr) 272px` with a **28 px** gap and **20/24/64 px** padding. Below 1280 the
+aside is removed from the grid and the content re-centres; below 1024 the rail leaves the
+grid and becomes a fixed overlay.
 
 **Question shell** — no page scroll; panes scroll internally.
 
 ```
-┌ IDE bar 48px: [list] 1. Title ‹ ›        [Run] [Submit] ┐
-│ ┌ Description ─────────┐ ┌ Terminal ──────────────────┐ │
-│ │ tab strip 36px       │ │ tab strip 36px             │ │
-│ │ scrollable prose     │ │ scrollable output          │ │
-│ │                      ├─┼────────────────────────────┤ │
-│ │                      │ │ Workspace / Test Result    │ │
-│ └──────────────────────┘ └────────────────────────────┘ │
-│  10px padding · 8px gutters · draggable splitters        │
-└──────────────────────────────────────────────────────────┘
+┌ IDE bar 48px: [‹ All tasks] [‹ ›] 1. Title        [Run] [Submit] ⋯ ┐
+│ ┌ Description ─────────┐ ┌ Terminal ──────────────────────────┐ │
+│ │ tab bar 36px         │ │ tab bar 36px                       │ │
+│ │ scrollable prose     │ │ scrollable output                  │ │
+│ │                      ├─┼────────────────────────────────────┤ │
+│ │                      │ │ Workspace / Test Result            │ │
+│ └──────────────────────┘ └────────────────────────────────────┘ │
+│  8px padding · 8px gutters · draggable 8px splitters             │
+└──────────────────────────────────────────────────────────────────┘
 ```
 
 ### 5.5 Elevation
@@ -266,8 +297,11 @@ nav placement.
   branches, three nodes). Reads at 16 px.
 - **Wordmark:** `GitCode` in 600 weight, `hsl(var(--sd-foreground))`, 17 px, tracking `-0.01em`.
 - **Clear space:** 8 px minimum on all sides. Never place the mark on orange.
-- **Nav variant:** on the question page the wordmark is hidden below 1024 px; only the mark
-  remains.
+- **Dashboard nav:** mark + wordmark. The wordmark (`.gc-logo__word`) is hidden at ≤720 px;
+  the mark remains as the home link.
+- **Question page:** the lockup is absent. The IDE bar opens with a back chevron and
+  "All tasks", because the task title already occupies the centre. Do not add a second logo
+  to the question shell.
 
 Premium is never a logo variant — it is the orange "Premium" pill in the nav.
 
@@ -373,29 +407,42 @@ never a checkbox:
 Column order and widths, left to right:
 
 ```
-[status 16] [daily 14?] [number+title flex] [acceptance 70px] [difficulty 64px]
+[status 16] [daily 14?] [number 38] [title flex] [topic tag*] [accept 64] [difficulty 64]
 [premium lock 20?] [bookmark 28] [chevron 16 on hover]
 ```
 
-Title is 14/20 **500**; number is the same size at 400 in `--sd-muted-foreground`, suffixed
-with a period (`1. Two Sum`). Acceptance is 70 px, right-aligned, secondary text, and is
-hidden below `lc-md`. The whole row is one `<a>`; inner controls stop propagation.
+Title is 14/20 **500**; number is 13 px at 400 in `--sd-muted-foreground`, right-aligned and
+suffixed with a period (`1. Two Sum`). Acceptance is 64 px, right-aligned, secondary text,
+and is hidden below 720 px. The topic tag (`#reflog`) is a hairline chip that fades in on
+row hover and is hidden below 900 px. The whole row is one `<a>`; inner controls
+(`.gc-row__star`, a `span role="button"`) stop propagation.
 
-### 8.6 Tab bar *(copied look, `.gc-tabs` implementation)*
+### 8.6 Tab bar *(copied look, `.gc-tabbar` implementation)*
 
-36 px strip, `rgba(255,255,255,.06)` in dark, 8 px top radius. A tab is
-`padding: 0 12px`, 13 px text, gap 8, icon at 14 px in a role colour:
+A 36 px strip with a `hsl(var(--sd-foreground) / .04)` wash and a 1 px bottom border,
+full-bleed at the top of a pane. Markup is `.gc-tabbar > .gc-tabbar__scroll[role=tablist]
++ .gc-tabbar__tools`. A tab is `padding: 0 12px`, 13 px text, gap 7, icon at 14 px in a
+role colour:
 
-| Tab | Icon colour |
-| --- | --- |
-| Description | `--sd-blue-500` |
-| Editorial | `--sd-yellow-500` |
-| Solutions / Code | `--sd-blue-500` |
-| Submissions | `--sd-blue-500` |
-| Terminal / Testcase | `--sd-green-500` |
+| Tab | Icon | Icon colour |
+| --- | --- | --- |
+| Description | `book-open` | `--sd-info` |
+| Editorial | `memo` | `--sd-medium` |
+| Solutions | `code` | `--sd-info` |
+| Submissions | `clock-rotate-left` | `--sd-info` |
+| Terminal | `terminal` | `--sd-green-500` |
+| Testcase | `flask` | `--sd-green-500` |
 
-Selected = foreground text + 1 px top border in `--sd-foreground`, no fill. Unselected =
-`--sd-muted-foreground`, hover wash. Never use underlines.
+Selected = foreground text at weight 500 + a 1 px top rule inset 8 px (`::before`),
+no fill. Unselected = `--sd-muted-foreground`, hover wash. Never use underlines.
+
+Behaviour (`UI.initTabs`): arrow keys rove between tabs, `Home`/`End` jump to the ends, and
+the selected tab is scrolled into view with `scrollIntoView({ inline: "nearest" })`. The
+scroll strip gets an edge fade (§8.14) when it overflows. The tool cluster on the right
+(bookmark, focus) uses 26 px icon buttons with 13 px icons so the strip stays 36 px.
+
+Tab panels follow ARIA: `role="tabpanel"` with `aria-labelledby` pointing at the tab. Only
+the active panel is rendered; inactive panels carry `hidden`.
 
 ### 8.7 Progress ring *(copied)*
 
@@ -451,6 +498,52 @@ one line of 14/20 secondary, one ghost button. Never an illustration.
 Skeletons: `hsl(var(--sd-muted))` blocks with a 1.6 s shimmer; radius matches the element
 they replace.
 
+### 8.14 Edge fades (new — `.gc-fade-x`)
+
+Horizontal strips that scroll (track cards, filter pills, tab bars) must advertise the
+overflow. `UI.initEdgeFades(selector)` adds `.gc-fade-x` once per element and toggles two
+state classes from the element's own `scrollLeft` / `clientWidth` / `scrollWidth`:
+
+| State | Effect |
+| --- | --- |
+| `is-fade-right` | 40 px transparent tail on the right |
+| `is-fade-left` | 40 px transparent lead on the left |
+| both | lead and tail, content opaque in the middle |
+
+Implemented with `mask-image` (plus `-webkit-mask-image`), so it works on any background
+and in both themes. Fades appear only while the strip actually overflows — a strip that
+fits is never dimmed. Re-run the updater on `scroll`, `resize`, and after re-rendering the
+strip's children.
+
+### 8.15 Active tag filter chip (new — `.gc-filterchip`)
+
+Arriving from a trending `#reflog` link sets a tag filter. The dashboard then shows a
+single dismissible chip in the toolbar, before the result count:
+
+```
+[ # reflog  × ]   12 tasks
+```
+
+- Height 32 px, fully rounded, 1 px `hsl(var(--sd-info) / .28)` border,
+  `hsl(var(--sd-info) / .12)` fill, `--sd-info` text.
+- `#` renders at 65% opacity; the label is the raw lowercase tag.
+- The dismiss button is a 22 px transparent circle with an `xmark` icon and an explicit
+  `aria-label="Remove tag filter"`.
+- It is `hidden` when no tag is active, and clearing it resets pagination to page 1 and
+  removes `tag` from the URL.
+
+### 8.16 Menus with state *(extension of §8.12)*
+
+The account menu and the question-page options menu may contain a theme item. It is a
+normal `.gc-menu__item` with `[data-theme-toggle]`, an icon, and a label that flips between
+"Light mode" and "Dark mode". `applyTheme` rewrites **every** `[data-theme-toggle]` in the
+document, so the nav button, the IDE-bar button, and the menu item never disagree.
+
+Menu rules that the implementation enforces: click outside closes, `Escape` closes and
+returns focus to the trigger, one menu open at a time, `role="menu"` with
+`role="menuitem"` children, and disabled rows use `aria-disabled="true"` rather than the
+`disabled` attribute (so they remain discoverable).
+
 ---
 
 ## 9. Motion
@@ -504,14 +597,29 @@ duration to `1ms` and stop the cursor blink.
 
 ## 12. Responsive
 
-| Breakpoint | Behaviour |
-| --- | --- |
-| ≥ 1280 px | Full dashboard: sidebar + 1100 content + 270 rail |
-| 1024–1279 | Rail hides; content keeps 1100 max |
-| 768–1023 | Sidebar becomes an overlay; nav links collapse into a menu |
-| < 768 | Nav logo only; rows drop acceptance + bookmark; toolbar wraps; question page stacks (description above terminal) and splitters hide |
+The breakpoints are max-width media queries at **1279, 1023, 900, 720, 560, 480 px**. They
+are chosen by content collapse, not by device names.
 
-Never shrink the 44 px row height. Never let the description pane go under 360 px.
+| Breakpoint | Dashboard | Question page |
+| --- | --- | --- |
+| ≥ 1280 | rail 240 + content (1100 max) + aside 272 | 50/50 panes, splitters live |
+| 1024–1279 | aside hides; content re-centres at 1100 + 48 padding | unchanged |
+| ≤ 1023 | rail leaves the grid and becomes a fixed 240 px overlay with a scrim; nav search hides; main padding drops to 18/16 | unchanged |
+| ≤ 900 | nav drops the 4th link and Premium; row topic tag hides; track cards shrink to 232×120 | panes stack — description 46 vh, terminal fills the rest; splitters hide |
+| ≤ 720 | wordmark hides; nav drops to 3 links; streak hides; rows tighten (8 px gaps, 28 px number, 48 px difficulty); acceptance hides; toolbar wraps and search goes full-width; pills drop to 34 px; Submit label hides | description title 20/28; prose padding 16; terminal padding 12; graph drops refs |
+| ≤ 560 | — | IDE bar compacts: back label, divider, prev/next, and the bar's theme button hide; Run and Submit keep their labels |
+| ≤ 480 | toolbar's icon cluster wraps; search takes a full row | — |
+
+Rules:
+
+- Never shrink the 44 px row height.
+- Never let the description pane go under 360 px; below 900 px it is full-width instead.
+- The mobile rail is `visibility: hidden` when closed so its links leave the tab order, and
+  `Escape` closes it. Tapping the scrim closes it too.
+- At ≤1023 px every row's bookmark star is permanently visible (it is hover-only on
+  desktop), because hover does not exist on touch.
+- Header controls never disappear without a replacement: back chevron, title, Run, Submit,
+  and the options menu remain at every width.
 
 ---
 
@@ -521,30 +629,36 @@ Never shrink the 44 px row height. Never let the description pane go under 360 p
 index.html                 dashboard
 problem.html               question page
 design.md                  this document
+README.md                  how to run, what is wired, QA notes
 assets/
   css/
     vendor/                untouched LeetCode CSS (3 files)
     app.css                tokens, gc-* components, overrides
   js/
     icons.js               generated icon set + icon()
-    data.js                problem dataset, categories, tags
+    data.js                problem dataset, categories, tracks, stats
     ui.js                  nav, theme, menus, tabs, splitter, shared renderers
     dashboard.js           dashboard-only behaviour
     problem.js             question-page-only behaviour
-  img/                     logo, og image
+_reference/                provenance (git-ignored contents)
+  MANIFEST.md              source URLs + hashes
+  sink_server.py           local asset collector used for the download
 ```
 
 Vanilla JS, classic `<script>` tags (no modules) so the pages also work from `file://`.
-Everything that mutates the DOM is scoped to a `[data-page]` root.
+Everything that mutates the DOM is scoped to a `[data-page]` root; shared helpers live on
+`window.UI`. There is no build step, no package manifest, and no backend — "Run" and
+"Submit" render deterministic simulated results from the problem's `status`.
 
 **Adding a component — checklist**
 
 1. Does LeetCode already have it? Copy the reference markup and classes; stop.
 2. Otherwise: add one `.gc-*` block to `app.css` using §3–§5 tokens only.
-3. Design dark first, then verify light by toggling `html.dark`.
+3. Design dark first, then verify light by setting `html.light` — removing `.dark` is not
+   enough (§3.6).
 4. Provide hover / active / focus-visible / disabled / empty states.
 5. Add the pattern to §8 with anatomy and rules.
-6. Check it at 360, 768, 1024, 1440 px.
+6. Check it at 360, 768, 1024, 1440 px in both themes.
 7. Keyboard-test it. If it is interactive, it must be reachable and labelled.
 
 ---
