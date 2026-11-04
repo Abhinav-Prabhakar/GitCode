@@ -7,13 +7,13 @@
 <p align="center">
   <strong>LeetCode for Git.</strong><br>
   Recover lost commits, untangle merges, rebase shared branches, bisect regressions.<br>
-  A static, pixel-faithful re-creation of LeetCode's problem set and question pages — with a Git curriculum.
+  A pixel-faithful LeetCode shell wrapped around 44 Git tasks you can actually solve in the browser.
 </p>
 
 <p align="center">
   <a href="https://abhinav-prabhakar.github.io/gitcode/"><img src="https://img.shields.io/badge/%E2%96%B6%20live%20demo-gitcode-ffa116?style=for-the-badge" alt="Live demo"></a>
   <img src="https://img.shields.io/badge/HTML%20%7C%20CSS%20%7C%20JS-no%20build-2db55d?style=for-the-badge" alt="HTML, CSS and vanilla JS — no build step">
-  <img src="https://img.shields.io/badge/tasks-44-0a84ff?style=for-the-badge" alt="44 tasks">
+  <img src="https://img.shields.io/badge/labs-44%2F44%20validated-0a84ff?style=for-the-badge" alt="All 44 labs validated">
   <a href="https://github.com/Abhinav-Prabhakar/gitcode/actions/workflows/pages.yml"><img src="https://github.com/Abhinav-Prabhakar/gitcode/actions/workflows/pages.yml/badge.svg" alt="Deploy status"></a>
 </p>
 
@@ -39,6 +39,44 @@
 <img src="docs/screenshots/question-light.png" alt="Question page — light theme" width="100%">
 
 <p align="center"><sub><b>Question</b> · light · 1440 px</sub></p>
+
+---
+
+## Every task is a real sandbox
+
+Each task seeds its own deterministic repository. The terminal is a working Git engine — commits,
+trees, refs, reflog, merge, rebase, cherry-pick, stash, bisect, filter-repo — and Run / Submit inspect
+the live index and refs. Nothing is prerecorded.
+
+<img src="docs/screenshots/result-dark.png" alt="Accepted result after recovering a lost commit" width="100%">
+
+<p align="center"><sub><b>Run</b> · visible and hidden checks read the live repository · accepted in 1 ms</sub></p>
+
+<table>
+  <tr>
+    <td width="50%"><img src="docs/screenshots/editor-dark.png" alt="Editing a conflicted file in the in-page editor" width="100%"></td>
+    <td width="50%"><img src="docs/screenshots/rebase-dark.png" alt="Interactive rebase plan with pick, squash, fixup, reword and drop" width="100%"></td>
+  </tr>
+  <tr>
+    <td align="center"><sub><b>edit &lt;path&gt;</b> · resolve conflicts in place · save, then stage</sub></td>
+    <td align="center"><sub><b>git rebase -i</b> · pick · squash · fixup · reword · drop</sub></td>
+  </tr>
+</table>
+
+<img src="docs/screenshots/submissions-dark.png" alt="Submission history with verdicts, checks and relative time" width="100%">
+
+<p align="center"><sub><b>Submissions</b> · accepted and failed attempts · stored locally · replay any result</sub></p>
+
+<table>
+  <tr>
+    <td width="50%"><img src="docs/screenshots/checks-dark.png" alt="Visible and hidden checks after a run" width="100%"></td>
+    <td width="50%"><img src="docs/screenshots/solutions-dark.png" alt="Official solution with an executable transcript" width="100%"></td>
+  </tr>
+  <tr>
+    <td align="center"><sub><b>Checks</b> · visible + hidden · hint appears on failure</sub></td>
+    <td align="center"><sub><b>Solutions</b> · the official transcript runs end to end</sub></td>
+  </tr>
+</table>
 
 ---
 
@@ -70,7 +108,7 @@
   </tr>
   <tr>
     <td align="center"><sub>270 px rail · calendar · daily · trending</sub></td>
-    <td align="center"><sub>Terminal + workspace · repo state and file tree</sub></td>
+    <td align="center"><sub>Live terminal + workspace · real repo state and file status</sub></td>
   </tr>
 </table>
 
@@ -111,8 +149,12 @@ The pages also work from `file://`; the scripts are classic `<script>` tags, not
   and copied components keep their original class names. Only pieces LeetCode has no
   equivalent for are authored as `gc-*` in `assets/css/app.css`.
 - **No framework, no build.** Vanilla JS, local data, TypoRound vendored for offline rendering.
-- **Deterministic demo.** 44 Git tasks, 7 categories, 6 tracks. Run/Submit renders simulated
-  results; nothing leaves the browser.
+- **A real Git engine in the page.** `git-engine.js` models commits, trees, refs, reflog, conflicts,
+  merges, rebases, remotes and history rewrites. Commands mutate actual state, not a transcript.
+- **State-based checks.** `labs.js` seeds 44 reproducible repositories and tests outcomes — ancestry,
+  trees, refs, reflog, ignore rules — instead of matching typed strings.
+- **Local progress.** `progress.js` stores status, attempt counts and submission history in
+  `localStorage`; the dashboard recomputes every track from it.
 
 The full design contract — palette, dimensions, component anatomy, responsive rules — lives in
 **[`design.md`](./design.md)**.
@@ -132,8 +174,11 @@ assets/
   js/icons.js               icon geometry + icon()
   js/data.js                44 tasks, categories, tracks, daily/trending
   js/ui.js                  nav, theme, menus, modals, tabs, splitters
-  js/dashboard.js           filtering, search, bookmarks, rail
-  js/problem.js             statement, panels, terminal, run/submit
+  js/dashboard.js           filtering, search, bookmarks, rail, live progress
+  js/problem.js             terminal, editor, rebase plan, checks, submissions
+  js/git-engine.js          deterministic Git objects, refs and commands
+  js/labs.js                44 seeded labs, checks, solutions, resolutions
+  js/progress.js            localStorage status, attempts and submissions
 
 docs/screenshots/           every image above
 _reference/                 capture manifest + collector
@@ -142,11 +187,12 @@ _reference/                 capture manifest + collector
 </details>
 
 <details>
-<summary><b>What is intentionally not wired</b></summary>
+<summary><b>What is local by design</b></summary>
 
-No backend, no authentication, no real Git execution, no network calls. Theme and bookmarks
-persist in `localStorage`; everything else resets on reload. Solutions, submissions, and the
-editorial are representative static content.
+No backend, no authentication, no network calls. The Git engine, 44 labs, checks, editor and
+submissions all run in the page. Theme, bookmarks and progress persist in `localStorage`; the
+repository itself reseeds on reload. There is no real remote — `fetch`, `push` and `pull` operate
+on the in-memory remotes defined by each lab.
 
 </details>
 
