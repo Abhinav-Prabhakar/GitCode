@@ -43,6 +43,10 @@
 
 ## Anatomy
 
+<img src="docs/screenshots/detail-nav.png" alt="Top navigation" width="100%">
+
+<p align="center"><sub>50 px nav · 16 px links · 2 px active rule · collapsed search</sub></p>
+
 <img src="docs/screenshots/detail-filters.png" alt="Keyword tags and category pills" width="100%">
 
 <p align="center"><sub>Keyword tags, inverted category pills, scroll arrow</sub></p>
