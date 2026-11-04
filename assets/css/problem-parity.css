@@ -1096,3 +1096,25 @@ html.dark {
     height: 260px !important;
   }
 }
+
+/* Dialogs opened from the problem page (terminal help, reset, transcripts). */
+#gc-modal .gc-modal__body {
+  max-height: calc(100vh - 220px);
+  overflow-y: auto;
+}
+#gc-modal .gc-modal__body code {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+#gc-modal .gc-modal__body dl {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 4px 16px;
+  margin: 0 0 12px;
+}
+#gc-modal .gc-modal__body dt {
+  color: var(--text-secondary);
+}
+#gc-modal .gc-modal__body dd {
+  margin: 0;
+}

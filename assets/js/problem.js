@@ -1060,6 +1060,19 @@
     document.getElementById("gc-run").addEventListener("click", run);
     document.getElementById("gc-submit").addEventListener("click", submit);
 
+    var helpBtn = document.getElementById("gc-help");
+    if (helpBtn) {
+      helpBtn.addEventListener("click", function () {
+        var body = document.getElementById("gc-terminal-help");
+        UI.openModal({
+          title: "Terminal help",
+          body: body ? body.innerHTML.replace(/<h2[^>]*>[\s\S]*?<\/h2>/, "") : "",
+          ok: "Got it",
+          cancel: "Close"
+        });
+      });
+    }
+
     var debugBtn = document.getElementById("gc-debug");
     if (debugBtn) {
       debugBtn.addEventListener("click", function () {
