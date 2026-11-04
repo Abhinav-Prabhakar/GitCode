@@ -1050,9 +1050,6 @@ html.dark {
   #gc-ide nav .min-w-\[240px\] {
     min-width: 0;
   }
-  #gc-ide .gc-backlink .truncate {
-    display: none;
-  }
   #gc-ide .gc-backlink {
     max-width: none;
   }
@@ -1158,6 +1155,14 @@ html.dark {
   }
   #gc-ide #gc-testcase-tabset .flexlayout__tab {
     height: 260px !important;
+  }
+}
+
+/* Phones: the back link keeps its label until the nav centre cluster needs
+   the room, then collapses to the indent icon alone. */
+@media (max-width: 560px) {
+  #gc-ide .gc-backlink .truncate {
+    display: none;
   }
 }
 
