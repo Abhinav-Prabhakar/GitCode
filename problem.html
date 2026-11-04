@@ -61,12 +61,12 @@
       <div class="h-full py-2">
         <div class="relative flex gap-2" id="ide-top-btns">
           <div class="relative flex overflow-hidden rounded bg-fill-tertiary dark:bg-fill-tertiary">
-            <div class="group flex flex-none items-center justify-center hover:bg-fill-quaternary dark:hover:bg-fill-quaternary">
+            <div class="gc-debug-wrap group flex flex-none items-center justify-center hover:bg-fill-quaternary dark:hover:bg-fill-quaternary">
               <button type="button" id="gc-debug" class="relative inline-flex cursor-pointer items-center rounded-none bg-transparent p-1.5 text-text-secondary dark:text-text-secondary" aria-label="Inspect the repository" title="Inspect the repository (git fsck)">
                 <span id="gc-debug-icon" class="relative text-[16px] leading-[normal] p-0.5"></span>
               </button>
             </div>
-            <div class="w-[1px] flex-none bg-layer-bg-gray dark:bg-layer-bg-gray"></div>
+            <div class="gc-debug-div w-[1px] flex-none bg-layer-bg-gray dark:bg-layer-bg-gray"></div>
             <div class="group flex flex-none items-center justify-center hover:bg-fill-quaternary dark:hover:bg-fill-quaternary">
               <button type="button" id="gc-run" class="relative inline-flex cursor-pointer items-center rounded-none bg-transparent p-1.5 text-text-primary dark:text-text-primary" aria-label="Run checks">
                 <span id="gc-run-icon" class="relative text-[16px] leading-[normal] p-0.5 text-text-secondary dark:text-text-secondary"></span>
@@ -108,7 +108,7 @@
                 Report an issue<span class="gc-menu__right">demo</span></div>
             </div>
           </div>
-          <button type="button" id="gc-timer" class="gc-timer flex h-8 w-[33px] flex-none cursor-pointer items-center justify-center rounded-sd bg-fill-tertiary text-sd-blue-400 hover:bg-fill-quaternary dark:hover:bg-fill-quaternary" aria-label="Lab timer" title="Lab timer 00:00:00">
+          <button type="button" id="gc-timer" class="gc-timer flex h-8 flex-none cursor-pointer items-center justify-center rounded-sd bg-fill-tertiary text-sd-blue-400 hover:bg-fill-quaternary dark:hover:bg-fill-quaternary" style="width:33px" aria-label="Lab timer" title="Lab timer 00:00:00">
             <span id="gc-timer-icon" class="relative text-[16px] leading-[normal]"></span>
           </button>
           <div class="gc-nav-auth flex items-center whitespace-nowrap">
