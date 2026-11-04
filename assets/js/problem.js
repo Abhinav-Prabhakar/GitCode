@@ -70,45 +70,64 @@
     setIcon("gc-run-icon", "play");
     setIcon("gc-submit-icon", "cloud-arrow-up");
     var more = document.getElementById("gc-more");
-    if (more) more.innerHTML = window.icon("ellipsis");
+    if (more) more.innerHTML = window.icon("gear");
+
+    // Static nav icons authored as [data-icon] in problem.html.
+    UI.$$("#gc-ide [data-icon]").forEach(function (node) {
+      var name = node.getAttribute("data-icon");
+      if (name && !node.firstChild) node.innerHTML = window.icon(name);
+    });
 
     document.getElementById("gc-run").title = "Run checks (⌘↵)";
     document.getElementById("gc-submit").title = "Submit (⌘⇧↵)";
 
     var prevnext = document.getElementById("gc-prevnext");
+    function step(kind, target, label) {
+      var inner =
+        '<span class="relative text-[16px] leading-[normal]">' +
+        window.icon(kind === "prev" ? "chevron-left" : "chevron-right") +
+        "</span>";
+      var cls = "gc-navstep";
+      if (target) {
+        return (
+          '<a class="' + cls + '" aria-label="' + label + '" href="problem.html?p=' +
+          encodeURIComponent(target.slug) + '">' + inner + "</a>"
+        );
+      }
+      return (
+        '<span class="' + cls + '" aria-disabled="true" aria-label="No ' +
+        (kind === "prev" ? "previous" : "next") + ' task">' + inner + "</span>"
+      );
+    }
     prevnext.innerHTML =
-      (adjacent.prev
-        ? '<a class="gc-iconbtn gc-tip" data-tip="Previous task" aria-label="Previous task" href="problem.html?p=' +
-          encodeURIComponent(adjacent.prev.slug) + '">' + window.icon("chevron-left") + "</a>"
-        : '<span class="gc-iconbtn" aria-disabled="true" aria-label="No previous task">' + window.icon("chevron-left") + "</span>") +
-      (adjacent.next
-        ? '<a class="gc-iconbtn gc-tip" data-tip="Next task" aria-label="Next task" href="problem.html?p=' +
-          encodeURIComponent(adjacent.next.slug) + '">' + window.icon("chevron-right") + "</a>"
-        : '<span class="gc-iconbtn" aria-disabled="true" aria-label="No next task">' + window.icon("chevron-right") + "</span>");
+      '<div class="gc-navsep"></div>' +
+      step("prev", adjacent.prev, "Previous task") +
+      '<div class="gc-navsep"></div>' +
+      step("next", adjacent.next, "Next task") +
+      '<div class="gc-navsep"></div>';
 
-    document.getElementById("gc-ide-title").innerHTML =
-      '<strong style="color:hsl(var(--sd-foreground));font-weight:500">' + p.n + ".</strong> " + esc(p.title);
+    var logo = document.getElementById("gc-ide-logo");
+    if (logo) logo.innerHTML = UI.logoMark;
   }
 
   /* ------------------------------------------------------------ tab labels */
 
   function renderTabLabels() {
     var labels = {
-      "gc-tab-desc": ["book-open", "Description"],
-      "gc-tab-editorial": ["memo", "Editorial"],
-      "gc-tab-solutions": ["code", "Solutions"],
-      "gc-tab-submissions": ["clock-rotate-left", "Submissions"],
-      "gc-tab-terminal": ["terminal", "Terminal"],
-      "gc-tab-help": ["lightbulb", "Terminal help"],
-      "gc-tab-workspace": ["list-tree", "Workspace"],
-      "gc-tab-result": ["flask", "Test Result"]
+      desc: "book-open",
+      editorial: "memo",
+      solutions: "code",
+      submissions: "clock-rotate-left",
+      terminal: "terminal",
+      workspace: "list-tree",
+      result: "flask"
     };
-    Object.keys(labels).forEach(function (id) {
-      var node = document.getElementById(id);
-      if (node) node.innerHTML = window.icon(labels[id][0]) + "<span>" + labels[id][1] + "</span>";
+    Object.keys(labels).forEach(function (key) {
+      var node = document.querySelector('[data-tab-icon="' + key + '"]');
+      if (node) node.innerHTML = window.icon(labels[key]);
     });
 
-    setIcon("gc-bookmark", "star");
+    setIcon("gc-bookmark", "bookmark");
     setIcon("gc-focus", "expand");
     setIcon("gc-clear", "trash");
     setIcon("gc-copy", "copy");
@@ -116,13 +135,9 @@
     setIcon("gc-refresh", "arrows-rotate");
     setIcon("gc-shell-chev", "chevron-down");
 
-    var logo = document.getElementById("gc-ide-logo");
-    if (logo) {
-      logo.innerHTML = UI.logoMark + '<span class="gc-logo__word">GitCode</span>';
-    }
     var acts = [
       ["gc-like", "thumbs-up", "71K"],
-      ["gc-dislike", "thumbs-down", "2.2K"],
+      ["gc-dislike", "thumbs-down", ""],
       ["gc-comment", "comment", "2.2K"],
       ["gc-share", "arrow-up-right-from-square", ""],
       ["gc-help", "circle-question", ""]
@@ -963,7 +978,7 @@
     if (!btn) return;
     var on = !!bookmarks[p.slug];
     btn.classList.toggle("is-on", on);
-    btn.innerHTML = window.icon("star");
+    btn.innerHTML = window.icon("bookmark");
     btn.setAttribute("aria-pressed", String(on));
     btn.setAttribute("aria-label", on ? "Remove bookmark" : "Bookmark task");
     btn.title = on ? "Remove bookmark" : "Bookmark";
@@ -1169,7 +1184,8 @@
     document.querySelector("[data-goto-solutions]").addEventListener("click", function () {
       var group = document.getElementById("gc-solutions").closest("[data-tabgroup]");
       activePanel(group, "solutions");
-      document.querySelector(".gc-pane--desc .gc-pane__body").scrollTop = 0;
+      var scroll = document.getElementById("gc-desc-scroll");
+      if (scroll) scroll.scrollTop = 0;
       UI.toast("Showing the official solution", "code");
     });
 

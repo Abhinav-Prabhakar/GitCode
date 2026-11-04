@@ -1,0 +1,1088 @@
+/* ==========================================================================
+   GitCode problem-page parity layer
+   --------------------------------------------------------------------------
+   problem.html reuses LeetCode's saved question markup: flexlayout tab sets,
+   tab bars, 32px toolbar buttons and the testcase bar. The vendored build
+   already styles all of that. This file only pulls the authored Git content
+   (statement, terminal, workspace, results) into the same visual system, using
+   the measured values of the reference question page at 1440 x 900:
+     pane 486px, description padding 20px 16px, title 24/32 600,
+     chips 12/16 with 4px 8px padding, prose 14/21, inline code 12/16 + 2px,
+     pre 14/20 with a 2px left rule, 36px pane footers.
+   ========================================================================== */
+
+/* --------------------------------------------------------------- frame */
+
+/* The vendored .flexlayout__tab scrolls on its own; authored panes own their
+   scroll containers, so suppress the outer one. */
+#gc-ide .flexlayout__tab {
+  overflow: hidden;
+}
+#gc-ide .flexlayout__splitter {
+  position: absolute;
+}
+#gc-ide .flexlayout__splitter_vert,
+#gc-ide .flexlayout__splitter_horz {
+  cursor: col-resize;
+}
+#gc-ide .flexlayout__splitter_horz {
+  cursor: row-resize;
+}
+#gc-ide .flexlayout__splitter:hover {
+  background: var(--fill-tertiary);
+}
+
+/* LeetCode reveals pane tools on hover; keep the bar visually empty at rest. */
+#gc-ide .flexlayout__tabset_tabbar_hover_show_toolbar .flexlayout__tab_toolbar {
+  display: none;
+}
+#gc-ide .flexlayout__tabset_tabbar_hover_show_toolbar:hover .flexlayout__tab_toolbar {
+  display: flex;
+}
+
+/* Nav: previous / next task, 32px squares with a 28px rule between them. */
+#gc-ide #gc-prevnext .gc-navstep {
+  display: flex;
+  flex: none;
+  align-items: center;
+  width: 32px;
+  height: 32px;
+  color: var(--text-secondary);
+  text-decoration: none;
+  border-radius: 4px;
+  transition: none;
+}
+#gc-ide #gc-prevnext .gc-navstep:hover {
+  color: var(--text-primary);
+  background: var(--fill-quaternary);
+}
+#gc-ide #gc-prevnext .gc-navstep[aria-disabled="true"] {
+  color: var(--text-tertiary);
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+#gc-ide #gc-prevnext .gc-navstep svg {
+  width: 14px;
+  height: 14px;
+  margin: 0 auto;
+}
+#gc-ide #gc-prevnext .gc-navsep {
+  flex: none;
+  width: 1px;
+  height: 28px;
+  background: var(--layer-bg-gray);
+}
+
+/* Brand mark on this page: the reference shows the 20px logo only. */
+#gc-ide #gc-ide-logo .gc-logo__mark {
+  width: 17px;
+  height: 17px;
+  border-radius: 4px;
+}
+
+/* Submit keeps LeetCode's outlined green treatment. */
+#gc-ide #gc-submit {
+  color: var(--green-60);
+}
+#gc-ide #gc-submit:hover {
+  color: var(--green-60);
+}
+
+/* ---------------------------------------------------------- description */
+
+/* Description footer: 36px bar with 28px controls, like the reference. */
+#gc-ide #gc-like,
+#gc-ide #gc-comment {
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+}
+#gc-ide #gc-like svg,
+#gc-ide #gc-dislike svg,
+#gc-ide #gc-comment svg,
+#gc-ide #gc-share svg,
+#gc-ide #gc-help svg,
+#gc-ide #gc-bookmark svg {
+  width: 16px;
+  height: 16px;
+}
+#gc-ide #gc-bookmark.is-on {
+  color: var(--brand-orange);
+}
+
+#gc-desc {
+  min-width: 0;
+}
+
+#gc-ide .gc-qhead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 0 0 16px;
+}
+#gc-ide .gc-qtitle {
+  margin: 0;
+  font-size: 24px;
+  line-height: 32px;
+  font-weight: 600;
+  letter-spacing: normal;
+  color: var(--text-primary);
+}
+
+#gc-ide .gc-qchips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  margin: 0 0 16px;
+}
+#gc-ide .gc-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  height: 24px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 9999px;
+  background: var(--fill-secondary);
+  color: var(--text-primary);
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 400;
+  white-space: nowrap;
+  text-decoration: none;
+}
+#gc-ide a.gc-chip:hover {
+  background: var(--fill-tertiary);
+  color: var(--text-primary);
+}
+#gc-ide .gc-chip svg {
+  width: 12px;
+  height: 12px;
+}
+#gc-ide .gc-chip--easy {
+  color: var(--difficulty-easy);
+}
+#gc-ide .gc-chip--medium {
+  color: var(--difficulty-medium);
+}
+#gc-ide .gc-chip--hard {
+  color: var(--difficulty-hard);
+}
+#gc-ide .gc-chip--premium {
+  color: var(--brand-orange);
+  background: rgba(255, 161, 22, 0.12);
+}
+
+#gc-ide .gc-qbody {
+  max-width: none;
+  font-size: 14px;
+  line-height: 21px;
+  color: var(--gc-q-fg);
+}
+#gc-ide .gc-qbody > p {
+  margin: 0 0 16px;
+}
+#gc-ide .gc-qbody > p:last-child {
+  margin-bottom: 0;
+}
+#gc-ide .gc-qbody ul,
+#gc-ide .gc-qbody ol {
+  margin: 0 16px 16px;
+  padding-left: 0;
+}
+#gc-ide .gc-qbody ul {
+  list-style-type: disc;
+}
+#gc-ide .gc-qbody ol {
+  list-style-type: decimal;
+}
+#gc-ide .gc-qbody li {
+  margin-bottom: 12px;
+}
+#gc-ide .gc-qbody li:last-child {
+  margin-bottom: 0;
+}
+#gc-ide .gc-qbody strong {
+  font-weight: 600;
+}
+#gc-ide .gc-qbody h2 {
+  margin: 0 0 16px !important;
+  font-size: 20px !important;
+  line-height: 28px !important;
+  font-weight: 600 !important;
+  color: var(--text-primary);
+}
+#gc-ide .gc-qbody h4 {
+  margin: 0 0 12px;
+  font-size: 14px;
+  line-height: 21px;
+  font-weight: 700;
+  color: var(--gc-q-fg);
+}
+#gc-ide .gc-qbody a {
+  color: var(--blue-60);
+  text-decoration: none;
+}
+#gc-ide .gc-qbody code {
+  padding: 2px;
+  border: 1px solid var(--gc-code-border);
+  border-radius: 5px;
+  background: var(--gc-code-bg);
+  color: var(--gc-code-fg);
+  font-family: var(--gc-font-mono);
+  font-size: 12px;
+  line-height: 16px;
+  white-space: pre-wrap;
+}
+#gc-ide .gc-qbody pre {
+  margin: 16px 0;
+  padding: 0 0 0 16px;
+  border: 0;
+  border-left: 2px solid var(--border-tertiary);
+  border-radius: 0;
+  background: transparent;
+  overflow: visible;
+  color: var(--text-secondary);
+  font-family: var(--gc-font-mono);
+  font-size: 14px;
+  line-height: 20px;
+  white-space: pre-wrap;
+}
+#gc-ide .gc-qbody pre code {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  white-space: inherit;
+}
+
+/* Example: LeetCode's <p><strong>Example 1:</strong></p> + indented block. */
+#gc-ide .gc-example {
+  margin: 0 0 16px;
+  padding-left: 0;
+  border-left: 0;
+}
+#gc-ide .gc-example:last-child {
+  margin-bottom: 0;
+}
+#gc-ide .gc-example__label {
+  margin-bottom: 16px;
+  color: var(--gc-q-fg);
+  font-size: 14px;
+  line-height: 21px;
+  font-weight: 700;
+}
+#gc-ide .gc-example pre {
+  margin: 0;
+}
+
+/* Authored callout: a quiet, native-looking note block. */
+#gc-ide .gc-callout {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 16px 0;
+  padding: 12px 16px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--fill-secondary);
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 21px;
+}
+#gc-ide .gc-callout > svg {
+  flex: none;
+  width: 14px;
+  height: 14px;
+  margin-top: 4px;
+  color: var(--text-secondary);
+}
+#gc-ide .gc-callout__body {
+  min-width: 0;
+}
+#gc-ide .gc-callout__body strong {
+  display: block;
+  margin-bottom: 2px;
+  color: var(--text-primary);
+  font-weight: 600;
+}
+#gc-ide .gc-callout code {
+  padding: 2px;
+  border: 1px solid var(--gc-code-border);
+  border-radius: 5px;
+  background: var(--gc-code-bg);
+  color: var(--gc-code-fg);
+  font-family: var(--gc-font-mono);
+  font-size: 12px;
+  line-height: 16px;
+}
+
+/* Hints: collapsible rows in the same fill-secondary surface. */
+#gc-ide .gc-fold {
+  margin: 0 0 8px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--fill-secondary);
+  overflow: hidden;
+}
+#gc-ide .gc-fold:last-child {
+  border-bottom: 0;
+}
+#gc-ide .gc-fold__head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  height: 36px;
+  padding: 0 12px;
+  border: 0;
+  background: transparent;
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  list-style: none;
+}
+#gc-ide .gc-fold__head::-webkit-details-marker {
+  display: none;
+}
+#gc-ide .gc-fold__head:hover {
+  background: var(--fill-tertiary);
+  color: var(--text-primary);
+}
+#gc-ide .gc-fold__head svg:first-child {
+  width: 14px;
+  height: 14px;
+  color: var(--text-secondary);
+}
+#gc-ide .gc-fold__chev {
+  width: 14px !important;
+  height: 14px;
+  margin-left: auto;
+  color: var(--text-secondary);
+  transition: transform 120ms ease-out;
+}
+#gc-ide .gc-fold[open] .gc-fold__chev {
+  transform: rotate(180deg);
+}
+#gc-ide .gc-fold__body {
+  padding: 0 12px 12px 34px;
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 21px;
+}
+#gc-ide .gc-fold__body p {
+  margin: 0 0 10px;
+}
+#gc-ide .gc-fold__body:last-child p {
+  margin-bottom: 0;
+}
+
+/* Stats strip */
+#gc-ide .gc-qmeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 28px;
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-tertiary);
+}
+#gc-ide .gc-qmeta__cell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+#gc-ide .gc-qmeta__label {
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 16px;
+}
+#gc-ide .gc-qmeta__value {
+  color: var(--text-primary);
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+#gc-ide .gc-related {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  margin-top: 8px;
+}
+#gc-ide .gc-related h4 {
+  margin: 22px 0 4px !important;
+  font-size: 14px !important;
+  line-height: 20px !important;
+  font-weight: 600 !important;
+  color: var(--text-primary);
+}
+#gc-ide .gc-related__row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 34px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  color: var(--text-primary);
+  font-size: 14px;
+  line-height: 20px;
+  text-decoration: none;
+}
+#gc-ide .gc-related__row:hover {
+  background: var(--fill-secondary);
+}
+#gc-ide .gc-related__diff {
+  margin-left: auto;
+  font-size: 12px;
+  line-height: 16px;
+}
+#gc-ide .gc-related__diff.gc-row__diff--easy {
+  color: var(--difficulty-easy);
+}
+#gc-ide .gc-related__diff.gc-row__diff--medium {
+  color: var(--difficulty-medium);
+}
+#gc-ide .gc-related__diff.gc-row__diff--hard {
+  color: var(--difficulty-hard);
+}
+#gc-ide .gc-related .gc-status svg {
+  width: 14px;
+  height: 14px;
+  color: var(--text-tertiary);
+}
+#gc-ide .gc-related .gc-status--solved svg {
+  color: var(--green-60);
+}
+
+/* --------------------------------------------------------------- editor */
+
+#gc-ide .gc-editor-body {
+  height: 100%;
+  min-height: 0;
+}
+#gc-ide .bg-blue-0,
+#gc-ide .bg-blue-0 span {
+  font-size: 14px;
+  line-height: 20px;
+}
+#gc-ide .bg-blue-0 kbd {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 20px;
+}
+#gc-ide .gc-terminal {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  background: transparent;
+  color: var(--text-primary);
+  font-family: var(--gc-font-mono);
+  font-size: 13px;
+  line-height: 20px;
+}
+#gc-ide .gc-terminal__scroll {
+  flex: 1;
+  min-height: 0;
+  padding: 12px 16px 16px;
+  overflow-y: auto;
+}
+#gc-ide .gc-term-line {
+  min-height: 20px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+#gc-ide .gc-term-line--out {
+  color: var(--text-primary);
+}
+#gc-ide .gc-term-line--dim {
+  color: var(--text-tertiary);
+}
+#gc-ide .gc-term-line--ok {
+  color: var(--green-60);
+}
+#gc-ide .gc-term-line--err {
+  color: var(--red-60);
+}
+#gc-ide .gc-term-line--warn {
+  color: var(--yellow-60);
+}
+#gc-ide .gc-term-line .hash,
+#gc-ide .gc-term-line .em {
+  color: var(--text-secondary);
+}
+#gc-ide .gc-term-inputrow {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+#gc-ide .gc-prompt {
+  flex: none;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+#gc-ide .gc-prompt .user {
+  color: var(--brand-orange);
+}
+#gc-ide .gc-prompt .path {
+  color: var(--blue-60);
+}
+#gc-ide .gc-prompt .branch {
+  color: var(--difficulty-easy);
+}
+#gc-ide .gc-prompt .sign {
+  margin-left: 4px;
+  color: var(--text-secondary);
+}
+#gc-ide .gc-term-input {
+  flex: 1;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  caret-color: var(--brand-orange);
+  outline: none;
+}
+#gc-ide .gc-cursor {
+  display: inline-block;
+  width: 7px;
+  height: 14px;
+  margin-left: 1px;
+  vertical-align: -2px;
+  background: var(--text-secondary);
+  animation: gc-blink 1.1s steps(2, start) infinite;
+}
+
+/* ------------------------------------------------------------ workspace */
+
+#gc-ide .gc-workspacepane {
+  padding: 12px 16px 20px;
+  color: var(--text-primary);
+  font-size: 14px;
+  line-height: 20px;
+}
+#gc-ide .gc-workspacepane > .gc-result-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+#gc-ide .gc-result-head {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+#gc-ide .gc-result-sub {
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 16px;
+}
+#gc-ide .gc-kv {
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr);
+  gap: 4px 12px;
+  margin: 0;
+  font-size: 13px;
+  line-height: 20px;
+}
+#gc-ide .gc-kv dt {
+  color: var(--text-secondary);
+}
+#gc-ide .gc-kv dd {
+  margin: 0;
+  overflow: hidden;
+  color: var(--text-primary);
+  font-family: var(--gc-font-mono);
+  font-size: 12px;
+  line-height: 20px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+#gc-ide .gc-tree {
+  padding: 2px 0 0;
+  font-family: var(--gc-font-mono);
+  font-size: 12.5px;
+  line-height: 24px;
+}
+#gc-ide .gc-tree__row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  height: 24px;
+  padding: 0 6px;
+  border-radius: 4px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  cursor: default;
+}
+#gc-ide .gc-tree__row:hover {
+  background: var(--fill-secondary);
+}
+#gc-ide .gc-tree__row svg {
+  flex: none;
+  width: 12px;
+  height: 12px;
+  opacity: 0.75;
+}
+#gc-ide .gc-tree__row--dir {
+  color: var(--text-primary);
+}
+#gc-ide .gc-tree__row--changed {
+  color: var(--difficulty-medium);
+}
+#gc-ide .gc-tree__status {
+  margin-left: auto;
+  color: var(--difficulty-medium);
+  font-size: 11px;
+}
+#gc-ide .gc-tree__pad {
+  display: inline-block;
+  flex: none;
+  width: 14px;
+}
+#gc-ide .gc-graph {
+  margin-top: 6px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  overflow-x: auto;
+}
+#gc-ide .gc-graph__row {
+  display: grid;
+  grid-template-columns: 40px 58px minmax(0, 1fr) auto;
+  align-items: center;
+  height: 24px;
+  color: var(--text-secondary);
+  font-family: var(--gc-font-mono);
+  font-size: 11.5px;
+  white-space: nowrap;
+}
+#gc-ide .gc-graph__hash {
+  color: var(--blue-60);
+}
+#gc-ide .gc-graph__subject {
+  overflow: hidden;
+  color: var(--text-primary);
+  text-overflow: ellipsis;
+}
+#gc-ide .gc-ref {
+  display: inline-flex;
+  align-items: center;
+  height: 16px;
+  margin-left: 4px;
+  padding: 0 5px;
+  border-radius: 4px;
+  background: var(--fill-secondary);
+  color: var(--text-primary);
+  font-family: var(--gc-font-sans);
+  font-size: 10px;
+  line-height: 16px;
+}
+#gc-ide .gc-ref--head {
+  color: var(--brand-orange);
+}
+#gc-ide .gc-ref--main {
+  color: var(--green-60);
+}
+
+/* --------------------------------------------------------------- results */
+
+#gc-ide .gc-results {
+  padding: 12px 16px 20px;
+}
+#gc-ide .gc-result-verdict {
+  color: var(--text-primary);
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 600;
+}
+#gc-ide .gc-result-verdict--pass {
+  color: var(--green-60);
+}
+#gc-ide .gc-result-verdict--fail {
+  color: var(--red-60);
+}
+#gc-ide .gc-result-verdict--idle {
+  color: var(--text-secondary);
+}
+#gc-ide .gc-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px 0;
+  border-top: 1px solid var(--border-tertiary);
+  color: var(--text-primary);
+  font-size: 14px;
+  line-height: 20px;
+}
+#gc-ide .gc-check:first-of-type {
+  margin-top: 10px;
+  border-top: 0;
+}
+#gc-ide .gc-check__icon {
+  display: flex;
+  flex: none;
+  margin-top: 2px;
+}
+#gc-ide .gc-check__icon svg {
+  width: 14px;
+  height: 14px;
+}
+#gc-ide .gc-check--pass .gc-check__icon {
+  color: var(--green-60);
+}
+#gc-ide .gc-check--fail .gc-check__icon {
+  color: var(--red-60);
+}
+#gc-ide .gc-check__name {
+  font-weight: 500;
+}
+#gc-ide .gc-check__detail {
+  margin-top: 2px;
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 16px;
+}
+
+#gc-ide .gc-solution {
+  margin-top: 16px;
+  padding: 16px;
+  border-radius: 8px;
+  background: var(--fill-secondary);
+}
+#gc-ide .gc-solution__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+#gc-ide .gc-solution__title {
+  color: var(--text-primary);
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 600;
+}
+#gc-ide .gc-solution__meta {
+  margin-top: 2px;
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 16px;
+}
+#gc-ide .gc-solution pre {
+  margin: 14px 0 0;
+  padding: 0;
+  border: 0;
+}
+#gc-ide .gc-solution pre code {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text-primary);
+  font-family: var(--gc-font-mono);
+  font-size: 12.5px;
+  line-height: 20px;
+  white-space: pre-wrap;
+}
+
+#gc-ide .gc-submission {
+  display: grid;
+  grid-template-columns: 1fr 56px 64px 96px;
+  gap: 8px;
+  align-items: center;
+  width: 100%;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-primary);
+  font-size: 13px;
+  line-height: 20px;
+  text-align: left;
+}
+#gc-ide .gc-submission--head {
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 16px;
+  padding-bottom: 4px;
+}
+#gc-ide .gc-submission--row {
+  cursor: pointer;
+}
+#gc-ide .gc-submission--row:hover {
+  background: var(--fill-secondary);
+}
+#gc-ide .gc-submission__verdict {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--text-primary);
+  font-weight: 500;
+}
+#gc-ide .gc-submission__verdict svg {
+  width: 13px;
+  height: 13px;
+}
+#gc-ide .gc-submission__verdict.gc-chip--easy {
+  color: var(--green-60);
+}
+#gc-ide .gc-submission__verdict.gc-chip--hard {
+  color: var(--red-60);
+}
+
+/* Buttons inside authored panes: 32px LeetCode controls. */
+#gc-ide .gc-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 6px;
+  background: var(--fill-secondary);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+}
+#gc-ide .gc-btn:hover {
+  background: var(--fill-tertiary);
+}
+#gc-ide .gc-btn--sm {
+  height: 28px;
+  padding: 0 10px;
+}
+#gc-ide .gc-btn--ghost {
+  background: transparent;
+  color: var(--text-secondary);
+}
+#gc-ide .gc-btn--ghost:hover {
+  background: var(--fill-secondary);
+  color: var(--text-primary);
+}
+#gc-ide .gc-btn--outline {
+  background: transparent;
+  box-shadow: inset 0 0 0 1px var(--border-tertiary);
+}
+#gc-ide .gc-btn--outline:hover {
+  background: var(--fill-secondary);
+}
+#gc-ide .gc-btn--success {
+  background: var(--green-60);
+  color: #fff;
+}
+#gc-ide .gc-btn--success:hover {
+  background: var(--green-60);
+  filter: brightness(1.06);
+}
+#gc-ide .gc-btn svg {
+  width: 13px;
+  height: 13px;
+}
+
+#gc-ide .gc-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 40px 16px;
+  color: var(--text-secondary);
+  text-align: center;
+}
+#gc-ide .gc-empty svg {
+  width: 22px;
+  height: 22px;
+  color: var(--text-tertiary);
+}
+#gc-ide .gc-empty__title {
+  color: var(--text-primary);
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+}
+#gc-ide .gc-empty__text {
+  max-width: 320px;
+  font-size: 12px;
+  line-height: 18px;
+}
+#gc-ide .gc-empty .gc-btn {
+  margin-top: 4px;
+}
+
+/* ---------------------------------------------------------------- tokens */
+
+:root {
+  --gc-q-fg: #262626;
+  --gc-code-bg: #000a2008;
+  --gc-code-border: #0000000d;
+  --gc-code-fg: #262626bf;
+}
+html.dark {
+  --gc-q-fg: #fff;
+  --gc-code-bg: #ffffff12;
+  --gc-code-border: #f7faff1f;
+  --gc-code-fg: #eff1f6bf;
+}
+
+/* Keep the reading pane's scrollbar as thin as the reference. */
+#gc-desc-scroll,
+#gc-workbench {
+  scrollbar-width: thin;
+  scrollbar-color: var(--fill-tertiary) transparent;
+}
+#gc-desc-scroll::-webkit-scrollbar,
+#gc-workbench::-webkit-scrollbar,
+#gc-ide .gc-terminal__scroll::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+#gc-desc-scroll::-webkit-scrollbar-thumb,
+#gc-workbench::-webkit-scrollbar-thumb,
+#gc-ide .gc-terminal__scroll::-webkit-scrollbar-thumb {
+  border: 3px solid transparent;
+  border-radius: 999px;
+  background: var(--fill-tertiary);
+  background-clip: content-box;
+}
+
+/* ------------------------------------------------------------- responsive */
+
+/* Below ~900px the fixed 486px panes stop fitting; LeetCode switches to a
+   single column. Stack the three panes and let main own the scroll. */
+@media (max-width: 900px) {
+  #gc-ide nav {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+  #gc-ide nav .min-w-\[240px\] {
+    min-width: 0;
+  }
+  #gc-ide .gc-backlink .truncate {
+    display: none;
+  }
+  #gc-ide .gc-backlink {
+    max-width: none;
+  }
+  #gc-ide #gc-prevnext,
+  #gc-ide .gc-nav-layouts,
+  #gc-ide .gc-nav-auth {
+    display: none;
+  }
+  #gc-ide .gc-nav-premium {
+    display: none !important;
+  }
+
+  #gc-ide main {
+    overflow-y: auto;
+    padding: 8px;
+  }
+  #gc-ide main > div {
+    height: auto;
+  }
+  #gc-ide .flexlayout__layout {
+    position: static;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    height: auto;
+    overflow: visible;
+  }
+  #gc-ide .flexlayout__tabset {
+    position: relative !important;
+    left: auto !important;
+    top: auto !important;
+    width: 100% !important;
+    height: auto !important;
+    flex: none;
+  }
+  #gc-ide .flexlayout__tab {
+    position: static !important;
+    width: auto !important;
+    height: auto !important;
+    overflow: hidden;
+  }
+  #gc-ide .flexlayout__tabset_tabbar_inner {
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  #gc-ide .flexlayout__tabset_tabbar_inner::-webkit-scrollbar {
+    display: none;
+  }
+  #gc-ide .flexlayout__tabset_tabbar_inner_tab_container {
+    position: static;
+    width: max-content;
+  }
+  #gc-ide .flexlayout__tabset_content {
+    display: none;
+  }
+  #gc-ide .flexlayout__splitter {
+    display: none;
+  }
+  #gc-ide #gc-desc-tabset > .flexlayout__tab > div,
+  #gc-ide #gc-desc-scroll {
+    width: 100% !important;
+    min-width: 0;
+    box-sizing: border-box;
+  }
+  #gc-ide #gc-desc-tabset .flexlayout__tab > div > div:last-child {
+    flex-wrap: wrap;
+    row-gap: 4px;
+  }
+  #gc-ide #gc-desc-tabset .flexlayout__tab > div > div:last-child > .mr-2 {
+    margin-right: 0;
+  }
+  #gc-ide #gc-desc-tabset .flexlayout__tab {
+    height: min(70vh, 640px) !important;
+  }
+  /* vendor base sets `.flexlayout__tab > * { min-width: 400px }` for the
+     desktop panes; that overflows any phone-width column. */
+  #gc-ide .flexlayout__tab > * {
+    min-width: 0;
+  }
+  #gc-ide #gc-code-tabset .flexlayout__tab {
+    height: 52vh !important;
+    min-height: 360px;
+  }
+  #gc-ide #gc-code-tabset .flexlayout__tab > div,
+  #gc-ide #gc-code-tabset .flexlayout__tab > div > div {
+    width: 100%;
+    min-width: 0;
+  }
+  /* four tabs do not fit 374px at desktop metrics; tighten them instead of
+     clipping the last one */
+  #gc-ide .flexlayout__tab_button {
+    padding-left: 6px;
+    padding-right: 6px;
+  }
+  #gc-ide .flexlayout__tab_button_content .text-sm {
+    font-size: 12px;
+    line-height: 16px;
+  }
+  #gc-ide #gc-testcase-tabset .flexlayout__tab {
+    height: 260px !important;
+  }
+}

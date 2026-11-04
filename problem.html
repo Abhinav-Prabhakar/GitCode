@@ -30,139 +30,294 @@
   <link rel="stylesheet" href="assets/css/vendor/leetcode-question.css">
   <link rel="stylesheet" href="assets/css/vendor/leetcode-extras.css">
   <link rel="stylesheet" href="assets/css/app.css">
+  <link rel="stylesheet" href="assets/css/parity.css">
+  <link rel="stylesheet" href="assets/css/problem-parity.css">
 </head>
 <body>
-  <div class="gc-ide" data-page="problem" id="gc-ide">
-    <header class="gc-idebar">
-      <a class="gc-idebar__logo" href="index.html" aria-label="GitCode home" id="gc-ide-logo"></a>
-      <a class="gc-idebar__back" href="index.html" aria-label="Back to all tasks">
-        <span id="gc-back-icon"></span>
-        <span>All tasks</span>
-      </a>
-      <span class="gc-idebar__divider" aria-hidden="true"></span>
-      <div class="gc-idebar__nav" id="gc-prevnext"></div>
-      <div class="gc-idebar__title" id="gc-ide-title"></div>
-      <div class="gc-idebar__spacer"></div>
-      <div class="gc-idebar__center">
-        <span class="gc-idebar__vrule" aria-hidden="true"></span>
-        <button class="gc-idebar__run" id="gc-run" aria-label="Run checks">
-          <span id="gc-run-icon"></span>
-        </button>
-        <span class="gc-idebar__vrule" aria-hidden="true"></span>
-        <button class="gc-idebar__submit" id="gc-submit">
-          <span id="gc-submit-icon"></span><span>Submit</span>
-        </button>
+  <div class="flex h-[100vh] min-w-[360px] flex-col overflow-x-auto bg-sd-background-gray text-label-1 dark:text-dark-label-1" id="gc-ide" data-page="problem">
+
+    <!-- top bar -->
+    <nav class="relative flex h-[48px] w-full min-w-[100px] shrink-0 items-center justify-between gap-2 px-2.5 z-nav-1" aria-label="Task navigation">
+      <div class="flex min-w-[240px] flex-1 items-center overflow-hidden">
+        <ul class="relative ml-2.5 mr-2 flex h-10 flex-none items-center">
+          <li>
+            <a href="index.html" class="mr-2 flex items-center self-center" aria-label="GitCode problem list">
+              <span class="mb-0.5 flex h-5 items-center pl-1" id="gc-ide-logo"></span>
+            </a>
+          </li>
+          <li class="h-[16px] w-[1px] bg-lc-fill-01 dark:bg-dark-lc-fill-01"></li>
+        </ul>
+        <a href="index.html" class="gc-backlink group flex max-w-[300px] items-center overflow-hidden rounded hover:bg-fill-tertiary dark:hover:bg-fill-tertiary">
+          <span class="group/nav-back flex h-[32px] cursor-pointer items-center gap-2 px-2 text-gray-60 transition-none hover:bg-fill-quaternary hover:text-lc-icon-primary dark:text-gray-60 dark:hover:bg-fill-quaternary dark:hover:text-dark-lc-icon-primary">
+            <span class="relative text-[16px] leading-[normal] p-0.5 before:block before:h-4 before:w-4" data-icon="indent"></span>
+            <span class="relative flex items-center gap-2 overflow-hidden">
+              <span class="truncate font-medium text-text-primary dark:text-text-primary">Problem List</span>
+            </span>
+          </span>
+        </a>
+        <div id="gc-prevnext" class="flex items-center"></div>
       </div>
-      <div class="gc-idebar__spacer"></div>
-      <div class="gc-idebar__actions">
-        <button class="gc-iconbtn" data-theme-toggle aria-label="Toggle theme"></button>
-        <div class="gc-menu-anchor">
-          <button class="gc-iconbtn" data-menu-button aria-label="Task options" id="gc-more"></button>
-          <div class="gc-menu gc-menu--right" role="menu" hidden>
-            <button class="gc-menu__item" role="menuitem" data-reset>Reset workspace</button>
-            <button class="gc-menu__item" role="menuitem" data-goto-solutions>All solutions</button>
-            <button class="gc-menu__item" role="menuitem" data-copy-link>Copy link</button>
-            <button class="gc-menu__item" role="menuitem" data-theme-toggle></button>
-            <div class="gc-menu__sep"></div>
-            <div class="gc-menu__item" role="menuitem" aria-disabled="true">
-              Report an issue<span class="gc-menu__right">demo</span></div>
+
+      <div class="h-full py-2">
+        <div class="relative flex gap-2" id="ide-top-btns">
+          <div class="relative flex overflow-hidden rounded bg-fill-tertiary dark:bg-fill-tertiary">
+            <div class="group flex flex-none items-center justify-center hover:bg-fill-quaternary dark:hover:bg-fill-quaternary">
+              <button type="button" id="gc-run" class="relative inline-flex cursor-pointer items-center rounded-none bg-transparent p-1.5 text-text-primary dark:text-text-primary" aria-label="Run checks">
+                <span id="gc-run-icon" class="relative text-[16px] leading-[normal] p-0.5 text-text-secondary dark:text-text-secondary"></span>
+              </button>
+            </div>
+            <div class="w-[1px] flex-none bg-layer-bg-gray dark:bg-layer-bg-gray"></div>
+            <div class="group flex flex-none items-center justify-center hover:bg-fill-quaternary dark:hover:bg-fill-quaternary">
+              <button type="button" id="gc-submit" class="relative inline-flex select-none cursor-pointer items-center whitespace-nowrap rounded-none bg-transparent px-3 py-1.5 text-green-60 dark:text-green-60" aria-label="Submit">
+                <span id="gc-submit-icon" class="relative mr-2 text-[16px] leading-[normal] p-0.5"></span>
+                <span class="text-sm font-medium">Submit</span>
+              </button>
+            </div>
+          </div>
+          <div class="relative flex overflow-hidden rounded bg-fill-tertiary dark:bg-fill-tertiary">
+            <button type="button" data-theme-toggle class="relative flex cursor-pointer items-center p-2 text-gray-60 transition-colors hover:bg-fill-quaternary hover:text-lc-icon-primary dark:text-gray-60 dark:hover:bg-fill-quaternary dark:hover:text-dark-lc-icon-primary" aria-label="Toggle theme"></button>
           </div>
         </div>
       </div>
-    </header>
 
-    <div class="gc-workspace">
-      <div class="gc-split" id="gc-split">
-        <section class="gc-split__pane gc-split__pane--left" aria-label="Task description">
-          <div class="gc-pane gc-pane--desc" data-tabgroup>
-            <div class="gc-tabbar">
-              <div class="gc-tabbar__scroll" role="tablist" aria-label="Task views">
-                <button class="gc-tab gc-tab--blue" role="tab" aria-selected="true" data-tab="desc" id="gc-tab-desc"></button>
-                <button class="gc-tab gc-tab--yellow" role="tab" aria-selected="false" data-tab="editorial" id="gc-tab-editorial"></button>
-                <button class="gc-tab gc-tab--blue" role="tab" aria-selected="false" data-tab="solutions" id="gc-tab-solutions"></button>
-                <button class="gc-tab gc-tab--blue" role="tab" aria-selected="false" data-tab="submissions" id="gc-tab-submissions"></button>
-              </div>
-              <div class="gc-tabbar__tools">
-                <button class="gc-iconbtn gc-tip" data-tip="Bookmark" id="gc-bookmark" aria-label="Bookmark task"></button>
-                <button class="gc-iconbtn gc-tip" data-tip="Focus mode" id="gc-focus" aria-label="Toggle focus mode"></button>
-              </div>
-            </div>
-            <div class="gc-pane__body gc-scroll">
-              <div data-panel="desc" id="gc-desc"></div>
-              <div data-panel="editorial" hidden id="gc-editorial"></div>
-              <div data-panel="solutions" hidden id="gc-solutions"></div>
-              <div data-panel="submissions" hidden id="gc-submissions"></div>
-            </div>
-            <div class="gc-panefoot gc-panefoot--desc">
-              <div class="gc-panefoot__acts">
-                <button class="gc-panefoot__act" id="gc-like" aria-label="Like task"></button>
-                <button class="gc-panefoot__act" id="gc-dislike" aria-label="Dislike task"></button>
-                <button class="gc-panefoot__act" id="gc-comment" aria-label="Comments"></button>
-                <button class="gc-panefoot__act" id="gc-share" aria-label="Share task"></button>
-                <button class="gc-panefoot__act" id="gc-help" aria-label="Help"></button>
-              </div>
-              <span class="gc-panefoot__online"><i></i>791 Online</span>
+      <div class="relative flex flex-1 items-center justify-end">
+        <div class="relative flex items-center justify-end gap-2">
+          <a href="index.html" class="gc-nav-layouts flex cursor-pointer rounded-lg p-2 text-sd-muted-foreground hover:bg-fill-tertiary hover:text-sd-foreground dark:hover:bg-fill-tertiary" aria-label="Problem list">
+            <span class="relative text-[16px] leading-[normal]" data-icon="objects-column"></span>
+          </a>
+          <div class="gc-menu-anchor">
+            <button type="button" id="gc-more" class="flex cursor-pointer rounded-lg p-2 text-sd-muted-foreground hover:bg-fill-tertiary hover:text-sd-foreground dark:hover:bg-fill-tertiary" aria-label="Task options" aria-haspopup="menu"></button>
+            <div class="gc-menu gc-menu--right" role="menu" hidden>
+              <button class="gc-menu__item" role="menuitem" data-reset>Reset workspace</button>
+              <button class="gc-menu__item" role="menuitem" data-goto-solutions>All solutions</button>
+              <button class="gc-menu__item" role="menuitem" data-copy-link>Copy link</button>
+              <button class="gc-menu__item" role="menuitem" data-theme-toggle></button>
+              <div class="gc-menu__sep"></div>
+              <div class="gc-menu__item" role="menuitem" aria-disabled="true">
+                Report an issue<span class="gc-menu__right">demo</span></div>
             </div>
           </div>
-        </section>
+          <div class="gc-nav-auth flex items-center whitespace-nowrap">
+            <a class="hidden text-text-secondary hover:text-text-primary dark:text-text-secondary dark:hover:text-text-primary lg:flex" href="index.html?premium=1">Register</a>
+            <span class="mx-3 hidden text-text-secondary dark:text-text-secondary lg:inline-block">or</span>
+            <button type="button" class="text-text-secondary hover:text-text-primary dark:text-text-secondary dark:hover:text-text-primary">Log in</button>
+          </div>
+          <div class="gc-nav-premium ml-4 hidden lc-lg:inline-block">
+            <a href="index.html?premium=1"><span class="h-8 w-[84px] cursor-pointer rounded-[8px] bg-[#ffa1161f] text-center leading-8 transition-colors hover:bg-[#ffa11633] !inline-block font-typo"><span class="text-brand-orange">Premium</span></span></a>
+          </div>
+        </div>
+      </div>
+    </nav>
 
-        <button class="gc-splitter" role="separator" aria-orientation="vertical"
-                aria-label="Resize description and workbench" aria-valuemin="28" aria-valuemax="74"
-                aria-valuenow="50" tabindex="0"></button>
+    <!-- workspace -->
+    <main class="flex w-full min-w-[var(--nav-min-w,0px)] flex-grow overflow-y-hidden p-[10px] pt-0">
+      <div class="relative flex h-full w-full">
+        <div class="flexlayout__layout" style="position:relative;width:100%;height:100%">
 
-        <section class="gc-split__pane gc-split__pane--right" aria-label="Workbench">
-          <div class="gc-vsplit">
-            <section class="gc-vsplit__pane gc-vsplit__pane--top gc-pane" data-tabgroup>
-              <div class="gc-tabbar">
-                <div class="gc-tabbar__scroll" role="tablist" aria-label="Terminal views">
-                  <button class="gc-tab gc-tab--green" role="tab" aria-selected="true" data-tab="terminal" id="gc-tab-terminal"></button>
-                  <button class="gc-tab gc-tab--blue" role="tab" aria-selected="false" data-tab="terminal-help" id="gc-tab-help"></button>
-                </div>
-                <div class="gc-tabbar__tools">
-                  <button class="gc-iconbtn gc-tip" data-tip="Clear" id="gc-clear" aria-label="Clear terminal"></button>
-                  <button class="gc-iconbtn gc-tip" data-tip="Copy transcript" id="gc-copy" aria-label="Copy transcript"></button>
-                  <button class="gc-iconbtn gc-tip" data-tip="Expand" id="gc-expand" aria-label="Expand terminal"></button>
+          <!-- description -->
+          <div class="flexlayout__tabset flexlayout__tabset-active" data-tabgroup style="left:0;top:0;width:486px;height:642px;position:absolute" id="gc-desc-tabset">
+            <div class="flexlayout__tabset_tabbar_outer flexlayout__tabset_tabbar_outer_top flexlayout__tabset-selected flexlayout__tabset_tabbar_hover_show_toolbar" style="height:36px">
+              <div class="flexlayout__tabset_tabbar_inner flexlayout__tabset_tabbar_inner_top">
+                <div class="flexlayout__tabset_tabbar_inner_tab_container flexlayout__tabset_tabbar_inner_tab_container_top" style="left:0" role="tablist" aria-label="Task views">
+                  <div class="flexlayout__tab_button flexlayout__tab_button_top flexlayout__tab_button--selected" id="gc-tab-desc" data-tab="desc" role="tab" aria-selected="true" tabindex="0">
+                    <div class="flexlayout__tab_button_content">
+                      <div class="relative flex items-center gap-1 overflow-hidden text-sm capitalize" style="max-width:150px">
+                        <div class="relative text-[14px] leading-[normal] p-[1px] text-sd-blue-500" data-tab-icon="desc"></div>
+                        <div class="relative">
+                          <div class="medium whitespace-nowrap font-medium">Description</div>
+                          <div class="normal absolute left-0 top-0 whitespace-nowrap font-normal">Description</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="flexlayout__tabset_tab_divider"></div>
+                  <div class="flexlayout__tab_button flexlayout__tab_button_top flexlayout__tab_button--unselected" id="gc-tab-editorial" data-tab="editorial" role="tab" aria-selected="false" tabindex="-1">
+                    <div class="flexlayout__tab_button_content">
+                      <div class="relative flex items-center gap-1 overflow-hidden text-sm capitalize" style="max-width:150px">
+                        <div class="relative text-[14px] leading-[normal] p-[1px] text-sd-yellow-500" data-tab-icon="editorial"></div>
+                        <div class="relative">
+                          <div class="medium whitespace-nowrap font-medium">Editorial</div>
+                          <div class="normal absolute left-0 top-0 whitespace-nowrap font-normal">Editorial</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="flexlayout__tabset_tab_divider"></div>
+                  <div class="flexlayout__tab_button flexlayout__tab_button_top flexlayout__tab_button--unselected" id="gc-tab-solutions" data-tab="solutions" role="tab" aria-selected="false" tabindex="-1">
+                    <div class="flexlayout__tab_button_content">
+                      <div class="relative flex items-center gap-1 overflow-hidden text-sm capitalize" style="max-width:150px">
+                        <div class="relative text-[14px] leading-[normal] p-[1px] text-sd-blue-500" data-tab-icon="solutions"></div>
+                        <div class="relative">
+                          <div class="medium whitespace-nowrap font-medium">Solutions</div>
+                          <div class="normal absolute left-0 top-0 whitespace-nowrap font-normal">Solutions</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="flexlayout__tabset_tab_divider"></div>
+                  <div class="flexlayout__tab_button flexlayout__tab_button_top flexlayout__tab_button--unselected" id="gc-tab-submissions" data-tab="submissions" role="tab" aria-selected="false" tabindex="-1">
+                    <div class="flexlayout__tab_button_content">
+                      <div class="relative flex items-center gap-1 overflow-hidden text-sm capitalize" style="max-width:150px">
+                        <div class="relative text-[14px] leading-[normal] p-[1px] text-sd-blue-500" data-tab-icon="submissions"></div>
+                        <div class="relative">
+                          <div class="medium whitespace-nowrap font-medium">Submissions</div>
+                          <div class="normal absolute left-0 top-0 whitespace-nowrap font-normal">Submissions</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
-              <div class="gc-pane__body" id="gc-terminal-pane">
-                <div data-panel="terminal" id="gc-terminal"></div>
-                <div data-panel="terminal-help" hidden id="gc-terminal-help"></div>
-              </div>
-            </section>
-
-            <button class="gc-splitter gc-splitter--row" role="separator" aria-orientation="horizontal"
-                    aria-label="Resize terminal and workspace" aria-valuemin="28" aria-valuemax="74"
-                    aria-valuenow="50" tabindex="0"></button>
-
-            <section class="gc-vsplit__pane gc-vsplit__pane--bottom gc-pane" data-tabgroup>
-              <div class="gc-tabbar">
-                <div class="gc-tabbar__scroll" role="tablist" aria-label="Workbench views">
-                  <button class="gc-tab gc-tab--blue" role="tab" aria-selected="true" data-tab="workspace" id="gc-tab-workspace"></button>
-                  <button class="gc-tab gc-tab--green" role="tab" aria-selected="false" data-tab="result" id="gc-tab-result"></button>
-                </div>
-                <div class="gc-tabbar__tools">
-                  <button class="gc-iconbtn gc-tip" data-tip="Refresh workspace" id="gc-refresh" aria-label="Refresh workspace"></button>
+              <div class="flexlayout__tab_toolbar">
+                <div class="panel-right-btn flex space-x-1">
+                  <button type="button" id="gc-focus" class="relative flex h-6 w-6 cursor-pointer items-center justify-center rounded p-[5px] text-text-secondary hover:bg-fill-secondary dark:text-text-secondary dark:hover:bg-fill-secondary" aria-label="Toggle focus mode"></button>
                 </div>
               </div>
-              <div class="gc-pane__body gc-scroll">
+            </div>
+            <div class="flexlayout__tabset_content"></div>
+            <div class="flexlayout__tab" style="left:0;top:36px;position:absolute;--width:486px;--height:606px">
+              <div class="flex h-full w-full flex-col">
+                <div class="flex w-full flex-1 flex-col gap-4 overflow-y-auto px-4 py-5 gc-scroll" id="gc-desc-scroll">
+                  <div data-panel="desc" id="gc-desc"></div>
+                  <div data-panel="editorial" hidden id="gc-editorial"></div>
+                  <div data-panel="solutions" hidden id="gc-solutions"></div>
+                  <div data-panel="submissions" hidden id="gc-submissions"></div>
+                </div>
+                <div class="flex w-full items-center justify-between gap-2 bg-layer-01 p-1 dark:bg-layer-01">
+                  <div class="flex items-center gap-1">
+                    <button type="button" id="gc-like" class="flex h-7 items-center gap-1 rounded-lg px-2 py-1 text-sm font-medium text-text-secondary hover:bg-fill-secondary dark:text-text-secondary" aria-label="Like task"></button>
+                    <div class="h-7 w-[1px] bg-border-tertiary dark:bg-border-tertiary"></div>
+                    <button type="button" id="gc-dislike" class="flex h-7 w-7 items-center justify-center rounded-lg p-1.5 text-sm font-medium text-text-secondary hover:bg-fill-secondary dark:text-text-secondary" aria-label="Dislike task"></button>
+                    <button type="button" id="gc-comment" class="flex h-7 items-center gap-1 rounded-lg px-2 py-1 text-sm font-medium text-text-secondary hover:bg-fill-secondary dark:text-text-secondary" aria-label="Comments"></button>
+                  </div>
+                  <div class="flex-1"></div>
+                  <div class="flex items-center gap-2">
+                    <button type="button" id="gc-bookmark" class="flex h-7 w-7 items-center justify-center rounded p-1.5 text-sm text-text-secondary hover:bg-sd-accent dark:text-text-secondary" aria-label="Bookmark task"></button>
+                    <button type="button" id="gc-share" class="flex h-7 w-7 items-center justify-center rounded p-1.5 text-sm text-text-secondary hover:bg-sd-accent dark:text-text-secondary" aria-label="Share task"></button>
+                    <button type="button" id="gc-help" class="flex h-7 w-7 items-center justify-center rounded p-1.5 text-sm text-text-secondary hover:bg-sd-accent dark:text-text-secondary" aria-label="Help"></button>
+                  </div>
+                  <div class="mr-2 flex items-center gap-1 text-caption font-medium text-text-secondary">
+                    <div class="h-1.5 w-1.5 rounded-full bg-sd-green-500"></div>
+                    <div>791 Online</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="flexlayout__splitter flexlayout__splitter_vert" style="left:486px;top:0;width:8px;height:642px" role="separator" aria-orientation="vertical" aria-label="Resize description"></div>
+
+          <!-- terminal -->
+          <div class="flexlayout__tabset" data-tabgroup style="left:494px;top:0;width:486px;height:598px;position:absolute" id="gc-code-tabset">
+            <div class="flexlayout__tabset_tabbar_outer flexlayout__tabset_tabbar_outer_top flexlayout__tabset_tabbar_hover_show_toolbar" style="height:36px">
+              <div class="flexlayout__tabset_tabbar_inner flexlayout__tabset_tabbar_inner_top">
+                <div class="flexlayout__tabset_tabbar_inner_tab_container flexlayout__tabset_tabbar_inner_tab_container_top" style="left:0" role="tablist" aria-label="Terminal views">
+                  <div class="flexlayout__tab_button flexlayout__tab_button_top flexlayout__tab_button--selected" id="gc-tab-terminal" data-tab="terminal" role="tab" aria-selected="true" tabindex="0">
+                    <div class="flexlayout__tab_button_content">
+                      <div class="relative flex items-center gap-1 overflow-hidden text-sm capitalize" style="max-width:150px">
+                        <div class="relative text-[14px] leading-[normal] p-[1px] text-sd-green-500" data-tab-icon="terminal"></div>
+                        <div class="relative">
+                          <div class="medium whitespace-nowrap font-medium">Terminal</div>
+                          <div class="normal absolute left-0 top-0 whitespace-nowrap font-normal">Terminal</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="flexlayout__tab_toolbar"></div>
+            </div>
+            <div class="flexlayout__tabset_content"></div>
+            <div class="flexlayout__tab" style="left:0;top:36px;position:absolute;--width:486px;--height:562px">
+              <div class="relative flex h-full min-h-0 flex-col overflow-hidden rounded bg-layer-01 dark:bg-layer-01" id="gc-editor">
+                <div class="flex h-8 items-center justify-between border-b border-border-quaternary py-1 pl-[10px] pr-[10px] dark:border-border-quaternary">
+                  <div class="flex h-full flex-nowrap items-center">
+                    <button type="button" id="gc-shell-select" class="inline-flex h-full items-center whitespace-nowrap rounded px-1.5 py-0.5 text-sm font-normal text-text-secondary hover:bg-fill-secondary dark:text-text-secondary">
+                      <span>bash</span>
+                      <span id="gc-shell-chev" class="relative ml-1 text-[12px] leading-[normal] p-0.5 text-gray-60 dark:text-gray-60"></span>
+                    </button>
+                    <span class="ml-2 flex items-center gap-1 text-xs text-text-secondary dark:text-text-secondary">
+                      <span class="h-1 w-1 rounded-full bg-gray-60"></span>
+                      Auto
+                    </span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <button type="button" id="gc-clear" class="relative flex h-6 w-6 cursor-pointer items-center justify-center rounded p-[5px] text-text-secondary hover:bg-fill-secondary dark:text-text-secondary dark:hover:bg-fill-secondary" aria-label="Clear terminal"></button>
+                    <button type="button" id="gc-copy" class="relative flex h-6 w-6 cursor-pointer items-center justify-center rounded p-[5px] text-text-secondary hover:bg-fill-secondary dark:text-text-secondary dark:hover:bg-fill-secondary" aria-label="Copy transcript"></button>
+                    <button type="button" id="gc-refresh" class="relative flex h-6 w-6 cursor-pointer items-center justify-center rounded p-[5px] text-text-secondary hover:bg-fill-secondary dark:text-text-secondary dark:hover:bg-fill-secondary" aria-label="Refresh workspace"></button>
+                    <button type="button" id="gc-expand" class="relative flex h-6 w-6 cursor-pointer items-center justify-center rounded p-[5px] text-text-secondary hover:bg-fill-secondary dark:text-text-secondary dark:hover:bg-fill-secondary" aria-label="Expand terminal"></button>
+                  </div>
+                </div>
+                <div class="relative min-h-0 flex-1 pb-2">
+                  <div class="gc-editor-body h-full w-full" data-panel="terminal" id="gc-terminal"></div>
+                </div>
+                <div class="flex h-9 items-center justify-between px-3 py-2">
+                  <div class="flex items-center gap-2 text-caption text-text-tertiary dark:text-text-tertiary" id="gc-saved">Saved</div>
+                  <div class="flex items-center gap-3 text-xs text-text-tertiary dark:text-text-tertiary">
+                    <span id="gc-foot-state" class="flex items-center gap-1"></span>
+                  </div>
+                </div>
+                <div class="flex items-start bg-blue-0 p-[8px] pl-[20px] leading-[20px] text-blue-s dark:bg-dark-blue-0 dark:text-dark-blue-s">
+                  <span class="text-label-2 dark:text-dark-label-2">Press <kbd class="rounded border border-border-tertiary px-1 text-[11px] dark:border-border-tertiary">⌘↵</kbd> to run the checks, <kbd class="rounded border border-border-tertiary px-1 text-[11px] dark:border-border-tertiary">⌘⇧↵</kbd> to submit.</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="flexlayout__splitter flexlayout__splitter_horz" style="left:494px;top:598px;width:486px;height:8px" role="separator" aria-orientation="horizontal" aria-label="Resize terminal"></div>
+
+          <!-- workspace -->
+          <div class="flexlayout__tabset" data-tabgroup style="left:494px;top:606px;width:486px;height:236px;position:absolute" id="gc-testcase-tabset">
+            <div class="flexlayout__tabset_tabbar_outer flexlayout__tabset_tabbar_outer_top flexlayout__tabset_tabbar_hover_show_toolbar" style="height:36px">
+              <div class="flexlayout__tabset_tabbar_inner flexlayout__tabset_tabbar_inner_top">
+                <div class="flexlayout__tabset_tabbar_inner_tab_container flexlayout__tabset_tabbar_inner_tab_container_top" style="left:0" role="tablist" aria-label="Workbench views">
+                  <div class="flexlayout__tab_button flexlayout__tab_button_top flexlayout__tab_button--selected" id="gc-tab-workspace" data-tab="workspace" role="tab" aria-selected="true" tabindex="0">
+                    <div class="flexlayout__tab_button_content">
+                      <div class="relative flex items-center gap-1 overflow-hidden text-sm capitalize" style="max-width:150px">
+                        <div class="relative text-[14px] leading-[normal] p-[1px] text-sd-green-500" data-tab-icon="workspace"></div>
+                        <div class="relative">
+                          <div class="medium whitespace-nowrap font-medium">Workspace</div>
+                          <div class="normal absolute left-0 top-0 whitespace-nowrap font-normal">Workspace</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="flexlayout__tabset_tab_divider"></div>
+                  <div class="flexlayout__tab_button flexlayout__tab_button_top flexlayout__tab_button--unselected" id="gc-tab-result" data-tab="result" role="tab" aria-selected="false" tabindex="-1">
+                    <div class="flexlayout__tab_button_content">
+                      <div class="relative flex items-center gap-1 overflow-hidden text-sm capitalize" style="max-width:150px">
+                        <div class="relative text-[14px] leading-[normal] p-[1px] text-sd-green-500" data-tab-icon="result"></div>
+                        <div class="relative">
+                          <div class="medium whitespace-nowrap font-medium">Test Result</div>
+                          <div class="normal absolute left-0 top-0 whitespace-nowrap font-normal">Test Result</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="flexlayout__tab_toolbar">
+                <div class="panel-right-btn flex space-x-1">
+                  <button type="button" class="flex h-6 w-6 items-center justify-center rounded p-[5px] text-text-secondary hover:bg-fill-secondary dark:text-text-secondary dark:hover:bg-fill-secondary" aria-label="Expand" data-icon="expand"></button>
+                </div>
+              </div>
+            </div>
+            <div class="flexlayout__tabset_content"></div>
+            <div class="flexlayout__tab" style="left:0;top:36px;position:absolute;--width:486px;--height:200px">
+              <div class="flex h-full w-full flex-col overflow-y-auto gc-scroll" id="gc-workbench">
                 <div data-panel="workspace" id="gc-workspace"></div>
                 <div data-panel="result" hidden id="gc-result"></div>
               </div>
-              <div class="gc-panefoot">
-                <div class="gc-daily__date" id="gc-foot-state"></div>
-                <div class="gc-panefoot__right">
-                  <button class="gc-select" id="gc-shell-select" aria-label="Select shell">
-                    <span>bash</span><span id="gc-shell-chev"></span>
-                  </button>
-                  <span id="gc-saved">Saved</span>
-                </div>
-              </div>
-            </section>
+            </div>
           </div>
-        </section>
+
+        </div>
       </div>
-    </div>
+    </main>
   </div>
+
+  <div data-panel="terminal-help" hidden id="gc-terminal-help" class="hidden"></div>
+  <div id="gc-modal"></div>
 
   <script src="assets/js/icons.js"></script>
   <script src="assets/js/data.js"></script>

@@ -302,11 +302,17 @@
       var panels = $$("[data-panel]", group);
 
       function select(tab, focus) {
+        var anySelected = false;
         tabs.forEach(function (t) {
           var on = t === tab;
+          anySelected = anySelected || on;
           t.setAttribute("aria-selected", String(on));
           t.setAttribute("tabindex", on ? "0" : "-1");
+          t.classList.toggle("flexlayout__tab_button--selected", on);
+          t.classList.toggle("flexlayout__tab_button--unselected", !on);
         });
+        var bar = $(".flexlayout__tabset_tabbar_outer", group);
+        if (bar) bar.classList.toggle("flexlayout__tabset-selected", anySelected);
         panels.forEach(function (panel) {
           panel.hidden = panel.getAttribute("data-panel") !== tab.getAttribute("data-tab");
         });
