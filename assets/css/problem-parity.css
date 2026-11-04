@@ -32,17 +32,14 @@
   background: var(--fill-tertiary);
 }
 
-/* Pane geometry. At 1440 x 900 the reference layout is 1420 x 842 with two
-   486px columns: code 486 x 598 above a 236px testcase pane, and a description
-   pane that spans the whole column. (The saved reference collapses its
-   testcase content to a 36px bar, so its description measures 642; ours keeps
-   a 236px workspace, so the description fills all 842px and both columns line
-   up at the bottom.) Declare it as variables so the same proportions hold at
-   any viewport instead of freezing pixel heights. --gc-main-h accounts for the
-   48px nav and the 10px bottom padding; below 560px tall the layout stops
-   shrinking and main scrolls instead. */
+/* Pane geometry. The reference splits the workspace into two equal columns
+   with an 8px splitter. Keep that 50/50 split but derive it from the viewport
+   so the panes reach the right padding edge at every width: the reference's
+   fixed 486px panes came from a ~1000px capture and leave a dead strip on any
+   wider screen. --gc-main-h accounts for the 48px nav and the 10px bottom
+   padding; below 560px tall the layout stops shrinking and main scrolls. */
 #gc-ide .flexlayout__layout {
-  --gc-pane-w: 486px;
+  --gc-pane-w: calc((100vw - 28px) / 2);
   --gc-main-h: max(calc(100vh - 58px), 560px);
   height: var(--gc-main-h);
 }
@@ -89,14 +86,6 @@
   top: calc(var(--gc-main-h) - 244px);
   width: var(--gc-pane-w);
   height: 8px;
-}
-
-/* Between 901 and 999px two 486px panes plus padding no longer fit. Split the
-   available width evenly instead of letting the code pane run off-screen. */
-@media (min-width: 901px) and (max-width: 999px) {
-  #gc-ide .flexlayout__layout {
-    --gc-pane-w: calc((100vw - 28px) / 2);
-  }
 }
 
 /* The description scrolls above a pinned 36px footer. Fade the last few
