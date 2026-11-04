@@ -1166,6 +1166,27 @@ html.dark {
   }
 }
 
+/* Smallest phones: four task tabs need 380px at the default tab metrics, so
+   trim the outer padding and icon gap to keep Submissions on screen at 360. */
+@media (max-width: 400px) {
+  #gc-ide .flexlayout__tab_button {
+    padding-left: 4px;
+    padding-right: 4px;
+  }
+  #gc-ide .flexlayout__tab_button_content {
+    margin-right: 0;
+  }
+  #gc-ide .flexlayout__tab_button_content > div {
+    gap: 2px;
+  }
+}
+/* Only the 360-370px range still needs a smaller label; 375px and up fit. */
+@media (max-width: 370px) {
+  #gc-ide .flexlayout__tab_button_content .text-sm {
+    font-size: 11px;
+  }
+}
+
 /* Dialogs opened from the problem page (terminal help, reset, transcripts). */
 #gc-modal .gc-modal__body {
   max-height: calc(100vh - 220px);
