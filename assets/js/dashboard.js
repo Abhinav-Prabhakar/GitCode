@@ -52,6 +52,22 @@
     p.starred = !!bookmarks[p.slug];
   });
 
+  var Progress = window.GCProgress;
+  if (Progress) Progress.apply(D.problems);
+
+  function trackProblems(track) {
+    var href = track.href || "";
+    var category = /[?&]category=([^&]+)/.exec(href);
+    var tag = /[?&]tag=([^&]+)/.exec(href);
+    if (category) {
+      return D.problems.filter(function (p) { return p.category === decodeURIComponent(category[1]); });
+    }
+    if (tag) {
+      return D.problems.filter(function (p) { return p.tags.indexOf(decodeURIComponent(tag[1])) !== -1; });
+    }
+    return D.problems.slice();
+  }
+
   function saveBookmarks() {
     try {
       localStorage.setItem("gc-bookmarks", JSON.stringify(bookmarks));
@@ -113,7 +129,11 @@
     if (!host) return;
     host.innerHTML = D.tracks
       .map(function (t) {
-        var pct = Math.round((t.done / t.total) * 100);
+        var problems = trackProblems(t);
+        var total = problems.length || t.total;
+        var done = problems.filter(function (p) { return p.status === "solved"; }).length;
+        var pct = total ? Math.round((done / total) * 100) : 0;
+        var meta = String(t.meta || "").replace(/^\d+ tasks?/, total + " tasks");
         var tone = bannerTones[t.id] || "dark-gray";
         return (
           '<a class="gc-banner background_cover-background__OCnoq ' +
@@ -131,11 +151,11 @@
           UI.esc(t.title) +
           "</span>" +
           '<span class="gc-banner__meta">' +
-          UI.esc(t.meta) +
+          UI.esc(meta) +
           '<span class="gc-banner__count">' +
-          t.done +
+          done +
           "/" +
-          t.total +
+          total +
           "</span></span>" +
           '<span class="gc-banner__bar"><i style="width:' +
           pct +

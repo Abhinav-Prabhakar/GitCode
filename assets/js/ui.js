@@ -460,7 +460,9 @@
       document.body.appendChild(host);
     }
     host.innerHTML =
-      '<div class="gc-modal__panel" role="dialog" aria-modal="true" aria-labelledby="gc-modal-title">' +
+      '<div class="gc-modal__panel' +
+      (opts.wide ? " gc-modal__panel--wide" : "") +
+      '" role="dialog" aria-modal="true" aria-labelledby="gc-modal-title">' +
       '<div class="gc-modal__head"><div class="gc-modal__title" id="gc-modal-title">' +
       esc(opts.title || "") +
       '</div><button class="gc-iconbtn" data-modal-close aria-label="Close dialog">' +
@@ -495,9 +497,12 @@
         if (opts.onOk) opts.onOk();
       });
     }
+    if (opts.onOpen) opts.onOpen(host);
     setTimeout(function () {
-      if (ok) ok.focus();
+      var target = opts.focus ? $(opts.focus, host) : ok;
+      if (target) target.focus();
     }, 30);
+    return host;
   };
 
   /* ------------------------------------------------------------ primitives */
