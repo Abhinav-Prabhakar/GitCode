@@ -355,3 +355,13 @@ html.light .gc-daily {
     display: none;
   }
 }
+
+/* Wide screens: the question list is centred in the space left of the rail
+   while the rail itself is pinned to the right edge, so the gap between them
+   grows with the viewport (600px+ at 2560). Cap and centre the pair instead,
+   keeping the list at its reference position and the rail next to it. */
+#gc-content-shell {
+  width: 100%;
+  max-width: 1440px;
+  margin-inline: auto;
+}
