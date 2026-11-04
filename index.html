@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="GitCode - practice Git like a sport. Recover lost commits, resolve conflicts, rebase safely, and clean up history.">
+  <title>GitCode · Practice Git</title>
+  <script>
+    try {
+      var forcedTheme = new URLSearchParams(location.search).get("theme");
+      var savedTheme = forcedTheme || localStorage.getItem("gc-theme");
+      if (savedTheme) {
+        document.documentElement.classList.toggle("dark", savedTheme === "dark");
+        document.documentElement.classList.toggle("light", savedTheme === "light");
+        if (forcedTheme) localStorage.setItem("gc-theme", forcedTheme);
+      }
+    } catch (e) {}
+  </script>
+  <link rel="stylesheet" href="assets/css/vendor/leetcode-base.css">
+  <link rel="stylesheet" href="assets/css/vendor/leetcode-question.css">
+  <link rel="stylesheet" href="assets/css/vendor/leetcode-extras.css">
+  <link rel="stylesheet" href="assets/css/app.css">
+</head>
+<body>
+  <div class="gc-app" data-page="dashboard">
+    <header id="gc-nav"><!-- rendered by ui.js --></header>
+
+    <div class="gc-shell">
+      <aside class="gc-rail gc-scroll" id="gc-rail" aria-label="Library"></aside>
+
+      <main class="gc-main">
+        <div class="gc-content">
+          <section class="gc-hero" id="tracks">
+            <div class="gc-hero__head">
+              <div>
+                <h1 class="gc-hero__title">Practice repository surgery</h1>
+                <p class="gc-hero__sub">Recover, rewrite, and repair Git history. 44 tasks across 7 operations.</p>
+              </div>
+              <div class="gc-hero__nav">
+                <button class="gc-iconbtn" id="gc-track-prev" aria-label="Previous tracks"></button>
+                <button class="gc-iconbtn" id="gc-track-next" aria-label="Next tracks"></button>
+              </div>
+            </div>
+            <div class="gc-trackstrip" id="gc-tracks"></div>
+          </section>
+
+          <div class="gc-pills" id="gc-pills" role="tablist" aria-label="Task categories"></div>
+
+          <div class="gc-toolbar">
+            <div class="gc-toolbar__left">
+              <div class="gc-inputwrap">
+                <input class="gc-input" type="search" id="gc-search" data-search data-global-search
+                       placeholder="Search title or #tag" aria-label="Search tasks">
+              </div>
+
+              <div class="gc-filterchip" id="gc-tag-filter" hidden></div>
+
+              <div class="gc-menu-anchor">
+                <button class="gc-btn-round" data-menu-button aria-label="Filter by status">
+                  <span id="gc-status-label">All statuses</span>
+                  <span id="gc-status-icon"></span>
+                </button>
+                <div class="gc-menu" role="menu" hidden>
+                  <div class="gc-menu__label">Status</div>
+                  <button class="gc-menu__item" role="menuitemradio" data-status="all" aria-checked="true">
+                    <span class="check"></span>All statuses</button>
+                  <button class="gc-menu__item" role="menuitemradio" data-status="solved" aria-checked="false">
+                    <span class="check"></span>Solved</button>
+                  <button class="gc-menu__item" role="menuitemradio" data-status="attempted" aria-checked="false">
+                    <span class="check"></span>Attempted</button>
+                  <button class="gc-menu__item" role="menuitemradio" data-status="todo" aria-checked="false">
+                    <span class="check"></span>Not started</button>
+                  <button class="gc-menu__item" role="menuitemradio" data-status="bookmarked" aria-checked="false">
+                    <span class="check"></span>Bookmarked</button>
+                </div>
+              </div>
+
+              <div class="gc-menu-anchor">
+                <button class="gc-btn-round" data-menu-button aria-label="Sort tasks">
+                  <span id="gc-sort-label">Number</span>
+                  <span id="gc-sort-icon"></span>
+                </button>
+                <div class="gc-menu" role="menu" hidden>
+                  <div class="gc-menu__label">Sort by</div>
+                  <button class="gc-menu__item" role="menuitemradio" data-sort="number" aria-checked="true">
+                    <span class="check"></span>Number</button>
+                  <button class="gc-menu__item" role="menuitemradio" data-sort="difficulty" aria-checked="false">
+                    <span class="check"></span>Difficulty</button>
+                  <button class="gc-menu__item" role="menuitemradio" data-sort="acceptance" aria-checked="false">
+                    <span class="check"></span>Acceptance</button>
+                  <button class="gc-menu__item" role="menuitemradio" data-sort="title" aria-checked="false">
+                    <span class="check"></span>Title</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="gc-toolbar__right">
+              <a class="gc-progress" href="#progress" id="gc-progress"></a>
+              <button class="gc-btn-round gc-tip" data-tip="Pick a random task" id="gc-shuffle"
+                      aria-label="Pick a random task"></button>
+              <div class="gc-menu-anchor">
+                <button class="gc-btn-round gc-tip" data-tip="More" data-menu-button
+                        aria-label="More options" id="gc-more"></button>
+                <div class="gc-menu gc-menu--right" role="menu" hidden>
+                  <a class="gc-menu__item" role="menuitem" href="index.html?view=bookmarks">Bookmarked tasks</a>
+                  <a class="gc-menu__item" role="menuitem" href="index.html?view=submissions">Submission history</a>
+                  <div class="gc-menu__sep"></div>
+                  <div class="gc-menu__item" role="menuitem" aria-disabled="true">
+                    Reset progress<span class="gc-menu__right">demo</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="gc-list" id="gc-list" role="list"></div>
+          <div id="gc-empty"></div>
+          <nav class="gc-pagination" id="gc-pagination" aria-label="Pagination"></nav>
+        </div>
+
+        <aside class="gc-aside" id="gc-aside" aria-label="Highlights"></aside>
+      </main>
+    </div>
+  </div>
+
+  <script src="assets/js/icons.js"></script>
+  <script src="assets/js/data.js"></script>
+  <script src="assets/js/ui.js"></script>
+  <script src="assets/js/dashboard.js"></script>
+</body>
+</html>

@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="GitCode task — practice a real Git recovery, conflict, rebase, or history rewrite.">
+  <title>GitCode · Task</title>
+  <script>
+    try {
+      var forcedTheme = new URLSearchParams(location.search).get("theme");
+      var savedTheme = forcedTheme || localStorage.getItem("gc-theme");
+      if (savedTheme) {
+        document.documentElement.classList.toggle("dark", savedTheme === "dark");
+        document.documentElement.classList.toggle("light", savedTheme === "light");
+        if (forcedTheme) localStorage.setItem("gc-theme", forcedTheme);
+      }
+    } catch (e) {}
+  </script>
+  <link rel="stylesheet" href="assets/css/vendor/leetcode-base.css">
+  <link rel="stylesheet" href="assets/css/vendor/leetcode-question.css">
+  <link rel="stylesheet" href="assets/css/vendor/leetcode-extras.css">
+  <link rel="stylesheet" href="assets/css/app.css">
+</head>
+<body>
+  <div class="gc-ide" data-page="problem" id="gc-ide">
+    <header class="gc-idebar">
+      <a class="gc-idebar__back" href="index.html" aria-label="Back to all tasks">
+        <span id="gc-back-icon"></span>
+        <span>All tasks</span>
+      </a>
+      <span class="gc-idebar__divider" aria-hidden="true"></span>
+      <div class="gc-idebar__nav" id="gc-prevnext"></div>
+      <div class="gc-idebar__title" id="gc-ide-title"></div>
+      <div class="gc-idebar__spacer"></div>
+      <div class="gc-idebar__actions">
+        <button class="gc-iconbtn" data-theme-toggle aria-label="Toggle theme"></button>
+        <button class="gc-idebar__run" id="gc-run">
+          <span id="gc-run-icon"></span><span>Run</span>
+        </button>
+        <button class="gc-idebar__submit" id="gc-submit">
+          <span id="gc-submit-icon"></span><span>Submit</span>
+        </button>
+        <div class="gc-menu-anchor">
+          <button class="gc-iconbtn" data-menu-button aria-label="Task options" id="gc-more"></button>
+          <div class="gc-menu gc-menu--right" role="menu" hidden>
+            <button class="gc-menu__item" role="menuitem" data-reset>Reset workspace</button>
+            <button class="gc-menu__item" role="menuitem" data-goto-solutions>All solutions</button>
+            <button class="gc-menu__item" role="menuitem" data-copy-link>Copy link</button>
+            <button class="gc-menu__item" role="menuitem" data-theme-toggle></button>
+            <div class="gc-menu__sep"></div>
+            <div class="gc-menu__item" role="menuitem" aria-disabled="true">
+              Report an issue<span class="gc-menu__right">demo</span></div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="gc-workspace">
+      <div class="gc-split" id="gc-split">
+        <section class="gc-split__pane gc-split__pane--left" aria-label="Task description">
+          <div class="gc-pane gc-pane--desc" data-tabgroup>
+            <div class="gc-tabbar">
+              <div class="gc-tabbar__scroll" role="tablist" aria-label="Task views">
+                <button class="gc-tab gc-tab--blue" role="tab" aria-selected="true" data-tab="desc" id="gc-tab-desc"></button>
+                <button class="gc-tab gc-tab--yellow" role="tab" aria-selected="false" data-tab="editorial" id="gc-tab-editorial"></button>
+                <button class="gc-tab gc-tab--blue" role="tab" aria-selected="false" data-tab="solutions" id="gc-tab-solutions"></button>
+                <button class="gc-tab gc-tab--blue" role="tab" aria-selected="false" data-tab="submissions" id="gc-tab-submissions"></button>
+              </div>
+              <div class="gc-tabbar__tools">
+                <button class="gc-iconbtn gc-tip" data-tip="Bookmark" id="gc-bookmark" aria-label="Bookmark task"></button>
+                <button class="gc-iconbtn gc-tip" data-tip="Focus mode" id="gc-focus" aria-label="Toggle focus mode"></button>
+              </div>
+            </div>
+            <div class="gc-pane__body gc-scroll">
+              <div data-panel="desc" id="gc-desc"></div>
+              <div data-panel="editorial" hidden id="gc-editorial"></div>
+              <div data-panel="solutions" hidden id="gc-solutions"></div>
+              <div data-panel="submissions" hidden id="gc-submissions"></div>
+            </div>
+          </div>
+        </section>
+
+        <button class="gc-splitter" role="separator" aria-orientation="vertical"
+                aria-label="Resize description and workbench" aria-valuemin="28" aria-valuemax="74"
+                aria-valuenow="50" tabindex="0"></button>
+
+        <section class="gc-split__pane gc-split__pane--right" aria-label="Workbench">
+          <div class="gc-vsplit">
+            <section class="gc-vsplit__pane gc-vsplit__pane--top gc-pane" data-tabgroup>
+              <div class="gc-tabbar">
+                <div class="gc-tabbar__scroll" role="tablist" aria-label="Terminal views">
+                  <button class="gc-tab gc-tab--green" role="tab" aria-selected="true" data-tab="terminal" id="gc-tab-terminal"></button>
+                  <button class="gc-tab gc-tab--blue" role="tab" aria-selected="false" data-tab="terminal-help" id="gc-tab-help"></button>
+                </div>
+                <div class="gc-tabbar__tools">
+                  <button class="gc-iconbtn gc-tip" data-tip="Clear" id="gc-clear" aria-label="Clear terminal"></button>
+                  <button class="gc-iconbtn gc-tip" data-tip="Copy transcript" id="gc-copy" aria-label="Copy transcript"></button>
+                  <button class="gc-iconbtn gc-tip" data-tip="Expand" id="gc-expand" aria-label="Expand terminal"></button>
+                </div>
+              </div>
+              <div class="gc-pane__body" id="gc-terminal-pane">
+                <div data-panel="terminal" id="gc-terminal"></div>
+                <div data-panel="terminal-help" hidden id="gc-terminal-help"></div>
+              </div>
+            </section>
+
+            <button class="gc-splitter gc-splitter--row" role="separator" aria-orientation="horizontal"
+                    aria-label="Resize terminal and workspace" aria-valuemin="28" aria-valuemax="74"
+                    aria-valuenow="50" tabindex="0"></button>
+
+            <section class="gc-vsplit__pane gc-vsplit__pane--bottom gc-pane" data-tabgroup>
+              <div class="gc-tabbar">
+                <div class="gc-tabbar__scroll" role="tablist" aria-label="Workbench views">
+                  <button class="gc-tab gc-tab--blue" role="tab" aria-selected="true" data-tab="workspace" id="gc-tab-workspace"></button>
+                  <button class="gc-tab gc-tab--green" role="tab" aria-selected="false" data-tab="result" id="gc-tab-result"></button>
+                </div>
+                <div class="gc-tabbar__tools">
+                  <button class="gc-iconbtn gc-tip" data-tip="Refresh workspace" id="gc-refresh" aria-label="Refresh workspace"></button>
+                </div>
+              </div>
+              <div class="gc-pane__body gc-scroll">
+                <div data-panel="workspace" id="gc-workspace"></div>
+                <div data-panel="result" hidden id="gc-result"></div>
+              </div>
+              <div class="gc-panefoot">
+                <div class="gc-daily__date" id="gc-foot-state"></div>
+                <div class="gc-panefoot__right">
+                  <button class="gc-select" id="gc-shell-select" aria-label="Select shell">
+                    <span>bash</span><span id="gc-shell-chev"></span>
+                  </button>
+                  <span id="gc-saved">Saved</span>
+                </div>
+              </div>
+            </section>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <script src="assets/js/icons.js"></script>
+  <script src="assets/js/data.js"></script>
+  <script src="assets/js/ui.js"></script>
+  <script src="assets/js/problem.js"></script>
+</body>
+</html>

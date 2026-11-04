@@ -2,3 +2,6 @@
 _reference/downloaded/
 .DS_Store
 node_modules/
+
+# scraped/pretty reference dumps
+_reference/*.html
