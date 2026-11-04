@@ -65,10 +65,36 @@
 
   /* --------------------------------------------------------------- header */
 
+  var labStart = Date.now();
+
+  function elapsedLabel() {
+    var s = Math.max(0, Math.floor((Date.now() - labStart) / 1000));
+    var pad = function (n) { return (n < 10 ? "0" : "") + n; };
+    return pad(Math.floor(s / 3600)) + ":" + pad(Math.floor((s % 3600) / 60)) + ":" + pad(s % 60);
+  }
+
+  function startLabTimer() {
+    var chip = document.getElementById("gc-timer");
+    if (!chip) return;
+    var tick = function () {
+      var label = "Lab timer " + elapsedLabel();
+      chip.title = label;
+      chip.setAttribute("aria-label", label);
+    };
+    tick();
+    setInterval(tick, 1000);
+    chip.addEventListener("click", function () {
+      UI.toast("Lab time " + elapsedLabel(), "stopwatch");
+    });
+  }
+
   function renderHeader() {
     setIcon("gc-back-icon", "angle-left");
     setIcon("gc-run-icon", "play");
     setIcon("gc-submit-icon", "cloud-arrow-up");
+    setIcon("gc-debug-icon", "bug");
+    setIcon("gc-hint-icon", "sparkles");
+    setIcon("gc-timer-icon", "stopwatch");
     var more = document.getElementById("gc-more");
     if (more) more.innerHTML = window.icon("gear");
 
@@ -1033,6 +1059,29 @@
   function bind() {
     document.getElementById("gc-run").addEventListener("click", run);
     document.getElementById("gc-submit").addEventListener("click", submit);
+
+    var debugBtn = document.getElementById("gc-debug");
+    if (debugBtn) {
+      debugBtn.addEventListener("click", function () {
+        var group = document.getElementById("gc-terminal").closest("[data-tabgroup]");
+        activePanel(group, "terminal");
+        execute("git fsck");
+        focusTerminal();
+      });
+    }
+
+    var hintBtn = document.getElementById("gc-hint");
+    if (hintBtn) {
+      hintBtn.addEventListener("click", function () {
+        var group = document.getElementById("gc-desc").closest("[data-tabgroup]");
+        activePanel(group, "desc");
+        var scroll = document.getElementById("gc-desc-scroll");
+        var target = document.getElementById("gc-hints");
+        if (scroll && target) scroll.scrollTop = Math.max(0, target.offsetTop - 12);
+      });
+    }
+
+    startLabTimer();
 
     var resultHost = document.getElementById("gc-result");
     resultHost.addEventListener("click", function (e) {

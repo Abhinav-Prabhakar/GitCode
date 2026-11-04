@@ -62,6 +62,12 @@
         <div class="relative flex gap-2" id="ide-top-btns">
           <div class="relative flex overflow-hidden rounded bg-fill-tertiary dark:bg-fill-tertiary">
             <div class="group flex flex-none items-center justify-center hover:bg-fill-quaternary dark:hover:bg-fill-quaternary">
+              <button type="button" id="gc-debug" class="relative inline-flex cursor-pointer items-center rounded-none bg-transparent p-1.5 text-text-secondary dark:text-text-secondary" aria-label="Inspect the repository" title="Inspect the repository (git fsck)">
+                <span id="gc-debug-icon" class="relative text-[16px] leading-[normal] p-0.5"></span>
+              </button>
+            </div>
+            <div class="w-[1px] flex-none bg-layer-bg-gray dark:bg-layer-bg-gray"></div>
+            <div class="group flex flex-none items-center justify-center hover:bg-fill-quaternary dark:hover:bg-fill-quaternary">
               <button type="button" id="gc-run" class="relative inline-flex cursor-pointer items-center rounded-none bg-transparent p-1.5 text-text-primary dark:text-text-primary" aria-label="Run checks">
                 <span id="gc-run-icon" class="relative text-[16px] leading-[normal] p-0.5 text-text-secondary dark:text-text-secondary"></span>
               </button>
@@ -75,7 +81,12 @@
             </div>
           </div>
           <div class="relative flex overflow-hidden rounded bg-fill-tertiary dark:bg-fill-tertiary">
-            <button type="button" data-theme-toggle class="relative flex cursor-pointer items-center p-2 text-gray-60 transition-colors hover:bg-fill-quaternary hover:text-lc-icon-primary dark:text-gray-60 dark:hover:bg-fill-quaternary dark:hover:text-dark-lc-icon-primary" aria-label="Toggle theme"></button>
+            <button type="button" data-theme-toggle class="relative flex cursor-pointer items-center p-2 text-[16px] text-gray-60 transition-colors hover:bg-fill-quaternary hover:text-lc-icon-primary dark:text-gray-60 dark:hover:bg-fill-quaternary dark:hover:text-dark-lc-icon-primary" aria-label="Toggle theme"></button>
+          </div>
+          <div class="relative flex overflow-hidden rounded bg-fill-tertiary dark:bg-fill-tertiary">
+            <button type="button" id="gc-hint" class="relative flex cursor-pointer items-center p-2 text-sd-muted-foreground transition-colors hover:bg-fill-quaternary hover:text-sd-foreground dark:hover:bg-fill-quaternary" aria-label="Show the first hint" title="Show the first hint">
+              <span id="gc-hint-icon" class="relative text-[16px] leading-[normal]"></span>
+            </button>
           </div>
         </div>
       </div>
@@ -86,7 +97,7 @@
             <span class="relative text-[16px] leading-[normal]" data-icon="objects-column"></span>
           </a>
           <div class="gc-menu-anchor">
-            <button type="button" id="gc-more" class="flex cursor-pointer rounded-lg p-2 text-sd-muted-foreground hover:bg-fill-tertiary hover:text-sd-foreground dark:hover:bg-fill-tertiary" aria-label="Task options" aria-haspopup="menu"></button>
+            <button type="button" id="gc-more" class="flex cursor-pointer rounded-lg p-2 text-[16px] text-sd-muted-foreground hover:bg-fill-tertiary hover:text-sd-foreground dark:hover:bg-fill-tertiary" aria-label="Task options" aria-haspopup="menu"></button>
             <div class="gc-menu gc-menu--right" role="menu" hidden>
               <button class="gc-menu__item" role="menuitem" data-reset>Reset workspace</button>
               <button class="gc-menu__item" role="menuitem" data-goto-solutions>All solutions</button>
@@ -97,12 +108,15 @@
                 Report an issue<span class="gc-menu__right">demo</span></div>
             </div>
           </div>
+          <button type="button" id="gc-timer" class="gc-timer flex h-8 w-[33px] flex-none cursor-pointer items-center justify-center rounded-sd bg-fill-tertiary text-sd-blue-400 hover:bg-fill-quaternary dark:hover:bg-fill-quaternary" aria-label="Lab timer" title="Lab timer 00:00:00">
+            <span id="gc-timer-icon" class="relative text-[16px] leading-[normal]"></span>
+          </button>
           <div class="gc-nav-auth flex items-center whitespace-nowrap">
             <a class="hidden text-text-secondary hover:text-text-primary dark:text-text-secondary dark:hover:text-text-primary lg:flex" href="index.html?premium=1">Register</a>
             <span class="mx-3 hidden text-text-secondary dark:text-text-secondary lg:inline-block">or</span>
             <button type="button" class="text-text-secondary hover:text-text-primary dark:text-text-secondary dark:hover:text-text-primary">Log in</button>
           </div>
-          <div class="gc-nav-premium ml-4 hidden lc-lg:inline-block">
+          <div class="gc-nav-premium hidden lc-lg:inline-block">
             <a href="index.html?premium=1"><span class="h-8 w-[84px] cursor-pointer rounded-[8px] bg-[#ffa1161f] text-center leading-8 transition-colors hover:bg-[#ffa11633] !inline-block font-typo"><span class="text-brand-orange">Premium</span></span></a>
           </div>
         </div>
