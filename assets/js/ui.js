@@ -99,91 +99,93 @@
     var host = $("#gc-nav");
     if (!host) return;
     var links = [
-      { id: "practice", label: "Practice", href: "index.html" },
-      { id: "tracks", label: "Tracks", href: "index.html#tracks" },
-      { id: "playground", label: "Playground", href: "index.html?view=playground" },
+      { id: "practice", label: "Problems", href: "index.html" },
+      { id: "contest", label: "Contest", href: "index.html?view=contest" },
       { id: "discuss", label: "Discuss", href: "index.html?view=discuss" },
-      { id: "store", label: "Store", href: "index.html?premium=1", brand: true }
+      { id: "interview", label: "Interview", href: "index.html?view=interview", caret: true },
+      { id: "store", label: "Store", href: "index.html?premium=1", caret: true, brand: true }
     ];
-    host.className = "gc-nav";
+
+    var linkHtml = links
+      .map(function (l) {
+        var on = active === "dashboard" ? l.id === "practice" : active === l.id;
+        var cls =
+          "relative whitespace-nowrap hover:text-text-primary dark:hover:text-text-primary flex items-center text-base leading-[22px] cursor-pointer " +
+          (on
+            ? "font-medium text-text-primary dark:text-text-primary"
+            : l.brand
+            ? "!text-brand-orange"
+            : "text-text-secondary dark:text-text-secondary");
+        var caret = l.caret
+          ? '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="currentColor" class="ml-1 h-[14px] w-[14px]" aria-hidden="true"><path fill-rule="evenodd" d="M4.929 7.913l7.078 7.057 7.064-7.057a1 1 0 111.414 1.414l-7.77 7.764a1 1 0 01-1.415 0L3.515 9.328a1 1 0 011.414-1.414z" clip-rule="evenodd"></path></svg>'
+          : "";
+        return (
+          '<li class="relative flex h-full items-center text-sm' +
+          (on ? " nav-li-after border-text-primary dark:border-text-primary" : "") +
+          '"><a class="' +
+          cls +
+          '" href="' +
+          l.href +
+          '"' +
+          (on ? ' aria-current="page"' : "") +
+          ">" +
+          l.label +
+          caret +
+          "</a></li>"
+        );
+      })
+      .join("");
+
+    host.className = "w-full";
     host.innerHTML =
-      '<nav id="leetcode-navbar" class="gc-navbar" aria-label="Primary">' +
-      '<div class="gc-nav__desktop">' +
-      '<a class="gc-logo" href="index.html" aria-label="GitCode home">' +
+      '<nav id="leetcode-navbar" class="flex h-[50px] w-full items-center border-b-[1px] border-solid border-border-tertiary dark:border-border-tertiary z-nav-9 bg-layer-1 dark:bg-dark-layer-1 nav-bar-container" aria-label="Primary">' +
+      '<div class="hidden m-auto h-[50px] w-full items-center justify-center px-6 md:flex">' +
+      '<a href="index.html" class="gc-brand mb-0.5 flex items-center mr-8" aria-label="GitCode">' +
+      '<span class="flex h-[22px] items-center gap-2">' +
+      '<span class="flex h-[22px] w-[22px] items-center justify-center">' +
       LOGO_MARK +
-      '<span class="gc-logo__word">GitCode</span></a>' +
-      '<ul class="gc-navlinks">' +
-      links
-        .map(function (l) {
-          return navLink(l, active === "dashboard" && l.id === "practice" ? "practice" : active);
-        })
-        .join("") +
-      "</ul>" +
-      '<div class="gc-navacts">' +
-      '<div class="gc-navsearch">' +
-      '<span class="gc-navsearch__icon">' +
-      window.icon("magnifying-glass") +
       "</span>" +
-      '<input type="search" placeholder="Search" aria-label="Search tasks" data-global-search autocomplete="off">' +
-      "</div>" +
-      '<a class="gc-streak" href="index.html?streak=1" title="12 day streak" aria-label="12 day streak">' +
-      window.icon("fire") +
-      "<span>12</span></a>" +
-      '<button class="gc-navicon" data-theme-toggle aria-label="Toggle theme"></button>' +
-      '<a class="gc-premiumbtn" href="index.html?premium=1">Premium</a>' +
-      '<div class="gc-menu-anchor">' +
-      '<button class="gc-avatar" aria-label="Account menu" aria-haspopup="menu" data-menu-button>AD</button>' +
-      '<div class="gc-menu gc-menu--right" role="menu" hidden>' +
-      '<div class="gc-menu__label">ada@gitcode.dev</div>' +
-      '<a class="gc-menu__item" role="menuitem" href="index.html?view=profile">' +
-      window.icon("circle-user") +
-      "Profile</a>" +
-      '<a class="gc-menu__item" role="menuitem" href="index.html?view=bookmarks">' +
-      window.icon("bookmark") +
-      "Bookmarks</a>" +
-      '<a class="gc-menu__item" role="menuitem" href="index.html?view=submissions">' +
-      window.icon("clock-rotate-left") +
-      "Submissions</a>" +
-      '<div class="gc-menu__sep"></div>' +
-      '<button class="gc-menu__item" role="menuitem" data-theme-toggle>' +
-      window.icon("moon") +
-      '<span data-theme-label>Light mode</span></button>' +
-      '<div class="gc-menu__item" role="menuitem" aria-disabled="true">' +
-      window.icon("gear") +
-      "Settings" +
-      '<span class="gc-menu__right">soon</span></div>' +
+      '<span class="gc-brand__word text-[20px] font-semibold leading-[22px] tracking-[-0.02em] text-text-primary dark:text-text-primary">GitCode</span>' +
+      "</span></a>" +
+      '<ul class="relative m-0 flex h-full grow items-center gap-6 self-end p-0">' +
+      linkHtml +
+      "</ul>" +
+      '<div class="relative flex h-full items-center">' +
+      '<div class="relative flex items-center space-x-2">' +
+      "<div>" +
+      '<div class="relative inline-block h-8 w-8">' +
+      '<div class="relative !absolute z-base-2 right-0 top-0 inline-block h-8 w-0 transition-[width] duration-300 ease-in-out [@media(min-width:1180px)]:w-[120px]">' +
+      '<div class="h-full"><div class="relative h-full overflow-hidden rounded-md">' +
+      '<div class="pointer-events-none absolute flex items-center pl-3 leading-none inset-y-0 left-0">' +
+      '<span class="text-text-secondary dark:text-text-secondary">' +
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" width="1em" height="1em" fill="none" class="w-4 h-4"><path d="M14.1057 14.2L17 17M16.0667 9.53333C16.0667 13.1416 13.1416 16.0667 9.53333 16.0667C5.92507 16.0667 3 13.1416 3 9.53333C3 5.92507 5.92507 3 9.53333 3C13.1416 3 16.0667 5.92507 16.0667 9.53333Z" stroke="currentColor" stroke-width="1.66667" stroke-linecap="round"></path></svg>' +
+      "</span></div>" +
+      '<input class="block h-full w-full rounded-full border-none py-1.5 pr-9 text-sm outline-none pl-9 bg-sd-accent text-sd-muted-foreground" type="search" placeholder="Search" aria-label="Search tasks" data-global-search autocomplete="off">' +
+      "</div></div></div>" +
+      '<a class="group relative z-base-1 flex h-full w-full cursor-pointer items-center justify-center rounded p-1 transition-all duration-200 [@media(min-width:1180px)]:opacity-0 [@media(min-width:1180px)]:delay-100 hover:bg-fill-3 dark:hover:bg-dark-fill-3" aria-label="search" data-focus-search>' +
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" width="1em" height="1em" fill="none" class="h-4 w-4 transition-colors hover:text-text-primary dark:hover:text-text-primary text-text-secondary dark:text-text-secondary"><path d="M14.1057 14.2L17 17M16.0667 9.53333C16.0667 13.1416 13.1416 16.0667 9.53333 16.0667C5.92507 16.0667 3 13.1416 3 9.53333C3 5.92507 5.92507 3 9.53333 3C13.1416 3 16.0667 5.92507 16.0667 9.53333Z" stroke="currentColor" stroke-width="1.66667" stroke-linecap="round"></path></svg></a>' +
       "</div></div>" +
+      '<div class="flex items-center whitespace-nowrap">' +
+      '<a class="text-text-secondary dark:text-text-secondary hover:text-text-primary dark:hover:text-text-primary hidden lg:flex" href="index.html?premium=1">Register</a>' +
+      '<span class="mx-3 hidden lg:inline-block text-text-secondary dark:text-text-secondary">or</span>' +
+      '<button type="button" class="text-text-secondary dark:text-text-secondary hover:text-text-primary dark:hover:text-text-primary" id="navbar_sign_in_button">Log in</button>' +
       "</div>" +
+      '<div class="ml-4 hidden lc-lg:inline-block">' +
+      '<a href="index.html?premium=1"><span class="display-none h-8 w-[84px] cursor-pointer rounded-[8px] bg-[#ffa1161f] text-center leading-8 transition-colors hover:bg-[#ffa11633] lg:inline-block !inline-block font-typo"><span class="text-brand-orange">Premium</span></span></a>' +
       "</div>" +
-      '<div class="gc-nav__mobile">' +
-      '<a class="gc-logo" href="index.html" aria-label="GitCode home">' +
+      "</div></div></div>" +
+      '<div class="flex h-[50px] w-full items-center justify-between pl-3 pr-[5px] md:hidden">' +
+      '<a href="index.html" class="mb-0.5 flex items-center" aria-label="GitCode">' +
+      '<span class="flex h-[22px] items-center gap-2">' +
+      '<span class="flex h-[22px] w-[22px] items-center justify-center">' +
       LOGO_MARK +
-      '<span class="gc-logo__word">GitCode</span></a>' +
-      '<div class="gc-mobileacts">' +
-      '<button class="gc-navicon" data-focus-search aria-label="Search tasks">' +
-      window.icon("magnifying-glass") +
-      "</button>" +
-      '<button class="gc-navicon" data-theme-toggle aria-label="Toggle theme"></button>' +
-      '<button class="gc-navicon gc-hamburger" data-mobile-nav aria-label="Open menu" aria-expanded="false" aria-controls="gc-mobilemenu">' +
-      '<span></span><span></span><span></span>' +
-      "</button>" +
+      "</span>" +
+      '<span class="text-[18px] font-semibold leading-[22px] tracking-[-0.02em] text-text-primary dark:text-text-primary">GitCode</span>' +
+      "</span></a>" +
+      '<div class="flex items-center gap-1">' +
+      '<a class="inline-flex h-8 w-8 items-center justify-center rounded text-text-secondary hover:bg-fill-3 dark:hover:bg-dark-fill-3" href="index.html?premium=1"><span class="text-xs font-medium text-brand-orange">Premium</span></a>' +
+      '<button class="inline-flex h-8 w-8 items-center justify-center rounded text-text-secondary hover:bg-fill-3 dark:hover:bg-dark-fill-3" data-theme-toggle aria-label="Toggle theme"></button>' +
       "</div></div>" +
-      '<div class="gc-mobilemenu" id="gc-mobilemenu" hidden>' +
-      '<div class="gc-mobilemenu__links">' +
-      links
-        .map(function (l) {
-          return '<a href="' + l.href + '">' + l.label + "</a>";
-        })
-        .join("") +
-      "</div>" +
-      '<div class="gc-mobilemenu__rule"></div>' +
-      '<a class="gc-mobilemenu__row" href="index.html?view=bookmarks">Bookmarks</a>' +
-      '<a class="gc-mobilemenu__row" href="index.html?view=submissions">Submissions</a>' +
-      '<a class="gc-mobilemenu__row gc-mobilemenu__row--brand" href="index.html?premium=1">Premium</a>' +
-      '<button class="gc-mobilemenu__row" type="button" data-theme-toggle>' +
-      window.icon("moon") +
-      "<span>Light mode</span></button>" +
-      "</div>" +
       "</nav>";
 
     var mobileBtn = $("[data-mobile-nav]", host);
@@ -540,16 +542,13 @@
     var offset = circ * (1 - pct);
     var px = size || 18;
     return (
-      '<svg class="gc-progress__ring" viewBox="0 0 100 100" width="' +
-      px +
-      '" height="' +
-      px +
-      '" aria-hidden="true">' +
-      '<circle class="track" cx="50" cy="50" r="42"></circle>' +
-      '<circle class="arc" cx="50" cy="50" r="42" stroke-dasharray="' +
-      circ.toFixed(1) +
-      '" stroke-dashoffset="' +
-      offset.toFixed(1) +
+      '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" class="absolute h-full w-full fill-transparent left-0 top-0" style="stroke-width:11" aria-hidden="true">' +
+      '<circle cx="50" cy="50" r="42" class="stroke-sd-primary/20"></circle>' +
+      '<circle cx="50" cy="50" r="42" class="stroke-sd-success" style="stroke-linecap:initial;stroke-dasharray:' +
+      (circ * pct).toFixed(2) +
+      ", " +
+      circ.toFixed(2) +
+      ";stroke-dashoffset:66" +
       '"></circle></svg>'
     );
   };
@@ -817,29 +816,26 @@
     var dows = ["S", "M", "T", "W", "T", "F", "S"];
     var out = dows
       .map(function (d) {
-        return '<span class="gc-cal__dow" aria-hidden="true">' + d + "</span>";
+        return '<span class="text-label-4 dark:text-dark-label-4 pointer-events-none flex h-[26px] w-8 items-center justify-center" aria-hidden="true">' + d + "</span>";
       })
       .join("");
-    for (var i = 0; i < first; i++) out += '<span class="gc-cal__day is-empty"></span>';
+    for (var i = 0; i < first; i++) out += '<span class="h-8 w-8"></span>';
     for (var d = 1; d <= days; d++) {
       if (d === today) {
         out +=
-          '<span class="gc-cal__day is-today" aria-current="date"><span>' +
+          '<span class="group flex h-8 w-8 cursor-pointer items-center justify-center" aria-current="date"><span class="h-7 w-7 bg-green-s dark:bg-dark-green-s text-white flex items-center justify-center rounded-full">' +
           d +
           "</span></span>";
       } else {
         var done = d < today && d >= today - 3;
         out +=
-          '<span class="gc-cal__day' +
-          (done ? " is-done" : "") +
-          '"><span>' +
+          '<span class="hover:text-label-3 dark:hover:text-dark-label-3 group relative flex h-8 w-8 cursor-pointer items-center justify-center rounded-full hover:bg-fill-3 dark:hover:bg-dark-fill-3">' +
           d +
-          "</span>" +
-          (done ? '<i class="gc-cal__dot"></i>' : "") +
+          (done ? '<span class="absolute h-1 w-1 rounded-full bottom-[3px] bg-red-s dark:bg-dark-red-s"></span>' : "") +
           "</span>";
       }
     }
-    return '<div class="gc-cal" role="grid" aria-label="Daily challenge calendar">' + out + "</div>";
+    return out;
   };
 
   /* --------------------------------------------------------- global keys */

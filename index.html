@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="GitCode - practice Git like a sport. Recover lost commits, resolve conflicts, rebase safely, and clean up history.">
-  <title>GitCode · Practice Git</title>
+  <title>Problems - GitCode</title>
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="GitCode">
@@ -12,7 +12,7 @@
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta name="twitter:card" content="summary_large_image">
-  <meta property="og:title" content="GitCode · Practice Git">
+  <meta property="og:title" content="Problems - GitCode">
   <meta property="og:description" content="Recover lost commits, untangle merges, rebase shared branches, bisect regressions. A LeetCode-style practice surface for Git.">
   <meta property="og:url" content="https://abhinav-prabhakar.github.io/GitCode/">
   <script>
@@ -30,87 +30,111 @@
   <link rel="stylesheet" href="assets/css/vendor/leetcode-question.css">
   <link rel="stylesheet" href="assets/css/vendor/leetcode-extras.css">
   <link rel="stylesheet" href="assets/css/app.css">
+  <link rel="stylesheet" href="assets/css/parity.css">
 </head>
 <body>
-  <div class="gc-app" data-page="dashboard">
-    <header id="gc-nav"><!-- rendered by ui.js --></header>
+  <div id="gc-nav"><!-- rendered by ui.js --></div>
 
-    <main class="gc-ps" id="main-content">
-      <div class="gc-ps__content">
-        <div class="gc-banners gc-fade-x" id="gc-tracks"></div>
-
-        <div class="gc-keywords" id="gc-keywords" aria-label="Popular tags"></div>
-
-        <div class="gc-filterrow">
-          <div class="gc-pills scrollbar-hide" id="gc-pills" role="tablist" aria-label="Task categories"></div>
-          <button class="gc-pillsnav" type="button" id="gc-pills-nav" aria-label="More categories" hidden></button>
-        </div>
-
-        <div class="gc-listblock">
-          <div class="gc-toolbar">
-            <div class="gc-toolbar__left">
-              <div class="gc-searchwrap">
-                <input class="gc-searchinput" type="search" id="gc-search" data-search data-global-search
-                       placeholder="Search tasks" aria-label="Search tasks" autocomplete="off">
-                <span class="gc-searchwrap__icon" id="gc-search-icon"></span>
-                <kbd class="gc-searchkbd">/</kbd>
-              </div>
-
-              <div class="gc-menu-anchor">
-                <button class="gc-toolbtn" data-menu-button aria-label="Sort tasks" title="Sort">
-                  <span id="gc-sort-icon"></span>
-                </button>
-                <div class="gc-menu" role="menu" hidden>
-                  <div class="gc-menu__label">Sort by</div>
-                  <button class="gc-menu__item" role="menuitemradio" data-sort="number" aria-checked="true">
-                    <span class="check"></span>Number</button>
-                  <button class="gc-menu__item" role="menuitemradio" data-sort="difficulty" aria-checked="false">
-                    <span class="check"></span>Difficulty</button>
-                  <button class="gc-menu__item" role="menuitemradio" data-sort="acceptance" aria-checked="false">
-                    <span class="check"></span>Acceptance</button>
-                  <button class="gc-menu__item" role="menuitemradio" data-sort="title" aria-checked="false">
-                    <span class="check"></span>Title</button>
-                </div>
-              </div>
-
-              <div class="gc-menu-anchor">
-                <button class="gc-toolbtn" data-menu-button id="gc-status-button" aria-label="Filter tasks" title="Filter">
-                  <span id="gc-status-icon"></span>
-                  <span class="gc-toolbtn__dot" id="gc-status-dot" hidden></span>
-                </button>
-                <div class="gc-menu" role="menu" hidden>
-                  <div class="gc-menu__label">Status</div>
-                  <button class="gc-menu__item" role="menuitemradio" data-status="all" aria-checked="true">
-                    <span class="check"></span>All statuses</button>
-                  <button class="gc-menu__item" role="menuitemradio" data-status="solved" aria-checked="false">
-                    <span class="check"></span>Solved</button>
-                  <button class="gc-menu__item" role="menuitemradio" data-status="attempted" aria-checked="false">
-                    <span class="check"></span>Attempted</button>
-                  <button class="gc-menu__item" role="menuitemradio" data-status="todo" aria-checked="false">
-                    <span class="check"></span>Not started</button>
-                  <button class="gc-menu__item" role="menuitemradio" data-status="bookmarked" aria-checked="false">
-                    <span class="check"></span>Bookmarked</button>
-                </div>
-              </div>
-
-              <div class="gc-filterchip" id="gc-tag-filter" hidden></div>
-            </div>
-
-            <div class="gc-toolbar__right">
-              <a class="gc-progress" href="index.html?status=solved" id="gc-progress"></a>
-              <button class="gc-toolbtn gc-toolbtn--plain" data-tip="Pick a random task" id="gc-shuffle"
-                      aria-label="Pick a random task"></button>
-            </div>
+  <main id="main-content" class="mx-auto w-full grow lg:max-w-screen-xl flex bg-white p-0 dark:bg-dark-layer-bg md:max-w-none md:p-0 lc-dsw-xl:max-w-none">
+    <div class="flex w-full flex-1">
+      <div class="z-base-2 relative">
+        <div class="h-full overflow-y-auto bg-white transition-[top] duration-300 z-base-3 left-0 top-0 dark:bg-dark-layer-bg fixed w-0" id="nav-panel-scroll">
+          <div class="relative h-max min-h-full border-sd-border">
+            <div class="flex flex-col gap-1 overflow-x-hidden p-4 pt-6 transition-all px-0" id="sidebarWidthContainer"></div>
           </div>
-
-          <div class="gc-list" id="gc-list" role="list"></div>
-          <div id="gc-empty"></div>
         </div>
       </div>
+      <div class="flex flex-1 flex-col justify-between overflow-hidden">
+        <div class="flex w-full flex-1 overflow-hidden">
+          <div class="flex w-full justify-between overflow-hidden">
+            <div class="flex flex-1 justify-center overflow-hidden">
+              <div class="mt-14 w-full px-4 lc-dsw-xl:max-w-[1100px] lc-dsw-xl:px-6">
+                <h1 class="sr-only">Problems</h1>
 
-      <aside class="gc-ps__rail" id="gc-aside" aria-label="Daily challenge and trending commands"></aside>
-    </main>
-  </div>
+                <div class="group relative -mr-2 md:mr-0">
+                  <div class="flex select-none gap-6 overflow-y-hidden overflow-x-scroll rounded-sd-md scrollbar-hide" id="gc-tracks"></div>
+                </div>
+
+                <div class="mb-4 mt-8 flex flex-col gap-8 overflow-hidden border-b border-sd-border pb-4">
+                  <div class="relative flex">
+                    <div class="relative my-[-10px] ml-[-10px] flex overflow-hidden flex-nowrap" id="gc-keywords"></div>
+                  </div>
+                  <div class="relative flex">
+                    <div class="relative flex select-none items-center gap-4 overflow-x-auto overflow-y-hidden scrollbar-hide" id="gc-pills" role="tablist" aria-label="Task categories"></div>
+                    <div class="absolute bottom-0 right-0 top-0 order-last flex self-end pointer-events-none text-label-3 dark:text-dark-label-3" id="gc-pills-nav-wrap">
+                      <span class="h-10 w-4 bg-gradient-to-l from-paper dark:from-dark-paper"></span>
+                      <span class="flex h-10 w-8 cursor-pointer items-center bg-paper pl-1 font-normal dark:bg-dark-paper pointer-events-auto" id="gc-pills-nav" role="button" tabindex="0" aria-label="More categories"></span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="mt-4 flex flex-col items-center gap-4">
+                  <div class="flex w-full justify-between">
+                    <div class="flex gap-2">
+                      <div class="relative">
+                        <input class="flex w-full border border-sd-input px-3 text-sd-foreground transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-sd-muted-foreground focus-visible:outline-none focus-visible:ring-sd-ring disabled:cursor-not-allowed disabled:opacity-50 h-8 rounded-full border-none bg-sd-accent py-1.5 pl-[34px] pr-3 text-sm focus-visible:ring-0 w-[200px]"
+                               type="search" id="gc-search" data-search data-global-search
+                               placeholder="Search questions" aria-label="Search tasks" autocomplete="off">
+                        <div class="text-[14px] leading-[normal] p-[1px] before:block before:h-3.5 before:w-3.5 absolute text-sd-muted-foreground left-3 top-2">
+                          <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" height="1em" width="1em" class="svg-inline--fa absolute h-[1em] -translate-x-1/2 -translate-y-1/2 left-1/2 top-1/2"><path fill="currentColor" d="M368 208A160 160 0 1 0 48 208a160 160 0 1 0 320 0zM337.1 371.1C301.7 399.2 256.8 416 208 416C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208c0 48.8-16.8 93.7-44.9 129.1L505 471c9.4 9.4 9.4 24.6 0 33.9s-24.6 9.4-33.9 0L337.1 371.1z"></path></svg>
+                        </div>
+                      </div>
+
+                      <div class="gc-menu-anchor">
+                        <button class="relative inline-flex items-center justify-center font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-sd-ring disabled:pointer-events-none disabled:opacity-50 text-sd-foreground hover:bg-sd-accent hover:text-sd-accent-foreground text-xs rounded-full h-8 p-2"
+                                data-menu-button aria-label="Sort tasks" title="Sort">
+                          <div class="relative text-[14px] leading-[normal] p-[1px] before:block before:h-3.5 before:w-3.5 text-sd-muted-foreground" id="gc-sort-icon"></div>
+                        </button>
+                        <div class="gc-menu" role="menu" hidden>
+                          <div class="gc-menu__label">Sort by</div>
+                          <button class="gc-menu__item" role="menuitemradio" data-sort="number" aria-checked="true"><span class="check"></span>Number</button>
+                          <button class="gc-menu__item" role="menuitemradio" data-sort="difficulty" aria-checked="false"><span class="check"></span>Difficulty</button>
+                          <button class="gc-menu__item" role="menuitemradio" data-sort="acceptance" aria-checked="false"><span class="check"></span>Acceptance</button>
+                          <button class="gc-menu__item" role="menuitemradio" data-sort="title" aria-checked="false"><span class="check"></span>Title</button>
+                        </div>
+                      </div>
+
+                      <div class="gc-menu-anchor">
+                        <button class="relative inline-flex items-center justify-center font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-sd-ring disabled:pointer-events-none disabled:opacity-50 text-sd-foreground hover:bg-sd-accent hover:text-sd-accent-foreground text-xs rounded-full h-8 p-2"
+                                data-menu-button id="gc-status-button" aria-label="Filter tasks" title="Filter">
+                          <div class="relative text-[14px] leading-[normal] p-[1px] before:block before:h-3.5 before:w-3.5 text-sd-muted-foreground" id="gc-status-icon"></div>
+                        </button>
+                        <div class="gc-menu" role="menu" hidden>
+                          <div class="gc-menu__label">Status</div>
+                          <button class="gc-menu__item" role="menuitemradio" data-status="all" aria-checked="true"><span class="check"></span>All statuses</button>
+                          <button class="gc-menu__item" role="menuitemradio" data-status="solved" aria-checked="false"><span class="check"></span>Solved</button>
+                          <button class="gc-menu__item" role="menuitemradio" data-status="attempted" aria-checked="false"><span class="check"></span>Attempted</button>
+                          <button class="gc-menu__item" role="menuitemradio" data-status="todo" aria-checked="false"><span class="check"></span>Not started</button>
+                          <button class="gc-menu__item" role="menuitemradio" data-status="bookmarked" aria-checked="false"><span class="check"></span>Bookmarked</button>
+                        </div>
+                      </div>
+
+                      <div class="gc-filterchip" id="gc-tag-filter" hidden></div>
+                    </div>
+
+                    <div class="relative flex items-center gap-2">
+                      <div class="mr-2 flex flex-1 justify-end">
+                        <a class="flex items-center gap-1 text-sd-muted-foreground hover:text-sd-foreground" href="index.html?status=solved" id="gc-progress"></a>
+                      </div>
+                      <button class="relative inline-flex items-center justify-center font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-sd-ring disabled:pointer-events-none disabled:opacity-50 text-sd-foreground hover:bg-sd-accent hover:text-sd-accent-foreground text-xs rounded-full h-8 p-2"
+                              id="gc-shuffle" aria-label="Pick a random task" title="Pick a random task"></button>
+                    </div>
+                  </div>
+
+                  <div class="w-full flex-1">
+                    <div class="w-full pb-[80px]" id="gc-list" role="list"></div>
+                    <div id="gc-empty"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <aside class="mr-4 mt-4 hidden w-[270px] flex-col lc-dsw-xl:flex" id="gc-aside" aria-label="Daily challenge and trending commands"></aside>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
 
   <script src="assets/js/icons.js"></script>
   <script src="assets/js/data.js"></script>

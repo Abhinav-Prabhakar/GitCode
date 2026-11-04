@@ -127,39 +127,56 @@
   function renderBanners() {
     var host = UI.$("#gc-tracks");
     if (!host) return;
+    var art = {
+      recovery:
+        '<svg viewBox="0 0 270 135" fill="none" class="absolute inset-0 h-full w-full" aria-hidden="true"><g opacity=".16" stroke="#fff" stroke-width="1"><path d="M150 20v95M120 20v95M180 20v95"/><circle cx="150" cy="67" r="6" fill="#fff"/><circle cx="120" cy="40" r="4" fill="#fff"/><circle cx="180" cy="95" r="4" fill="#fff"/></g></svg>',
+      conflicts:
+        '<svg viewBox="0 0 270 135" fill="none" class="absolute inset-0 h-full w-full" aria-hidden="true"><g opacity=".18" stroke="#fff" stroke-width="1.4"><path d="M168 22v92M168 56c0 22 42 15 42 40M168 56c0 22-42 15-42 40"/><circle cx="168" cy="22" r="5" fill="#fff"/><circle cx="210" cy="96" r="5" fill="#fff"/><circle cx="126" cy="96" r="5" fill="#fff"/></g></svg>',
+      rebase:
+        '<svg viewBox="0 0 270 135" fill="none" class="absolute inset-0 h-full w-full" aria-hidden="true"><g opacity=".18" stroke="#fff" stroke-width="1.4"><path d="M80 22v92M80 22h95a25 25 0 0125 25v67"/><circle cx="80" cy="22" r="5" fill="#fff"/><circle cx="200" cy="114" r="5" fill="#fff"/><circle cx="130" cy="22" r="4" fill="#fff"/></g></svg>',
+      debugging:
+        '<svg viewBox="0 0 270 135" fill="none" class="absolute inset-0 h-full w-full" aria-hidden="true"><g opacity=".2" stroke="#fff" stroke-width="1.2"><path d="M60 100h35l20-28 24 42 24-54 28 40h30"/></g></svg>'
+    };
+    var tones = {
+      recovery: "gc-promo--cream",
+      conflicts: "gc-promo--navy",
+      rebase: "gc-promo--green",
+      debugging: "gc-promo--violet"
+    };
     host.innerHTML = D.tracks
       .map(function (t) {
         var problems = trackProblems(t);
         var total = problems.length || t.total;
         var done = problems.filter(function (p) { return p.status === "solved"; }).length;
         var pct = total ? Math.round((done / total) * 100) : 0;
-        var meta = String(t.meta || "").replace(/^\d+ tasks?/, total + " tasks");
-        var tone = bannerTones[t.id] || "dark-gray";
         return (
-          '<a class="gc-banner background_cover-background__OCnoq ' +
-          tone +
-          '" href="' +
+          '<a href="' +
           t.href +
-          '">' +
-          '<span class="gc-banner__icon">' +
-          window.icon(t.icon) +
-          "</span>" +
-          '<span class="gc-banner__eyebrow">' +
+          '" class="gc-promo-link block flex-none">' +
+          '<div class="gc-promo ' +
+          (tones[t.id] || "gc-promo--navy") +
+          ' h-[135px] w-[270px] overflow-hidden rounded-sd-md">' +
+          (art[t.id] || art.debugging) +
+          '<div class="relative z-base-1 flex h-full flex-col p-4">' +
+          '<div class="gc-promo__eyebrow">' +
           UI.esc(t.label) +
-          "</span>" +
-          '<span class="gc-banner__title">' +
+          "</div>" +
+          '<div class="gc-promo__title">' +
           UI.esc(t.title) +
+          "</div>" +
+          '<div class="mt-auto flex items-end justify-between text-[12px] leading-4">' +
+          '<span class="gc-promo__meta">' +
+          UI.esc(String(t.meta || "").replace(/^\d+ tasks?/, total + " tasks")) +
           "</span>" +
-          '<span class="gc-banner__meta">' +
-          UI.esc(meta) +
-          '<span class="gc-banner__count">' +
+          '<span class="gc-promo__count">' +
           done +
           "/" +
           total +
-          "</span></span>" +
-          '<span class="gc-banner__bar"><i style="width:' +
+          "</span></div>" +
+          '<span class="gc-promo__bar"><i style="width:' +
           pct +
-          '%"></i></span></a>'
+          '%"></i></span>' +
+          "</div></div></a>"
         );
       })
       .join("");
@@ -181,37 +198,27 @@
     });
     var visible = tags.slice(0, 9);
     var hidden = tags.slice(9);
+    function keyword(t, extra) {
+      return (
+        '<div class="group m-[10px] flex items-center' +
+        (extra ? " gc-keyword-extra" : "") +
+        '"' +
+        (extra ? " hidden" : "") +
+        '><a class="inline-flex items-center" href="index.html?tag=' +
+        encodeURIComponent(t) +
+        '"><span class="whitespace-nowrap group-hover:text-blue dark:group-hover:text-dark-blue text-label-1 dark:text-dark-label-1">' +
+        UI.esc(t) +
+        '</span><span class="ml-1 flex h-[18px] items-center justify-center rounded-[10px] px-1.5 text-xs font-normal text-label-3 dark:text-dark-label-3 bg-fill-3 dark:bg-dark-fill-3 group-hover:text-blue dark:group-hover:text-dark-blue group-hover:bg-blue-0 dark:group-hover:bg-dark-blue-0">' +
+        totals[t] +
+        "</span></a></div>"
+      );
+    }
     host.innerHTML =
-      visible
-        .map(function (t) {
-          return (
-            '<a class="gc-keyword" href="index.html?tag=' +
-            encodeURIComponent(t) +
-            '"><span>' +
-            UI.esc(t) +
-            '</span><span class="gc-keyword__count">' +
-            totals[t] +
-            "</span></a>"
-          );
-        })
-        .join("") +
+      visible.map(function (t) { return keyword(t, false); }).join("") +
       (hidden.length
-        ? '<button class="gc-keyword gc-keyword--expand" type="button" data-expand-tags>Expand' +
-          window.icon("chevron-down") +
-          "</button>" +
-          hidden
-            .map(function (t) {
-              return (
-                '<a class="gc-keyword is-extra" href="index.html?tag=' +
-                encodeURIComponent(t) +
-                '" hidden><span>' +
-                UI.esc(t) +
-                '</span><span class="gc-keyword__count">' +
-                totals[t] +
-                "</span></a>"
-              );
-            })
-            .join("")
+        ? '<div class="group m-[10px] flex items-center"><button class="flex items-center whitespace-nowrap text-label-2 dark:text-dark-label-2 hover:text-label-1 dark:hover:text-dark-label-1" type="button" data-expand-tags>Expand' +
+          '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="currentColor" class="ml-1 h-3.5 w-3.5"><path fill-rule="evenodd" d="M4.929 7.913l7.078 7.057 7.064-7.057a1 1 0 111.414 1.414l-7.77 7.764a1 1 0 01-1.415 0L3.515 9.328a1 1 0 011.414-1.414z" clip-rule="evenodd"></path></svg></button></div>' +
+          hidden.map(function (t) { return keyword(t, true); }).join("")
         : "");
   }
 
@@ -241,27 +248,40 @@
   function renderPills() {
     var host = UI.$("#gc-pills");
     if (!host) return;
+    var tones = {
+      all: "",
+      recovery: "text-brand-orange",
+      conflicts: "text-sd-blue-500",
+      rewrite: "text-sd-purple-500",
+      debugging: "text-sd-green-500",
+      history: "text-sd-teal-500",
+      collaboration: "text-sd-pink-500",
+      safety: "text-sd-yellow-500"
+    };
     host.innerHTML = D.categories
       .map(function (c) {
         var on = state.category === c.id;
+        var base = on
+          ? "bg-gray-8 dark:bg-white text-label-r dark:text-dark-label-r shadow-level2 dark:shadow-dark-level2"
+          : "bg-fill-3 dark:bg-dark-fill-3 text-label-2 dark:text-dark-label-2 hover:bg-fill-2 dark:hover:bg-dark-fill-2 hover:text-label-2 dark:hover:text-dark-label-2";
         return (
-          '<button class="gc-pillbtn" role="tab" aria-selected="' +
+          '<button class="relative last:mr-12" role="tab" aria-selected="' +
           on +
           '" data-category="' +
           c.id +
           '" title="' +
           categoryCount(c.id) +
           ' tasks">' +
-          '<span class="gc-pill' +
-          (on ? " is-active" : "") +
+          '<div class="flex items-center space-x-2 whitespace-nowrap rounded-full px-4 py-[10px] text-base leading-tight ' +
+          base +
           '">' +
-          '<span class="gc-pill__icon ' +
-          (pillTones[c.id] || "") +
+          '<span class="gc-pillicon mr-2 hidden h-[18px] w-[18px] lg:flex ' +
+          (on ? "text-label-r dark:text-dark-label-r" : tones[c.id] || "") +
           '">' +
           window.icon(pillIcons[c.id] || c.icon) +
           "</span>" +
           UI.esc(c.label) +
-          "</span></button>"
+          "</div></button>"
         );
       })
       .join("");
@@ -269,62 +289,92 @@
 
   function syncPillsNav() {
     var host = UI.$("#gc-pills");
-    var btn = UI.$("#gc-pills-nav");
-    if (!host || !btn) return;
+    var wrap = UI.$("#gc-pills-nav-wrap");
+    if (!host || !wrap) return;
     var more = host.scrollWidth - host.clientWidth > 2;
-    btn.hidden = !more || host.scrollLeft + host.clientWidth >= host.scrollWidth - 2;
+    wrap.style.display = more ? "" : "none";
   }
 
   function syncPills() {
-    UI.$$("[data-category]", UI.$("#gc-pills")).forEach(function (btn) {
-      var on = btn.getAttribute("data-category") === state.category;
-      btn.setAttribute("aria-selected", String(on));
-      var pill = UI.$(".gc-pill", btn);
-      if (pill) pill.classList.toggle("is-active", on);
-    });
+    renderPills();
   }
 
   /* --------------------------------------------------------------- rows */
 
-  function row(p) {
+  function statusSlot(p, daily) {
+    if (daily) {
+      return (
+        '<div class="relative text-[14px] leading-[normal] p-[1px] before:block before:h-3.5 before:w-3.5 text-sd-blue-500">' +
+        window.icon("calendar") +
+        "</div>"
+      );
+    }
+    if (p.status === "solved") {
+      return (
+        '<div class="relative text-[14px] leading-[normal] p-[1px] text-sd-green-500" title="Solved">' +
+        window.icon("circle-check") +
+        "</div>"
+      );
+    }
+    if (p.status === "attempted") {
+      return '<div class="relative flex h-4 w-4 items-center justify-center text-sd-yellow-500" title="Attempted"><span class="block h-2.5 w-2.5 rounded-full border-[1.5px] border-current"></span></div>';
+    }
+    return '<div class="h-4 w-4"></div>';
+  }
+
+  function row(p, index, daily) {
     var starred = bookmarks[p.slug];
     var bars = "";
-    for (var b = 0; b < 8; b++) bars += "<i></i>";
-    var meter =
-      '<span class="gc-row__meter" aria-hidden="true">' +
-      bars +
-      (p.premium ? '<span class="gc-row__lock">' + window.icon("lock-keyhole") + "</span>" : "") +
-      "</span>";
+    for (var b = 0; b < 8; b++) {
+      bars += '<div class="h-2 w-0.5 rounded bg-sd-foreground opacity-20"></div>';
+    }
+    var lock = p.premium
+      ? '<div class="text-[12px] leading-[normal] p-[1px] before:block before:h-3 before:w-3 absolute -translate-x-1/2 text-sd-brand-lc-gray -top-[3px] left-1/2">' +
+        window.icon("lock-keyhole") +
+        "</div>"
+      : "";
+    var diffCls =
+      p.difficulty === "Easy"
+        ? "text-sd-easy"
+        : p.difficulty === "Medium"
+        ? "text-sd-medium"
+        : "text-sd-hard";
     return (
-      '<a class="gc-row" href="problem.html?p=' +
+      '<a class="group flex flex-col rounded-[8px] duration-300' +
+      (index % 2 === 0 ? " bg-fill-quaternary dark:bg-fill-quaternary" : "") +
+      '" href="problem.html?p=' +
       encodeURIComponent(p.slug) +
       '" role="listitem" data-slug="' +
       p.slug +
       '">' +
-      '<span class="gc-row__status">' +
-      UI.statusGlyph(p.status, p.premium) +
-      "</span>" +
-      '<span class="gc-row__body">' +
-      '<span class="gc-row__title">' +
+      '<div class="flex h-[44px] w-full items-center space-x-3 px-4">' +
+      '<div><div>' +
+      statusSlot(p, daily) +
+      "</div></div>" +
+      '<div class="relative flex h-full w-full cursor-pointer items-center">' +
+      '<div class="flex w-0 flex-1 items-center space-x-2">' +
+      '<div class="max-w-full text-body font-medium text-sd-foreground"><div class="ellipsis line-clamp-1">' +
       p.n +
       ". " +
       UI.esc(p.title) +
-      "</span>" +
-      '<span class="gc-row__accept">' +
+      "</div></div></div>" +
+      '<div class="flex w-[70px] items-center justify-center text-sm text-sd-muted-foreground opacity-0 group-hover:opacity-100 lc-md:opacity-100">' +
       p.acceptance.toFixed(1) +
-      "%</span>" +
-      '<span class="gc-row__diff ' +
-      UI.difficultyClass(p.difficulty) +
-      '">' +
+      "%</div>" +
+      '<p class="mx-0 text-[14px] ' +
+      diffCls +
+      ' lc-xl:mx-4">' +
       p.difficulty +
-      "</span>" +
-      meter +
-      "</span>" +
-      '<span class="gc-row__star' +
-      (starred ? " is-on" : "") +
-      '" role="button" tabindex="0" data-star="' +
+      "</p></div>" +
+      '<div><div class="relative flex gap-0.5 px-1 cursor-pointer">' +
+      bars +
+      lock +
+      "</div></div>" +
+      '<div class="flex items-center"><button class="flex h-7 w-7 cursor-pointer items-center justify-center rounded hover:bg-sd-accent' +
+      (starred ? " opacity-100 text-brand-orange" : " opacity-0 group-hover:opacity-100 text-sd-muted-foreground") +
+      '" data-star="' +
       p.slug +
-      '" aria-label="' +
+      '" type="button" aria-label="' +
       (starred ? "Remove bookmark" : "Bookmark") +
       " " +
       UI.esc(p.title) +
@@ -332,7 +382,7 @@
       starred +
       '">' +
       window.icon("star") +
-      "</span></a>"
+      "</button></div></div></a>"
     );
   }
 
@@ -342,7 +392,11 @@
     var empty = UI.$("#gc-empty");
     if (!host) return;
 
-    host.innerHTML = list.map(row).join("");
+    host.innerHTML = list
+      .map(function (p, i) {
+        return row(p, i, p.slug === D.daily.slug);
+      })
+      .join("");
     empty.innerHTML = list.length
       ? ""
       : '<div class="gc-empty">' +
@@ -359,12 +413,13 @@
     var host = UI.$("#gc-progress");
     if (host) {
       host.innerHTML =
+        '<div class="flex items-center gap-1"><div class="relative flex h-4.5 w-4.5 items-center justify-center">' +
         UI.progressRing(solved, D.problems.length, 18) +
-        '<span class="gc-progress__text">' +
+        '</div><div class="text-sd-muted-foreground">' +
         solved +
         "/" +
         D.problems.length +
-        " Solved</span>";
+        " Solved</div></div>";
     }
   }
 
@@ -373,102 +428,89 @@
   function renderAside() {
     var host = UI.$("#gc-aside");
     if (!host) return;
-    var month = new Date().toLocaleString(undefined, { month: "long", year: "numeric" });
-    var monthShort = new Date()
-      .toLocaleString(undefined, { month: "short" })
-      .toUpperCase();
+    var monthShort = new Date().toLocaleString(undefined, { month: "short" }).toUpperCase();
     var day = new Date().getDate();
-    var solved = count(function (p) { return p.status === "solved"; });
+    var remaining = 18 + ":" + String(31 - (new Date().getMinutes() % 30)).padStart(2, "0") + ":07";
 
     host.innerHTML =
-      '<section class="gc-calcard">' +
-      '<div class="gc-calhead">' +
-      '<div class="gc-calhead__left">' +
-      '<span class="gc-calhead__day">Day ' +
-      day +
-      '</span><span class="gc-calhead__time">18:31:07 left</span>' +
-      '<span class="gc-calhead__utc">UTC</span>' +
+      '<div class="pt-0.5 md:top-3">' +
+      '<div class="bg-layer-1 dark:bg-dark-layer-1 shadow-down-01 dark:shadow-dark-down-01 rounded-lg relative flex flex-col py-2 pb-[2px]">' +
+      '<div class="flex h-9 items-center py-[6px] pl-[15px] justify-between pr-3">' +
+      '<div class="flex shrink-0 items-center">' +
+      '<div class="text-sm lg:block text-label-2 dark:text-dark-label-2">Day ' + day + "</div>" +
+      '<div class="ml-[4px] text-[10px] tracking-tighter text-label-4 dark:text-dark-label-4">' + remaining + " left</div>" +
+      '<div class="inline-flex items-center rounded-sd-md border-transparent h-[18px] border-0 bg-sd-accent px-1.5 py-0 text-[11px] font-medium leading-4 tracking-[0.2px] text-sd-muted-foreground ml-1">UTC</div>' +
       "</div>" +
-      '<div class="gc-calhead__right">' +
-      '<button class="gc-calnav" type="button" aria-label="Previous month">' +
+      '<div class="flex max-w-[100px] items-center md:ml-[8px]">' +
+      '<button class="focus:outline-none text-label-2 dark:text-dark-label-2" aria-label="Prev">' +
       window.icon("chevron-left") +
       "</button>" +
-      '<span class="gc-monthchip"><b>' +
-      monthShort +
-      "</b><i>" +
-      day +
-      "</i></span>" +
-      '<button class="gc-calnav" type="button" aria-label="Next month" disabled>' +
+      '<span class="gc-monthbadge mx-1"><b>' + monthShort + "</b><i>" + day + "</i></span>" +
+      '<button class="focus:outline-none text-label-4 dark:text-dark-label-4" aria-label="Next" disabled>' +
       window.icon("chevron-right") +
       "</button>" +
       "</div></div>" +
-      '<div class="gc-calbody">' +
+      '<div class="mx-[10px] grid grid-cols-7 text-xs text-label-3 dark:text-dark-label-3">' +
       UI.renderCalendar() +
       "</div>" +
-      '<div class="gc-dailybanner style_bannerBg__0aztv">' +
-      '<div class="gc-dailybanner__head"><span>Daily challenge</span><span class="gc-dailybanner__date">' +
-      UI.esc(D.daily.date) +
-      "</span></div>" +
-      '<a class="gc-dailybanner__title" href="problem.html?p=' +
-      D.daily.slug +
-      '">' +
-      D.daily.n +
-      ". " +
-      UI.esc(D.daily.title) +
-      "</a>" +
-      '<div class="gc-dailybanner__meta">' +
-      UI.difficultyChip(D.daily.difficulty) +
-      "<span>" +
-      D.daily.acceptance.toFixed(1) +
-      "% acceptance</span>" +
-      '<a class="gc-dailybanner__go" href="problem.html?p=' +
-      D.daily.slug +
-      '">Start' +
-      window.icon("arrow-up-right-from-square") +
-      "</a></div></div>" +
-      '<div class="gc-calcard__foot"><span>' +
-      window.icon("fire") +
-      " " +
-      D.daily.day +
-      "-day streak</span><span>3 days this week</span></div>" +
-      "</section>" +
+      '<div class="mx-[10px] mb-2 mt-3 overflow-hidden rounded-md gc-daily">' +
+      '<div class="flex items-center justify-between px-3 pt-2 text-xs">' +
+      '<span class="font-medium text-brand-orange">Daily challenge</span>' +
+      '<span class="text-label-3 dark:text-dark-label-3">' + UI.esc(D.daily.date) + "</span></div>" +
+      '<a class="block px-3 pt-1 text-[14px] font-medium text-label-1 dark:text-dark-label-1 hover:underline" href="problem.html?p=' + D.daily.slug + '">' +
+      D.daily.n + ". " + UI.esc(D.daily.title) + "</a>" +
+      '<div class="flex items-center gap-2 px-3 pb-2 pt-1.5 text-xs text-label-3 dark:text-dark-label-3">' +
+      '<span class="text-sd-easy">' + D.daily.difficulty + "</span>" +
+      '<span class="text-label-4 dark:text-dark-label-4">·</span>' +
+      "<span>" + D.daily.acceptance.toFixed(1) + "% acceptance</span>" +
+      '<a class="ml-auto inline-flex items-center gap-1 text-[13px] font-medium text-brand-orange hover:underline" href="problem.html?p=' + D.daily.slug + '">Start' +
+      window.icon("arrow-up-right-from-square") + "</a></div></div>" +
+      '<div class="mx-4 flex items-center justify-between border-t border-sd-border py-2 text-xs text-label-3 dark:text-dark-label-3">' +
+      '<span class="flex items-center gap-1"><span class="text-brand-orange">' + window.icon("fire") + "</span>" + D.daily.day + "-day streak</span>" +
+      "<span>3 days this week</span></div>" +
+      "</div></div>" +
 
-      '<section class="gc-trendcard">' +
-      '<div class="gc-trendcard__head"><span>Trending commands</span>' +
-      '<div class="gc-trendcard__nav">' +
-      '<button class="gc-calnav" type="button" aria-label="Previous">' +
-      window.icon("chevron-left") +
-      "</button>" +
-      '<button class="gc-calnav" type="button" aria-label="Next" disabled>' +
-      window.icon("chevron-right") +
-      "</button></div></div>" +
-      '<div class="gc-railsearch">' +
-      window.icon("magnifying-glass") +
-      "<span>Search a command…</span></div>" +
-      '<div class="gc-trend">' +
+      '<div class="mt-4 pt-0.5 md:top-3">' +
+      '<div class="bg-layer-1 dark:bg-dark-layer-1 shadow-down-01 dark:shadow-dark-down-01 rounded-lg px-4 pb-1 pt-2">' +
+      '<div class="flex h-[36px] items-center justify-between">' +
+      '<div class="text-sm font-medium text-label-2 dark:text-dark-label-2">Trending commands</div>' +
+      '<div class="flex items-center gap-1 text-label-2 dark:text-dark-label-2">' +
+      '<button class="focus:outline-none hover:text-label-1" aria-label="Previous">' + window.icon("chevron-left") + "</button>" +
+      '<button class="focus:outline-none text-label-4" aria-label="Next" disabled>' + window.icon("chevron-right") + "</button>" +
+      "</div></div>" +
+      '<div class="relative mb-2">' +
+      '<span class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-label-3 dark:text-dark-label-3">' + window.icon("magnifying-glass") + "</span>" +
+      '<input class="h-8 w-full rounded-lg border-none bg-fill-3 dark:bg-dark-fill-3 pl-9 pr-3 text-sm text-label-1 dark:text-dark-label-1 placeholder:text-label-3 dark:placeholder:text-dark-label-3 outline-none" placeholder="Search a command..." aria-label="Search a command">' +
+      "</div>" +
       D.trending
         .map(function (t, i) {
           var tag = t.label.replace(/^git /, "").split(" ")[0];
           return (
-            '<a class="gc-trend__row" href="index.html?tag=' +
+            '<a class="flex items-center gap-3 rounded px-1 py-[7px] text-sm text-label-1 dark:text-dark-label-1 hover:bg-fill-3 dark:hover:bg-dark-fill-3" href="index.html?tag=' +
             encodeURIComponent(tag) +
-            '"><span class="gc-trend__rank">' +
+            '"><span class="w-3 shrink-0 text-right text-xs text-label-3 dark:text-dark-label-3">' +
             (i + 1) +
-            '</span><span class="gc-trend__name">' +
+            '</span><span class="truncate font-menlo text-[13px]">' +
             UI.esc(t.label) +
-            '</span><span class="gc-trend__val">' +
+            '</span><span class="ml-auto shrink-0 text-xs text-label-3 dark:text-dark-label-3">' +
             UI.esc(t.value.replace(" attempts", "")) +
             "</span></a>"
           );
         })
         .join("") +
-      "</div></section>" +
+      "</div></div>" +
 
-      '<footer class="gc-railfoot">' +
-      '<div class="gc-railfoot__row"><a href="index.html?view=cli">Install CLI</a><span>|</span><a href="index.html?view=support">Support</a><span>|</span><a href="index.html?view=terms">Terms</a></div>' +
-      '<div class="gc-railfoot__row"><a href="index.html?view=privacy">Privacy Policy</a><span>|</span><a href="index.html?view=more">More</a></div>' +
-      '<div class="gc-railfoot__copy">Copyright © 2026 GitCode</div>' +
-      "</footer>";
+      '<div class="mt-4 flex flex-col gap-1 px-1 text-xs text-label-3 dark:text-dark-label-3">' +
+      '<div class="flex flex-wrap items-center gap-x-2 gap-y-1">' +
+      '<a class="hover:text-label-1 dark:hover:text-dark-label-1" href="index.html?view=cli">Download App</a><span>|</span>' +
+      '<a class="hover:text-label-1 dark:hover:text-dark-label-1" href="index.html?view=support">Support</a><span>|</span>' +
+      '<a class="hover:text-label-1 dark:hover:text-dark-label-1" href="index.html?view=terms">Terms</a></div>' +
+      '<div class="flex flex-wrap items-center gap-x-2 gap-y-1">' +
+      '<a class="hover:text-label-1 dark:hover:text-dark-label-1" href="index.html?view=privacy">Privacy Policy</a><span>|</span>' +
+      '<a class="hover:text-label-1 dark:hover:text-dark-label-1" href="index.html?view=more">More</a></div>' +
+      '<div class="mt-1">Copyright © 2026 GitCode</div>' +
+      '<div class="mt-1 flex items-center gap-1"><span class="gc-flag"></span>India</div>' +
+      "</div>";
   }
 
   /* ------------------------------------------------------------- filters */
@@ -589,12 +631,12 @@
       keywords.addEventListener("click", function (e) {
         var expand = e.target.closest("[data-expand-tags]");
         if (!expand) return;
-        var extra = UI.$$(".gc-keyword.is-extra", keywords);
+        var extra = UI.$$(".gc-keyword-extra", keywords);
         var show = extra.length && extra[0].hidden;
         extra.forEach(function (el) { el.hidden = !show; });
         expand.innerHTML = show
-          ? "Collapse" + window.icon("chevron-up")
-          : "Expand" + window.icon("chevron-down");
+          ? 'Collapse<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="currentColor" class="ml-1 h-3.5 w-3.5"><path fill-rule="evenodd" d="M4.929 7.913l7.078 7.057 7.064-7.057a1 1 0 111.414 1.414l-7.77 7.764a1 1 0 01-1.415 0L3.515 9.328a1 1 0 011.414-1.414z" clip-rule="evenodd"></path></svg>'
+          : 'Expand<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="currentColor" class="ml-1 h-3.5 w-3.5"><path fill-rule="evenodd" d="M4.929 7.913l7.078 7.057 7.064-7.057a1 1 0 111.414 1.414l-7.77 7.764a1 1 0 01-1.415 0L3.515 9.328a1 1 0 011.414-1.414z" clip-rule="evenodd"></path></svg>';
       });
     }
 

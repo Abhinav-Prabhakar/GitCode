@@ -1,0 +1,270 @@
+/* ==========================================================================
+   GitCode parity layer
+   --------------------------------------------------------------------------
+   The dashboard and problem shells use LeetCode's own utility classes from
+   the vendored build. This file only adds the few authored pieces that have
+   no utility equivalent (promo artwork, month badge, the daily card tint)
+   plus the behaviour hooks that survive the markup swap.
+   ========================================================================== */
+
+/* ------------------------------------------------------------- utilities */
+
+/* LeetCode's wordmark graphic is 98px wide; match it so the nav links start at
+   the same x-position (154px at 1440). */
+.gc-brand {
+  width: 98px;
+}
+.gc-brand__word {
+  font-size: 19px;
+}
+
+.gc-pillicon svg {
+  width: 18px;
+  height: 18px;
+  display: block;
+}
+.gc-pillicon {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+}
+@media (min-width: 1024px) {
+  .gc-pillicon {
+    display: flex;
+  }
+}
+
+.gc-menu .check svg,
+.gc-menu-anchor .check svg {
+  width: 12px;
+  height: 12px;
+}
+
+/* LeetCode uses a soft rounded pill menu; keep the authored menu on-brand. */
+.gc-menu {
+  min-width: 164px;
+  padding: 6px;
+  border-radius: 8px;
+  border: 1px solid hsl(var(--sd-border));
+  background: hsl(var(--sd-popover));
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
+  z-index: 80;
+}
+.gc-menu__item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  height: 32px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: hsl(var(--sd-popover-foreground));
+  font: inherit;
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+}
+.gc-menu__item:hover {
+  background: hsl(var(--sd-accent));
+}
+.gc-menu .check {
+  display: inline-flex;
+  width: 12px;
+  height: 12px;
+  color: hsl(var(--sd-primary));
+}
+
+/* ---------------------------------------------------------------- promo */
+
+.gc-promo-link {
+  flex: none;
+}
+.gc-promo {
+  position: relative;
+  isolation: isolate;
+  transition: filter 150ms ease-out;
+}
+.gc-promo:hover {
+  filter: brightness(1.05);
+}
+.gc-promo > svg {
+  position: absolute;
+  inset: 0;
+}
+.gc-promo__eyebrow {
+  font-family: TypoRound, var(--gc-font-sans);
+  font-size: 11px;
+  line-height: 14px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.78;
+}
+.gc-promo__title {
+  margin-top: 5px;
+  font-family: TypoRound, var(--gc-font-sans);
+  font-size: 19px;
+  line-height: 23px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+}
+.gc-promo__meta,
+.gc-promo__count {
+  opacity: 0.82;
+}
+.gc-promo__bar {
+  display: block;
+  height: 3px;
+  margin-top: 6px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.25);
+  overflow: hidden;
+}
+.gc-promo__bar i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: currentColor;
+}
+
+.gc-promo--cream {
+  color: #3e2a12;
+  background:
+    radial-gradient(120% 130% at 100% 10%, rgba(255, 255, 255, 0.8) 0, rgba(255, 255, 255, 0) 46%),
+    linear-gradient(135deg, #f4cf9a 0%, #f7d9ab 38%, #efb96f 100%);
+}
+.gc-promo--cream .gc-promo__bar {
+  background: rgba(62, 42, 18, 0.18);
+}
+.gc-promo--cream .gc-promo__bar i {
+  background: #3e2a12;
+}
+
+.gc-promo--navy {
+  color: #fff;
+  background:
+    radial-gradient(80% 120% at 84% 20%, rgba(67, 97, 255, 0.55) 0, rgba(10, 15, 44, 0) 62%),
+    linear-gradient(135deg, #070b1f 0%, #0b1230 55%, #111a44 100%);
+}
+.gc-promo--green {
+  color: #fff;
+  background:
+    radial-gradient(70% 120% at 88% 18%, rgba(112, 255, 176, 0.22) 0, rgba(7, 73, 56, 0) 62%),
+    linear-gradient(135deg, #084b3b 0%, #0b5f4a 55%, #0e7457 100%);
+}
+.gc-promo--violet {
+  color: #fff;
+  background:
+    radial-gradient(80% 130% at 88% 18%, rgba(255, 255, 255, 0.28) 0, rgba(91, 61, 214, 0) 58%),
+    linear-gradient(135deg, #5b3dd6 0%, #6f4cf0 55%, #8d6bff 100%);
+}
+
+/* ------------------------------------------------------------- right rail */
+
+.gc-monthbadge {
+  position: relative;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 38px;
+  color: #ffa116;
+  background: rgba(255, 161, 22, 0.12);
+  clip-path: polygon(50% 0, 95% 25%, 95% 75%, 50% 100%, 5% 75%, 5% 25%);
+}
+.gc-monthbadge b {
+  font-size: 8px;
+  line-height: 9px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+.gc-monthbadge i {
+  font-style: normal;
+  font-size: 13px;
+  line-height: 14px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.gc-daily {
+  background:
+    radial-gradient(130% 130% at 0% 0%, rgba(255, 161, 22, 0.16) 0, rgba(255, 161, 22, 0) 62%),
+    linear-gradient(135deg, rgba(255, 161, 22, 0.1) 0%, rgba(255, 161, 22, 0.03) 100%);
+  border: 1px solid rgba(255, 161, 22, 0.16);
+}
+html.light .gc-daily {
+  border-color: rgba(255, 161, 22, 0.24);
+}
+
+.gc-flag {
+  position: relative;
+  display: inline-block;
+  width: 16px;
+  height: 11px;
+  border-radius: 1px;
+  background: linear-gradient(to bottom, #ff9933 0 33.33%, #ffffff 33.33% 66.66%, #138808 66.66% 100%);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08);
+}
+.gc-flag::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 4px;
+  height: 4px;
+  margin: -2px 0 0 -2px;
+  border-radius: 50%;
+  border: 0.5px solid #000080;
+}
+
+/* --------------------------------------------------------------- empty */
+
+#gc-empty .gc-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 56px 16px;
+  color: hsl(var(--sd-muted-foreground));
+  text-align: center;
+}
+#gc-empty .gc-empty svg {
+  width: 22px;
+  height: 22px;
+}
+#gc-empty .gc-empty__title {
+  color: hsl(var(--sd-foreground));
+  font-size: 15px;
+  font-weight: 500;
+}
+#gc-empty .gc-empty__text {
+  font-size: 13px;
+}
+#gc-empty .gc-btn {
+  margin-top: 4px;
+}
+
+/* Keep the row bookmark control from shifting the 44px row geometry. */
+[data-star] svg {
+  width: 15px;
+  height: 15px;
+}
+
+/* Keep icon-only toolbar anchors at the native 32px control height. */
+.gc-menu-anchor {
+  display: flex;
+  align-items: center;
+}
+
+#gc-pills-nav svg {
+  width: 14px;
+  height: 14px;
+}
+#gc-pills-nav:focus-visible {
+  outline: 2px solid hsl(var(--sd-ring));
+  outline-offset: 2px;
+}
