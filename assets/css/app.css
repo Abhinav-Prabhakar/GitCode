@@ -3005,7 +3005,7 @@ body.gc-resizing {
    ========================================================================== */
 
 :root {
-  --gc-page: #1a1a1a;
+  --gc-page: #0f0f0f;
   --gc-layer: #282828;
   --gc-pane: #262626;
   --gc-label-1: #ffffff;
@@ -3037,7 +3037,8 @@ html.light {
 }
 
 body,
-.gc-app {
+.gc-app,
+html.dark body {
   background: var(--gc-page);
   color: var(--gc-label-1);
 }
@@ -3794,6 +3795,42 @@ html.light .gc-row:hover {
   height: 16px;
   margin-right: 12px;
   flex: none;
+}
+/* Fixed columns keep acceptance centred and difficulty left-aligned across
+   every row, even when the labels differ in width. */
+.gc-probrow__accept {
+  width: 70px;
+  flex: none;
+  justify-content: center;
+  font-variant-numeric: tabular-nums;
+}
+.gc-probrow__diff {
+  width: 38px;
+  flex: none;
+  margin-left: 0;
+  margin-right: 0;
+}
+/* Mirrors LeetCode: the title block stops at 80% so a truncated title never
+   runs into the acceptance/difficulty columns. On phones acceptance is hidden,
+   so the title keeps the full width and the difficulty gets its own gutter. */
+@media (min-width: 760px) {
+  .gc-probrow__title {
+    max-width: 80%;
+  }
+}
+@media (max-width: 759.98px) {
+  .gc-probrow__accept {
+    display: none;
+  }
+  .gc-probrow__diff {
+    margin-left: 8px;
+  }
+}
+@media (min-width: 1200px) {
+  .gc-probrow__diff {
+    margin-left: 16px;
+    margin-right: 16px;
+  }
 }
 .gc-row__status .gc-status svg {
   width: 16px;

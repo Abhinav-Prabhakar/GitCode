@@ -92,7 +92,7 @@ check code ships to the browser: hidden means withheld from the UI, not cryptogr
 
 <img src="docs/screenshots/detail-list.png" alt="Problem rows with status, acceptance, difficulty and bookmark" width="100%">
 
-<p align="center"><sub>44 px rows · zebra striping · acceptance · difficulty · hover bookmark</sub></p>
+<p align="center"><sub>44 px rows · zebra striping · solved check · aligned acceptance and <code>Med.</code> · hover bookmark</sub></p>
 
 <img src="docs/screenshots/detail-tabs.png" alt="Pane tab strip" width="100%">
 

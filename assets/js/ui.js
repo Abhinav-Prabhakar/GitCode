@@ -141,7 +141,7 @@
 
     host.className = "w-full";
     host.innerHTML =
-      '<nav id="leetcode-navbar" class="flex h-[50px] w-full items-center border-b-[1px] border-solid border-border-tertiary dark:border-border-tertiary z-nav-9 bg-layer-1 dark:bg-dark-layer-1 nav-bar-container" aria-label="Primary">' +
+      '<nav id="leetcode-navbar" class="flex h-[50px] w-full items-center border-b-[1px] border-solid border-sd-border z-nav-9 bg-sd-background nav-bar-container" aria-label="Primary">' +
       '<div class="hidden m-auto h-[50px] w-full items-center justify-center px-6 md:flex">' +
       '<a href="index.html" class="gc-brand mb-0.5 flex items-center mr-8" aria-label="GitCode">' +
       '<span class="flex h-[22px] items-center gap-2">' +

@@ -86,8 +86,8 @@ progress ring, menus); do not assume they equal the page canvas.
 
 | Alias | Dark | Light | Use |
 | --- | --- | --- | --- |
-| `--gc-page` | `#1a1a1a` | `#ffffff` | Dashboard canvas / body |
-| `--gc-layer` | `#282828` | `#ffffff` | Navbar, rail cards, sticky chrome |
+| `--gc-page` | `#0f0f0f` | `#ffffff` | Dashboard canvas / body |
+| `--gc-layer` | `#282828` | `#ffffff` | Rail cards, cards, sticky chrome |
 | `--gc-pane` | `#262626` | `#ffffff` | Question panes (layer-01) |
 | `--gc-label-1` | `#ffffff` | `#262626` | Primary text |
 | `--gc-label-2` | `#eff1f6bf` | `#262626bf` | Secondary text, nav links |
@@ -100,7 +100,8 @@ progress ring, menus); do not assume they equal the page canvas.
 | `--gc-blue` | `#0a84ff` | `#0a84ff` | Informational links |
 
 Question-page canvas is `#0f0f0f` dark / `#f0f0f0` light (`--sd-background-gray`); panes sit
-on it at `#262626` / `#ffffff`. The dashboard canvas is `#1a1a1a` / `#ffffff`.
+on it at `#262626` / `#ffffff`. The dashboard canvas is `#0f0f0f` / `#ffffff`, matching the
+new LeetCode problemset shell; the navbar sits on the same canvas with a hairline border.
 
 ### 3.3 Meaning colours
 
@@ -129,6 +130,7 @@ values behind the common ones:
 | --- | --- | --- |
 | `bg-dark-layer-1` / `bg-layer-1` | `#282828` | `#ffffff` |
 | `bg-dark-layer-bg` | `#1a1a1a` | `#ffffff` |
+| `bg-sd-background` | `#0f0f0f` | `#ffffff` |
 | `bg-fill-3` / `dark:bg-dark-fill-3` | `rgba(255,255,255,.10)` | `rgba(0,10,32,.05)` |
 | `bg-fill-quaternary` | `rgba(255,255,255,.06)` | `rgba(0,0,0,.02)` |
 | `text-dark-label-1` | `#ffffff` | `#262626` |
@@ -333,9 +335,9 @@ Gylph vocabulary:
 
 | Concept | Icon |
 | --- | --- |
-| Solved | `square-check` in `--sd-easy` |
-| Attempted | `clock-rotate-left` in `--sd-medium` |
-| Todo | empty 16 px ring, `hsl(var(--sd-border))` |
+| Solved | `check-regular` at 14 px in `--sd-success` |
+| Attempted | `circle` at 14 px in `--sd-muted-foreground` |
+| Todo | empty 16 px box |
 | Hidden check | `lock-keyhole` |
 | Daily | `calendar` in `--sd-blue-500` |
 | Bookmark | `star` |
@@ -412,9 +414,9 @@ never a checkbox:
 
 | State | Render |
 | --- | --- |
-| solved | `square-check`, `--sd-easy` |
-| attempted | `clock-rotate-left`, `--sd-medium` |
-| todo | `<span class="gc-status-ring">` — 14 px circle, 1.5 px `hsl(var(--sd-border))` |
+| solved | `check-regular` at 14 px, `--sd-success` |
+| attempted | `circle` at 14 px, `--sd-muted-foreground` |
+| todo | empty 16 px box |
 | daily | `calendar`, `--sd-blue-500`, in the status slot |
 
 ### 8.5 Problem row *(copied structure, `.gc-row` modifiers)*
@@ -423,14 +425,18 @@ never a checkbox:
 `rgba(0,0,0,.02)` light). The row is one `<a>` with this anatomy:
 
 ```
-[status 16] │ 18px gap │ [title flex] [accept 70 centered] [difficulty auto, mx 16]
-            [difficulty meter 23] [bookmark 28]
+[status 16] │ 12px gap │ [title, 80% cap] [accept 70 centered] [difficulty 38, mx 16]
+            [difficulty meter] [bookmark 28]
 ```
 
-- Title is **14/20, weight 500**, and includes the number: `1. Recover a Lost Commit`.
-- Acceptance is **70 px**, centered, 14 px, `#a8a8a8`; hidden below 720 px.
-- Difficulty is 14 px in the exact rubric colour (`#46c6c2`, `#fac31d`, `#f8615c`), with
-  16 px margins.
+- Title is **14/20, weight 500**, and includes the number: `1. Recover a Lost Commit`. It is
+  capped at 80% from 760 px so a truncated title never touches the numeric columns; on phones
+  it keeps the full row width.
+- Acceptance is a fixed **70 px** centred column, 14 px, `#a8a8a8`, tabular numerals; hidden
+  below 760 px.
+- Difficulty is a fixed **38 px** left-aligned column, 14 px in the exact rubric colour
+  (`#46c6c2`, `#fac31d`, `#f8615c`). It uses the short `Med.` label and 16 px side margins
+  from 1200 px (an 8 px gutter on phones).
 - The difficulty meter is eight 2×8 px bars at 20% opacity. It is hidden below 720 px in the
   mobile layout. The daily task takes the status slot with a blue calendar glyph.
 - The bookmark is a 28 px hover-only control (`opacity: 0` until row hover/focus); it is
@@ -650,8 +656,8 @@ duration to `1ms` and stop the cursor blink.
 
 ## 11. Accessibility
 
-- Contrast: body text ≥ 4.5:1 (`#f5f5f5` on `#1a1a1a` is 15.9:1; secondary `#a8a8a8` is
-  6.9:1). Difficulty colours are used for 12 px labels only where the label is also
+- Contrast: body text ≥ 4.5:1 (`#f5f5f5` on `#0f0f0f` is 17.6:1; secondary `#a8a8a8` is
+  8.1:1). Difficulty colours are used for 12 px labels only where the label is also
   present as text ("Easy"), never colour-only.
 - Focus is always visible: 1 px ring `--sd-ring` + 2 px offset on dark. Do not remove
   outlines without a replacement.
@@ -666,7 +672,7 @@ duration to `1ms` and stop the cursor blink.
 
 ## 12. Responsive
 
-Max-width media queries at **1279, 1023, 900, 767, 720, 480 px**. Breakpoints follow the
+Max-width media queries at **1279, 1023, 900, 767, 760, 720, 480 px**. Breakpoints follow the
 reference's Tailwind steps (`xl`, `lg`, `md`) and the content's own collapse points.
 
 | Breakpoint | Dashboard | Question page |
@@ -677,7 +683,7 @@ reference's Tailwind steps (`xl`, `lg`, `md`) and the content's own collapse poi
 | 768–1023 | desktop nav remains (icon logo + 3 links + search icon + theme) | unchanged |
 | ≤ 767 | mobile header: logo + wordmark, bookmark shortcut, theme toggle; identity links hidden | unchanged |
 | ≤ 900 | content `x=16`; row topic tag hides | panes stack — description 46 vh, terminal fills the rest; splitters hide |
-| ≤ 720 | acceptance and bookmark hide; difficulty meter stays; toolbar stays on one row with a flexible search; progress text drops to 12 px | title stays 24/32; pane padding 16; terminal padding 12 |
+| ≤ 720 | acceptance (hidden below 760) and bookmark hide; difficulty meter stays; toolbar stays on one row with a flexible search; progress text drops to 12 px | title stays 24/32; pane padding 16; terminal padding 12 |
 | ≤ 560 | — | IDE bar compacts: back label, divider, logo wordmark hide |
 | ≤ 480 | toolbar controls tighten (30 px buttons, 14 px ring, 11 px progress) | — |
 
@@ -756,7 +762,7 @@ Everything that mutates the DOM is scoped to a `[data-page]` root; shared helper
 
 ```css
 /* page surfaces */
-background: var(--gc-page);            /* #1a1a1a / #fff */
+background: var(--gc-page);            /* #0f0f0f / #fff */
 background: var(--gc-layer);           /* #282828 / #fff */
 background: var(--gc-pane);            /* #262626 / #fff */
 background: var(--gc-wash);            /* inputs + icon buttons */

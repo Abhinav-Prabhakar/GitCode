@@ -318,22 +318,30 @@
   function statusSlot(p, daily) {
     if (daily) {
       return (
-        '<div class="relative text-[14px] leading-[normal] p-[1px] before:block before:h-3.5 before:w-3.5 text-sd-blue-500">' +
+        '<div class="gc-probrow__status relative flex h-4 w-4 items-center justify-center text-[14px] text-sd-blue-500">' +
         window.icon("calendar") +
         "</div>"
       );
     }
     if (p.status === "solved") {
       return (
-        '<div class="relative text-[14px] leading-[normal] p-[1px] text-sd-green-500" title="Solved">' +
-        window.icon("circle-check") +
+        '<div class="gc-probrow__status relative flex h-4 w-4 items-center justify-center text-[14px] text-sd-success" title="Solved">' +
+        window.icon("check-regular") +
         "</div>"
       );
     }
     if (p.status === "attempted") {
-      return '<div class="relative flex h-4 w-4 items-center justify-center text-sd-yellow-500" title="Attempted"><span class="block h-2.5 w-2.5 rounded-full border-[1.5px] border-current"></span></div>';
+      return (
+        '<div class="gc-probrow__status relative flex h-4 w-4 items-center justify-center text-[14px] text-sd-muted-foreground" title="Attempted">' +
+        window.icon("circle") +
+        "</div>"
+      );
     }
-    return '<div class="h-4 w-4"></div>';
+    return '<div class="gc-probrow__status h-4 w-4"></div>';
+  }
+
+  function difficultyLabel(value) {
+    return value === "Medium" ? "Med." : value;
   }
 
   function row(p, index, daily) {
@@ -362,18 +370,18 @@
       "</div></div>" +
       '<div class="relative flex h-full w-full cursor-pointer items-center">' +
       '<div class="flex w-0 flex-1 items-center space-x-2">' +
-      '<div class="max-w-full text-body font-medium text-sd-foreground"><div class="ellipsis line-clamp-1">' +
+      '<div class="gc-probrow__title max-w-full text-body font-medium text-sd-foreground"><div class="ellipsis line-clamp-1">' +
       p.n +
       ". " +
       UI.esc(p.title) +
       "</div></div></div>" +
-      '<div class="flex w-[70px] items-center justify-center text-sm text-sd-muted-foreground opacity-0 group-hover:opacity-100 lc-md:opacity-100">' +
+      '<div class="gc-probrow__accept flex w-[70px] items-center justify-center text-sm text-sd-muted-foreground opacity-0 group-hover:opacity-100 lc-md:opacity-100">' +
       p.acceptance.toFixed(1) +
       "%</div>" +
-      '<p class="mx-0 text-[14px] ' +
+      '<p class="gc-probrow__diff mx-0 text-[14px] ' +
       diffCls +
       ' lc-xl:mx-4">' +
-      p.difficulty +
+      difficultyLabel(p.difficulty) +
       "</p></div>" +
       '<div><div class="relative flex gap-0.5 px-1 cursor-pointer">' +
       bars +
