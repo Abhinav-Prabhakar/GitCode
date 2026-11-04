@@ -140,9 +140,9 @@
 
   function renderTabLabels() {
     var labels = {
-      desc: "book-open",
-      editorial: "memo",
-      solutions: "code",
+      desc: "file-lines",
+      editorial: "book-open",
+      solutions: "flask",
       submissions: "clock-rotate-left",
       terminal: "terminal",
       workspace: "list-tree",

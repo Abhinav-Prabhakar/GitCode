@@ -206,7 +206,7 @@
   margin-bottom: 0;
 }
 #gc-ide .gc-qbody strong {
-  font-weight: 600;
+  font-weight: 700;
 }
 #gc-ide .gc-qbody h2 {
   margin: 0 0 16px !important;
@@ -236,6 +236,11 @@
   font-size: 12px;
   line-height: 16px;
   white-space: pre-wrap;
+}
+/* LeetCode's prose uses a Menlo stack, unlike its editor/monospace token. */
+#gc-ide .gc-qbody code,
+#gc-ide .gc-qbody pre {
+  font-family: Menlo, Menlo-fallback, sans-serif;
 }
 #gc-ide .gc-qbody pre {
   margin: 16px 0;
