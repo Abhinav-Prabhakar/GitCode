@@ -1,0 +1,4 @@
+# raw scraped dumps — reference only, not shipped
+_reference/downloaded/
+.DS_Store
+node_modules/
