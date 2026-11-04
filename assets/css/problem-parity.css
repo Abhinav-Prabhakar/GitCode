@@ -39,7 +39,8 @@
    wider screen. --gc-main-h accounts for the 48px nav and the 10px bottom
    padding; below 560px tall the layout stops shrinking and main scrolls. */
 #gc-ide .flexlayout__layout {
-  --gc-pane-w: calc((100vw - 28px) / 2);
+  --gc-pane-w: var(--gc-pane-w-user, calc((100vw - 28px) / 2));
+  --gc-testcase-h: var(--gc-testcase-h-user, 236px);
   --gc-main-h: max(calc(100vh - 58px), 560px);
   height: var(--gc-main-h);
 }
@@ -61,14 +62,14 @@
 #gc-ide #gc-code-tabset {
   left: calc(var(--gc-pane-w) + 8px);
   top: 0;
-  width: var(--gc-pane-w);
-  height: calc(var(--gc-main-h) - 244px);
+  width: calc(100% - var(--gc-pane-w) - 8px);
+  height: calc(var(--gc-main-h) - var(--gc-testcase-h) - 8px);
 }
 #gc-ide #gc-testcase-tabset {
   left: calc(var(--gc-pane-w) + 8px);
-  top: calc(var(--gc-main-h) - 236px);
-  width: var(--gc-pane-w);
-  height: 236px;
+  top: calc(var(--gc-main-h) - var(--gc-testcase-h));
+  width: calc(100% - var(--gc-pane-w) - 8px);
+  height: var(--gc-testcase-h);
 }
 #gc-ide #gc-desc-tabset,
 #gc-ide #gc-code-tabset,
@@ -83,9 +84,42 @@
 }
 #gc-ide .flexlayout__splitter_horz {
   left: calc(var(--gc-pane-w) + 8px);
-  top: calc(var(--gc-main-h) - 244px);
-  width: var(--gc-pane-w);
+  top: calc(var(--gc-main-h) - var(--gc-testcase-h) - 8px);
+  width: calc(100% - var(--gc-pane-w) - 8px);
   height: 8px;
+}
+
+/* Expanded pane modes. The description and terminal can each take the whole
+   workspace; the workbench can take the whole right column. */
+#gc-ide.is-focus .flexlayout__layout,
+#gc-ide.is-focus #gc-desc-tabset {
+  --gc-pane-w: 100%;
+}
+#gc-ide.is-focus #gc-code-tabset,
+#gc-ide.is-focus #gc-testcase-tabset,
+#gc-ide.is-focus .flexlayout__splitter {
+  display: none;
+}
+#gc-ide.is-terminal #gc-desc-tabset,
+#gc-ide.is-terminal #gc-testcase-tabset,
+#gc-ide.is-terminal .flexlayout__splitter {
+  display: none;
+}
+#gc-ide.is-terminal #gc-code-tabset {
+  left: 0;
+  width: 100%;
+  height: var(--gc-main-h);
+}
+#gc-ide.is-workbench #gc-desc-tabset,
+#gc-ide.is-workbench #gc-code-tabset,
+#gc-ide.is-workbench .flexlayout__splitter {
+  display: none;
+}
+#gc-ide.is-workbench #gc-testcase-tabset {
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: var(--gc-main-h);
 }
 
 /* The description scrolls above a pinned 36px footer. Fade the last few
@@ -166,21 +200,22 @@
 
 /* Description footer: 36px bar with 28px controls, like the reference. */
 #gc-ide #gc-like,
-#gc-ide #gc-comment {
+#gc-ide #gc-dislike {
   font-size: 14px;
   line-height: 20px;
   font-weight: 500;
 }
 #gc-ide #gc-like svg,
 #gc-ide #gc-dislike svg,
-#gc-ide #gc-comment svg,
 #gc-ide #gc-share svg,
 #gc-ide #gc-help svg,
 #gc-ide #gc-bookmark svg {
   width: 16px;
   height: 16px;
 }
-#gc-ide #gc-bookmark.is-on {
+#gc-ide #gc-bookmark.is-on,
+#gc-ide #gc-like.is-on,
+#gc-ide #gc-dislike.is-on {
   color: var(--brand-orange);
 }
 
@@ -245,11 +280,6 @@
 #gc-ide .gc-chip--hard {
   color: var(--difficulty-hard);
 }
-#gc-ide .gc-chip--premium {
-  color: var(--brand-orange);
-  background: rgba(255, 161, 22, 0.12);
-}
-
 #gc-ide .gc-qbody {
   max-width: none;
   font-size: 14px;
@@ -1065,16 +1095,11 @@ html.dark {
   }
   #gc-ide #gc-prevnext,
   #gc-ide .gc-nav-layouts,
-  #gc-ide .gc-nav-auth,
   #gc-ide .gc-debug-wrap,
   #gc-ide .gc-debug-div,
   #gc-ide #gc-hint,
-  #gc-ide #gc-timer,
-  #gc-ide .gc-online {
+  #gc-ide #gc-timer {
     display: none;
-  }
-  #gc-ide .gc-nav-premium {
-    display: none !important;
   }
 
   #gc-ide main {

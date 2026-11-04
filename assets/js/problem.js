@@ -23,6 +23,13 @@
   } catch (e) {}
   if (!(p.slug in bookmarks)) bookmarks[p.slug] = !!p.starred;
 
+  // Per-task like / dislike is a local preference. There is no vote count to
+  // report, so the buttons only reflect your own stored choice.
+  var feedback = {};
+  try {
+    feedback = JSON.parse(localStorage.getItem("gc-feedback") || "null") || {};
+  } catch (e) {}
+
   document.title = p.n + ". " + p.title + " · GitCode";
 
   var esc = UI.esc;
@@ -73,11 +80,21 @@
     return pad(Math.floor(s / 3600)) + ":" + pad(Math.floor((s % 3600) / 60)) + ":" + pad(s % 60);
   }
 
+  function timerLabel() {
+    var s = Math.max(0, Math.floor((Date.now() - labStart) / 1000));
+    var pad = function (n) { return (n < 10 ? "0" : "") + n; };
+    var hours = Math.floor(s / 3600);
+    var label = pad(Math.floor((s % 3600) / 60)) + ":" + pad(s % 60);
+    return hours ? hours + ":" + label : label;
+  }
+
   function startLabTimer() {
     var chip = document.getElementById("gc-timer");
     if (!chip) return;
+    var text = document.getElementById("gc-timer-label");
     var tick = function () {
-      var label = "Lab timer " + elapsedLabel();
+      var label = "Lab time " + elapsedLabel();
+      if (text) text.textContent = timerLabel();
       chip.title = label;
       chip.setAttribute("aria-label", label);
     };
@@ -159,12 +176,10 @@
     setIcon("gc-copy", "copy");
     setIcon("gc-expand", "expand");
     setIcon("gc-refresh", "arrows-rotate");
-    setIcon("gc-shell-chev", "chevron-down");
 
     var acts = [
-      ["gc-like", "thumbs-up", "71K"],
+      ["gc-like", "thumbs-up", ""],
       ["gc-dislike", "thumbs-down", ""],
-      ["gc-comment", "comment", "2.2K"],
       ["gc-share", "arrow-up-right-from-square", ""],
       ["gc-help", "circle-question", ""]
     ];
@@ -178,12 +193,17 @@
   /* ------------------------------------------------------------ description */
 
   function renderDescription() {
-    var premium = p.premium
-      ? '<span class="gc-chip gc-chip--premium">' + window.icon("lock-keyhole") + "Premium</span>"
-      : "";
     var tags = p.tags
       .map(function (t) {
-        return '<a class="gc-chip" href="index.html?tag=' + encodeURIComponent(t) + '">' + esc(t) + "</a>";
+        return (
+          '<a class="gc-chip" href="index.html?tag=' +
+          encodeURIComponent(t) +
+          '" title="Show tasks about ' +
+          esc(UI.tagLabel(t)) +
+          '">' +
+          esc(UI.tagLabel(t)) +
+          "</a>"
+        );
       })
       .join("");
     var stored = Progress.status(p.slug);
@@ -203,7 +223,6 @@
       '<div class="gc-qchips">' +
       UI.difficultyChip(p.difficulty) +
       '<span class="gc-chip">' + window.icon("tag") + "Topics</span>" +
-      premium +
       statusChip +
       '<a class="gc-chip" href="#gc-hints">' + window.icon("lightbulb") + "Hint</a>" +
       tags +
@@ -921,7 +940,7 @@
   }
 
   function showResultTab() {
-    if (ide) ide.classList.remove("is-terminal");
+    setMode(null);
     var tab = document.getElementById("gc-tab-result");
     if (tab) tab.click();
   }
@@ -1030,6 +1049,29 @@
     btn.title = on ? "Remove bookmark" : "Bookmark";
   }
 
+  function setFeedback(value) {
+    feedback[p.slug] = value || "";
+    try {
+      localStorage.setItem("gc-feedback", JSON.stringify(feedback));
+    } catch (e) {}
+    var like = document.getElementById("gc-like");
+    var dislike = document.getElementById("gc-dislike");
+    if (like) {
+      var liked = feedback[p.slug] === "like";
+      like.classList.toggle("is-on", liked);
+      like.setAttribute("aria-pressed", String(liked));
+      like.setAttribute("aria-label", liked ? "Remove like" : "Like task");
+      like.title = liked ? "Remove like" : "Like task";
+    }
+    if (dislike) {
+      var disliked = feedback[p.slug] === "dislike";
+      dislike.classList.toggle("is-on", disliked);
+      dislike.setAttribute("aria-pressed", String(disliked));
+      dislike.setAttribute("aria-label", disliked ? "Remove dislike" : "Dislike task");
+      dislike.title = disliked ? "Remove dislike" : "Dislike task";
+    }
+  }
+
   /* ------------------------------------------------------------------ boot */
 
   function createRepo() {
@@ -1076,6 +1118,152 @@
       "</div>";
   }
 
+  function syncModeButtons() {
+    var map = [
+      ["gc-focus", "is-focus", "spread description", "focus mode"],
+      ["gc-expand", "is-terminal", "terminal", "terminal"],
+      ["gc-workbench-expand", "is-workbench", "workbench", "workbench"]
+    ];
+    map.forEach(function (entry) {
+      var node = document.getElementById(entry[0]);
+      if (!node) return;
+      var on = ide.classList.contains(entry[1]);
+      node.setAttribute("aria-pressed", String(on));
+      node.setAttribute("aria-label", (on ? "Restore " : "Expand ") + entry[2]);
+      node.title = (on ? "Restore " : "Expand ") + entry[3];
+    });
+  }
+
+  function setMode(mode) {
+    var active = mode && !ide.classList.contains(mode);
+    ["is-focus", "is-terminal", "is-workbench"].forEach(function (name) {
+      ide.classList.remove(name);
+    });
+    if (active) ide.classList.add(mode);
+    syncModeButtons();
+    return !!active;
+  }
+
+  function initLayoutSplitters() {
+    var layout = ide.querySelector(".flexlayout__layout");
+    var vert = document.getElementById("gc-split-vert");
+    var horz = document.getElementById("gc-split-horz");
+    if (!layout || !vert || !horz) return;
+
+    function clamp(value, min, max) {
+      return Math.min(max, Math.max(min, value));
+    }
+    function saved(key, fallback) {
+      try {
+        var raw = parseFloat(localStorage.getItem(key));
+        return isFinite(raw) ? raw : fallback;
+      } catch (e) {
+        return fallback;
+      }
+    }
+    function save(key, value) {
+      try {
+        localStorage.setItem(key, String(value));
+      } catch (e) {}
+    }
+
+    var pane = saved("gc-layout-pane", 50);
+    var bottom = saved("gc-layout-bottom", 26);
+
+    function applyPane(pct, persist) {
+      pane = clamp(pct, 25, 72);
+      layout.style.setProperty("--gc-pane-w-user", pane + "%");
+      vert.setAttribute("aria-valuenow", String(Math.round(pane)));
+      if (persist) save("gc-layout-pane", Math.round(pane * 10) / 10);
+    }
+    function applyBottom(pct, persist) {
+      bottom = clamp(pct, 15, 62);
+      layout.style.setProperty("--gc-testcase-h-user", bottom + "%");
+      horz.setAttribute("aria-valuenow", String(Math.round(bottom)));
+      if (persist) save("gc-layout-bottom", Math.round(bottom * 10) / 10);
+    }
+    vert.setAttribute("aria-valuemin", "25");
+    vert.setAttribute("aria-valuemax", "72");
+    horz.setAttribute("aria-valuemin", "15");
+    horz.setAttribute("aria-valuemax", "62");
+    applyPane(pane, false);
+    applyBottom(bottom, false);
+
+    function drag(splitter, onMove) {
+      var dragging = false;
+      splitter.addEventListener("pointerdown", function (e) {
+        dragging = true;
+        try {
+          splitter.setPointerCapture(e.pointerId);
+        } catch (err) {}
+        splitter.classList.add("is-dragging");
+        document.body.classList.add("gc-resizing");
+        document.body.style.cursor =
+          splitter === vert ? "col-resize" : "row-resize";
+        e.preventDefault();
+      });
+      splitter.addEventListener("pointermove", function (e) {
+        if (dragging) onMove(e);
+      });
+      function end(e) {
+        if (!dragging) return;
+        dragging = false;
+        splitter.classList.remove("is-dragging");
+        document.body.classList.remove("gc-resizing");
+        document.body.style.cursor = "";
+        if (e && e.pointerId != null) {
+          try {
+            if (splitter.hasPointerCapture(e.pointerId)) splitter.releasePointerCapture(e.pointerId);
+          } catch (err) {}
+        }
+      }
+      splitter.addEventListener("pointerup", end);
+      splitter.addEventListener("pointercancel", end);
+    }
+
+    drag(vert, function (e) {
+      var rect = layout.getBoundingClientRect();
+      if (!rect.width) return;
+      applyPane(((e.clientX - rect.left) / rect.width) * 100, true);
+    });
+    drag(horz, function (e) {
+      var rect = layout.getBoundingClientRect();
+      if (!rect.height) return;
+      applyBottom(((rect.bottom - e.clientY) / rect.height) * 100, true);
+    });
+
+    vert.addEventListener("dblclick", function () {
+      applyPane(50, true);
+    });
+    horz.addEventListener("dblclick", function () {
+      applyBottom(26, true);
+    });
+    vert.addEventListener("keydown", function (e) {
+      if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        applyPane(pane - 2, true);
+      } else if (e.key === "ArrowRight") {
+        e.preventDefault();
+        applyPane(pane + 2, true);
+      } else if (e.key === "Home") {
+        e.preventDefault();
+        applyPane(50, true);
+      }
+    });
+    horz.addEventListener("keydown", function (e) {
+      if (e.key === "ArrowUp") {
+        e.preventDefault();
+        applyBottom(bottom + 2, true);
+      } else if (e.key === "ArrowDown") {
+        e.preventDefault();
+        applyBottom(bottom - 2, true);
+      } else if (e.key === "Home") {
+        e.preventDefault();
+        applyBottom(26, true);
+      }
+    });
+  }
+
   function bind() {
     document.getElementById("gc-run").addEventListener("click", run);
     document.getElementById("gc-submit").addEventListener("click", submit);
@@ -1096,6 +1284,7 @@
     var debugBtn = document.getElementById("gc-debug");
     if (debugBtn) {
       debugBtn.addEventListener("click", function () {
+        setMode(null);
         var group = document.getElementById("gc-terminal").closest("[data-tabgroup]");
         activePanel(group, "terminal");
         execute("git fsck");
@@ -1106,11 +1295,29 @@
     var hintBtn = document.getElementById("gc-hint");
     if (hintBtn) {
       hintBtn.addEventListener("click", function () {
+        setMode(null);
         var group = document.getElementById("gc-desc").closest("[data-tabgroup]");
         activePanel(group, "desc");
         var scroll = document.getElementById("gc-desc-scroll");
         var target = document.getElementById("gc-hints");
-        if (scroll && target) scroll.scrollTop = Math.max(0, target.offsetTop - 12);
+        if (!scroll || !target) return;
+        // Reveal the next unrevealed hint, the same way a hint button walks
+        // through hints one at a time.
+        var folds = UI.$$(".gc-fold", target.parentElement);
+        var next = null;
+        for (var i = 0; i < folds.length; i++) {
+          if (!folds[i].open) { next = folds[i]; break; }
+        }
+        if (next) next.open = true;
+        var top =
+          target.getBoundingClientRect().top -
+          scroll.getBoundingClientRect().top +
+          scroll.scrollTop -
+          12;
+        scroll.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
+        if (!folds.length) UI.toast("No hints for this task", "lightbulb");
+        else if (next) UI.toast("Hint revealed", "lightbulb");
+        else UI.toast("All hints are already open", "lightbulb");
       });
     }
 
@@ -1125,6 +1332,7 @@
     var workspaceHost = document.getElementById("gc-workspace");
     workspaceHost.addEventListener("click", function (e) {
       if (e.target.closest("[data-open-terminal]")) {
+        setMode(null);
         var top = document.getElementById("gc-terminal").closest("[data-tabgroup]");
         activePanel(top, "terminal");
         focusTerminal();
@@ -1229,9 +1437,32 @@
       UI.toast(bookmarks[p.slug] ? "Bookmarked" : "Bookmark removed", "star");
     });
 
+    var likeBtn = document.getElementById("gc-like");
+    if (likeBtn) {
+      likeBtn.addEventListener("click", function () {
+        var next = feedback[p.slug] === "like" ? "" : "like";
+        setFeedback(next);
+        UI.toast(next ? "Liked this task" : "Like removed", "thumbs-up");
+      });
+    }
+    var dislikeBtn = document.getElementById("gc-dislike");
+    if (dislikeBtn) {
+      dislikeBtn.addEventListener("click", function () {
+        var next = feedback[p.slug] === "dislike" ? "" : "dislike";
+        setFeedback(next);
+        UI.toast(next ? "Feedback saved" : "Feedback removed", "thumbs-down");
+      });
+    }
+    var shareBtn = document.getElementById("gc-share");
+    if (shareBtn) {
+      shareBtn.addEventListener("click", function () {
+        copyText(location.href, "Task link copied");
+      });
+    }
+
     document.getElementById("gc-focus").addEventListener("click", function () {
-      ide.classList.toggle("is-focus");
-      UI.toast(ide.classList.contains("is-focus") ? "Focus mode on" : "Focus mode off", "expand");
+      var on = setMode("is-focus");
+      UI.toast(on ? "Focus mode on" : "Focus mode off", "expand");
     });
 
     document.getElementById("gc-clear").addEventListener("click", function () {
@@ -1245,9 +1476,9 @@
     });
 
     document.getElementById("gc-expand").addEventListener("click", function () {
-      ide.classList.toggle("is-terminal");
-      UI.toast(ide.classList.contains("is-terminal") ? "Terminal expanded" : "Terminal restored", "expand");
-      if (!ide.classList.contains("is-terminal")) focusTerminal();
+      var on = setMode("is-terminal");
+      UI.toast(on ? "Terminal expanded" : "Terminal restored", "expand");
+      focusTerminal();
     });
 
     document.getElementById("gc-refresh").addEventListener("click", function () {
@@ -1256,15 +1487,20 @@
       UI.toast("Workspace refreshed", "arrows-rotate");
     });
 
-    document.getElementById("gc-shell-select").addEventListener("click", function () {
-      UI.toast("The lab shell is fixed to bash", "terminal");
-    });
+    var workbenchExpand = document.getElementById("gc-workbench-expand");
+    if (workbenchExpand) {
+      workbenchExpand.addEventListener("click", function () {
+        var on = setMode("is-workbench");
+        UI.toast(on ? "Workbench expanded" : "Workbench restored", "expand");
+      });
+    }
 
     document.querySelector("[data-copy-link]").addEventListener("click", function () {
       copyText(location.href, "Link copied");
     });
 
     document.querySelector("[data-goto-solutions]").addEventListener("click", function () {
+      setMode(null);
       var group = document.getElementById("gc-solutions").closest("[data-tabgroup]");
       activePanel(group, "solutions");
       var scroll = document.getElementById("gc-desc-scroll");
@@ -1317,6 +1553,9 @@
     UI.initEdgeFades(".gc-tabbar__scroll");
     UI.initSplitters();
     UI.initGlobalKeys();
+    initLayoutSplitters();
+    setFeedback(feedback[p.slug] || "");
+    syncModeButtons();
     renderBookmark();
 
     if (!lab) UI.toast("This task has no lab definition", "triangle-exclamation");

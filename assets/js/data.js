@@ -89,7 +89,10 @@
     }
   ];
 
-  function P(n, slug, title, difficulty, acceptance, category, tags, status, premium, summary, scenario, task, examples, hints, editorial) {
+  // The argument after status is a retired premium flag. It stays in the
+  // signature so the positional data below keeps its original shape, but no
+  // task is premium-only anymore.
+  function P(n, slug, title, difficulty, acceptance, category, tags, status, _retiredPremium, summary, scenario, task, examples, hints, editorial) {
     return {
       n: n,
       slug: slug,
@@ -99,7 +102,6 @@
       category: category,
       tags: tags,
       status: status || null,
-      premium: !!premium,
       summary: summary,
       scenario: scenario,
       task: task,
@@ -527,22 +529,34 @@
     p.starred = ["find-the-first-bad-commit", "recover-a-lost-commit", "clean-up-a-messy-commit-history"].indexOf(p.slug) !== -1;
   });
 
+  // The daily challenge rotates once per local day. Everything shown for it is
+  // derived from the problem list, so the card, its date, and the highlighted
+  // row can never disagree.
+  var dailyNow = new Date();
+  var dailyDay = Math.floor(
+    (dailyNow.getTime() - dailyNow.getTimezoneOffset() * 60000) / 86400000
+  );
+  var dailyProblem = problems[dailyDay % problems.length];
   var daily = {
-    n: 1,
-    slug: "recover-a-lost-commit",
-    date: "Nov 4, 2026",
-    title: "Recover a Lost Commit",
-    difficulty: "Easy",
-    acceptance: 68.4,
-    tags: ["reflog", "reset"]
+    n: dailyProblem.n,
+    slug: dailyProblem.slug,
+    date: dailyNow.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric"
+    }),
+    title: dailyProblem.title,
+    difficulty: dailyProblem.difficulty,
+    acceptance: dailyProblem.acceptance,
+    tags: dailyProblem.tags.slice()
   };
 
   var trending = [
-    { label: "git reflog", value: "2.4k attempts" },
-    { label: "git rebase -i", value: "1.9k attempts" },
-    { label: "git bisect run", value: "1.7k attempts" },
-    { label: "git cherry-pick -x", value: "1.4k attempts" },
-    { label: "git revert -m 1", value: "986 attempts" }
+    { label: "git reflog", tag: "reflog" },
+    { label: "git rebase -i", tag: "rebase" },
+    { label: "git bisect run", tag: "bisect" },
+    { label: "git cherry-pick -x", tag: "cherry-pick" },
+    { label: "git revert -m 1", tag: "revert" }
   ];
 
   var stats = {

@@ -92,7 +92,7 @@ check code ships to the browser: hidden means withheld from the UI, not cryptogr
 
 <img src="docs/screenshots/detail-list.png" alt="Problem rows with status, acceptance, difficulty and bookmark" width="100%">
 
-<p align="center"><sub>44 px rows · zebra striping · acceptance · difficulty · premium meter · hover bookmark</sub></p>
+<p align="center"><sub>44 px rows · zebra striping · acceptance · difficulty · hover bookmark</sub></p>
 
 <img src="docs/screenshots/detail-tabs.png" alt="Pane tab strip" width="100%">
 
@@ -189,7 +189,7 @@ design.md                   design-system contract
 assets/
   css/vendor/               LeetCode CSS, byte-for-byte (do not edit)
   css/app.css               tokens + authored gc-* components
-  fonts/                    TypoRound (rounded Premium/promo face)
+  fonts/                    TypoRound (rounded display face for track cards)
   js/icons.js               icon geometry + icon()
   js/data.js                44 tasks, categories, tracks, daily/trending
   js/ui.js                  nav, theme, menus, modals, tabs, splitters

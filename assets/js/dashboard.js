@@ -184,6 +184,9 @@
 
   /* ------------------------------------------------------------ keywords */
 
+  var keywordsExpanded = false;
+  var KEYWORD_COLLAPSED = 9;
+
   function renderKeywords() {
     var host = UI.$("#gc-keywords");
     if (!host) return;
@@ -196,29 +199,33 @@
     var tags = Object.keys(totals).sort(function (a, b) {
       return totals[b] - totals[a] || a.localeCompare(b);
     });
-    var visible = tags.slice(0, 9);
-    var hidden = tags.slice(9);
-    function keyword(t, extra) {
+    var limit = keywordsExpanded ? tags.length : KEYWORD_COLLAPSED;
+    var visible = tags.slice(0, limit);
+    var collapsed = tags.length > KEYWORD_COLLAPSED;
+    function keyword(t) {
       return (
-        '<div class="group m-[10px] flex items-center' +
-        (extra ? " gc-keyword-extra" : "") +
-        '"' +
-        (extra ? " hidden" : "") +
-        '><a class="inline-flex items-center" href="index.html?tag=' +
+        '<div class="group m-[10px] flex items-center">' +
+        '<a class="inline-flex items-center" href="index.html?tag=' +
         encodeURIComponent(t) +
+        '" title="Show tasks about ' +
+        UI.esc(UI.tagLabel(t)) +
         '"><span class="whitespace-nowrap group-hover:text-blue dark:group-hover:text-dark-blue text-label-1 dark:text-dark-label-1">' +
-        UI.esc(t) +
+        UI.esc(UI.tagLabel(t)) +
         '</span><span class="ml-1 flex h-[18px] items-center justify-center rounded-[10px] px-1.5 text-xs font-normal text-label-3 dark:text-dark-label-3 bg-fill-3 dark:bg-dark-fill-3 group-hover:text-blue dark:group-hover:text-dark-blue group-hover:bg-blue-0 dark:group-hover:bg-dark-blue-0">' +
         totals[t] +
         "</span></a></div>"
       );
     }
     host.innerHTML =
-      visible.map(function (t) { return keyword(t, false); }).join("") +
-      (hidden.length
-        ? '<div class="group m-[10px] flex items-center"><button class="flex items-center whitespace-nowrap text-label-2 dark:text-dark-label-2 hover:text-label-1 dark:hover:text-dark-label-1" type="button" data-expand-tags>Expand' +
-          '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="currentColor" class="ml-1 h-3.5 w-3.5"><path fill-rule="evenodd" d="M4.929 7.913l7.078 7.057 7.064-7.057a1 1 0 111.414 1.414l-7.77 7.764a1 1 0 01-1.415 0L3.515 9.328a1 1 0 011.414-1.414z" clip-rule="evenodd"></path></svg></button></div>' +
-          hidden.map(function (t) { return keyword(t, true); }).join("")
+      visible.map(keyword).join("") +
+      (collapsed
+        ? '<div class="m-[10px] flex items-center"><button class="flex items-center whitespace-nowrap text-label-2 dark:text-dark-label-2 hover:text-label-1 dark:hover:text-dark-label-1" type="button" data-expand-tags aria-expanded="' +
+          keywordsExpanded +
+          '">' +
+          (keywordsExpanded ? "Collapse" : "Expand") +
+          '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="currentColor" class="ml-1 h-3.5 w-3.5"' +
+          (keywordsExpanded ? ' style="transform:rotate(180deg)"' : "") +
+          '><path fill-rule="evenodd" d="M4.929 7.913l7.078 7.057 7.064-7.057a1 1 0 111.414 1.414l-7.77 7.764a1 1 0 01-1.415 0L3.515 9.328a1 1 0 011.414-1.414z" clip-rule="evenodd"></path></svg></button></div>'
         : "");
   }
 
@@ -293,6 +300,13 @@
     if (!host || !wrap) return;
     var more = host.scrollWidth - host.clientWidth > 2;
     wrap.style.display = more ? "" : "none";
+    var nav = UI.$("#gc-pills-nav");
+    if (nav) {
+      var atEnd = host.scrollLeft + host.clientWidth >= host.scrollWidth - 2;
+      nav.innerHTML = window.icon(atEnd ? "angle-left" : "angle-right");
+      nav.setAttribute("aria-label", atEnd ? "Back to the first categories" : "More categories");
+      nav.setAttribute("title", atEnd ? "Back to the first categories" : "More categories");
+    }
   }
 
   function syncPills() {
@@ -328,11 +342,6 @@
     for (var b = 0; b < 8; b++) {
       bars += '<div class="h-2 w-0.5 rounded bg-sd-foreground opacity-20"></div>';
     }
-    var lock = p.premium
-      ? '<div class="text-[12px] leading-[normal] p-[1px] before:block before:h-3 before:w-3 absolute -translate-x-1/2 text-sd-brand-lc-gray -top-[3px] left-1/2">' +
-        window.icon("lock-keyhole") +
-        "</div>"
-      : "";
     var diffCls =
       p.difficulty === "Easy"
         ? "text-sd-easy"
@@ -368,7 +377,6 @@
       "</p></div>" +
       '<div><div class="relative flex gap-0.5 px-1 cursor-pointer">' +
       bars +
-      lock +
       "</div></div>" +
       '<div class="flex items-center"><button class="flex h-7 w-7 cursor-pointer items-center justify-center rounded hover:bg-sd-accent' +
       (starred ? " opacity-100 text-brand-orange" : " opacity-0 group-hover:opacity-100 text-sd-muted-foreground") +
@@ -412,10 +420,14 @@
     var solved = count(function (p) { return p.status === "solved"; });
     var host = UI.$("#gc-progress");
     if (host) {
+      host.setAttribute(
+        "aria-label",
+        solved + " of " + D.problems.length + " tasks solved"
+      );
       host.innerHTML =
         '<div class="flex items-center gap-1"><div class="relative flex h-4.5 w-4.5 items-center justify-center">' +
         UI.progressRing(solved, D.problems.length, 18) +
-        '</div><div class="text-sd-muted-foreground">' +
+        '</div><div class="gc-progress-label text-sd-muted-foreground">' +
         solved +
         "/" +
         D.problems.length +
@@ -425,13 +437,26 @@
 
   /* -------------------------------------------------------------- aside */
 
+  function dayCountdown() {
+    var now = new Date();
+    var end = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+    var total = Math.max(0, Math.floor((end - now) / 1000));
+    var pad = function (n) { return (n < 10 ? "0" : "") + n; };
+    return pad(Math.floor(total / 3600)) + ":" + pad(Math.floor((total % 3600) / 60)) + ":" + pad(total % 60);
+  }
+
+  function updateDayCountdown() {
+    var node = UI.$("#gc-day-left");
+    if (node) node.textContent = dayCountdown() + " left";
+  }
+
   function renderAside() {
     var host = UI.$("#gc-aside");
     if (!host) return;
-    var monthShort = new Date().toLocaleString(undefined, { month: "short" }).toUpperCase();
-    var day = new Date().getDate();
+    var now = new Date();
+    var monthShort = now.toLocaleString(undefined, { month: "short" }).toUpperCase();
+    var day = now.getDate();
     var activity = Progress && Progress.activity ? Progress.activity() : { streak: 0, daysThisWeek: 0, activeDays: {} };
-    var remaining = 18 + ":" + String(31 - (new Date().getMinutes() % 30)).padStart(2, "0") + ":07";
 
     host.innerHTML =
       '<div class="pt-0.5 md:top-3">' +
@@ -439,17 +464,11 @@
       '<div class="flex h-9 items-center py-[6px] pl-[15px] justify-between pr-3">' +
       '<div class="flex shrink-0 items-center">' +
       '<div class="text-sm lg:block text-label-2 dark:text-dark-label-2">Day ' + day + "</div>" +
-      '<div class="ml-[4px] text-[10px] tracking-tighter text-label-4 dark:text-dark-label-4">' + remaining + " left</div>" +
-      '<div class="inline-flex items-center rounded-sd-md border-transparent h-[18px] border-0 bg-sd-accent px-1.5 py-0 text-[11px] font-medium leading-4 tracking-[0.2px] text-sd-muted-foreground ml-1">UTC</div>' +
+      '<div class="ml-[4px] text-[10px] tracking-tighter text-label-4 dark:text-dark-label-4" id="gc-day-left">' + dayCountdown() + " left</div>" +
+      '<div class="inline-flex items-center rounded-sd-md border-transparent h-[18px] border-0 bg-sd-accent px-1.5 py-0 text-[11px] font-medium leading-4 tracking-[0.2px] text-sd-muted-foreground ml-1">Local</div>' +
       "</div>" +
       '<div class="flex max-w-[100px] items-center md:ml-[8px]">' +
-      '<button class="focus:outline-none text-label-2 dark:text-dark-label-2" aria-label="Prev">' +
-      window.icon("chevron-left") +
-      "</button>" +
-      '<span class="gc-monthbadge mx-1"><b>' + monthShort + "</b><i>" + day + "</i></span>" +
-      '<button class="focus:outline-none text-label-4 dark:text-dark-label-4" aria-label="Next" disabled>' +
-      window.icon("chevron-right") +
-      "</button>" +
+      '<span class="gc-monthbadge mx-1" aria-label="' + monthShort + " " + day + '"><b>' + monthShort + "</b><i>" + day + "</i></span>" +
       "</div></div>" +
       '<div class="mx-[10px] grid grid-cols-7 text-xs text-label-3 dark:text-dark-label-3">' +
       UI.renderCalendar(activity.activeDays) +
@@ -458,13 +477,13 @@
       '<div class="flex items-center justify-between px-3 pt-2 text-xs">' +
       '<span class="font-medium text-brand-orange">Daily challenge</span>' +
       '<span class="text-label-3 dark:text-dark-label-3">' + UI.esc(D.daily.date) + "</span></div>" +
-      '<a class="block px-3 pt-1 text-[14px] font-medium text-label-1 dark:text-dark-label-1 hover:underline" href="problem.html?p=' + D.daily.slug + '">' +
+      '<a class="block px-3 pt-1 text-[14px] font-medium text-label-1 dark:text-dark-label-1 hover:underline" href="problem.html?p=' + encodeURIComponent(D.daily.slug) + '">' +
       D.daily.n + ". " + UI.esc(D.daily.title) + "</a>" +
       '<div class="flex items-center gap-2 px-3 pb-2 pt-1.5 text-xs text-label-3 dark:text-dark-label-3">' +
       '<span class="text-sd-easy">' + D.daily.difficulty + "</span>" +
       '<span class="text-label-4 dark:text-dark-label-4">·</span>' +
       "<span>" + D.daily.acceptance.toFixed(1) + "% acceptance</span>" +
-      '<a class="ml-auto inline-flex items-center gap-1 text-[13px] font-medium text-brand-orange hover:underline" href="problem.html?p=' + D.daily.slug + '">Start' +
+      '<a class="ml-auto inline-flex items-center gap-1 text-[13px] font-medium text-brand-orange hover:underline" href="problem.html?p=' + encodeURIComponent(D.daily.slug) + '">Start' +
       window.icon("arrow-up-right-from-square") + "</a></div></div>" +
       '<div class="mx-4 flex items-center justify-between border-t border-sd-border py-2 text-xs text-label-3 dark:text-dark-label-3">' +
       '<span class="flex items-center gap-1"><span class="text-brand-orange">' + window.icon("fire") + "</span>" + (activity.streak ? activity.streak + "-day streak" : "No streak yet") + "</span>" +
@@ -475,42 +494,37 @@
       '<div class="bg-layer-1 dark:bg-dark-layer-1 shadow-down-01 dark:shadow-dark-down-01 rounded-lg px-4 pb-1 pt-2">' +
       '<div class="flex h-[36px] items-center justify-between">' +
       '<div class="text-sm font-medium text-label-2 dark:text-dark-label-2">Trending commands</div>' +
-      '<div class="flex items-center gap-1 text-label-2 dark:text-dark-label-2">' +
-      '<button class="focus:outline-none hover:text-label-1" aria-label="Previous">' + window.icon("chevron-left") + "</button>" +
-      '<button class="focus:outline-none text-label-4" aria-label="Next" disabled>' + window.icon("chevron-right") + "</button>" +
-      "</div></div>" +
+      "</div>" +
       '<div class="relative mb-2">' +
       '<span class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-label-3 dark:text-dark-label-3">' + window.icon("magnifying-glass") + "</span>" +
-      '<input class="h-8 w-full rounded-lg border-none bg-fill-3 dark:bg-dark-fill-3 pl-9 pr-3 text-sm text-label-1 dark:text-dark-label-1 placeholder:text-label-3 dark:placeholder:text-dark-label-3 outline-none" placeholder="Search a command..." aria-label="Search a command">' +
+      '<input class="h-8 w-full rounded-lg border-none bg-fill-3 dark:bg-dark-fill-3 pl-9 pr-3 text-sm text-label-1 dark:text-dark-label-1 placeholder:text-label-3 dark:placeholder:text-dark-label-3 outline-none" placeholder="Search a command..." aria-label="Search a command" id="gc-trending-search">' +
       "</div>" +
+      '<div id="gc-trending-list">' +
       D.trending
         .map(function (t, i) {
-          var tag = t.label.replace(/^git /, "").split(" ")[0];
+          var total = tagCount(t.tag);
           return (
-            '<a class="flex items-center gap-3 rounded px-1 py-[7px] text-sm text-label-1 dark:text-dark-label-1 hover:bg-fill-3 dark:hover:bg-dark-fill-3" href="index.html?tag=' +
-            encodeURIComponent(tag) +
+            '<a class="flex items-center gap-3 rounded px-1 py-[7px] text-sm text-label-1 dark:text-dark-label-1 hover:bg-fill-3 dark:hover:bg-dark-fill-3" data-trending-row data-label="' +
+            UI.esc((t.label + " " + t.tag).toLowerCase()) +
+            '" href="index.html?tag=' +
+            encodeURIComponent(t.tag) +
             '"><span class="w-3 shrink-0 text-right text-xs text-label-3 dark:text-dark-label-3">' +
             (i + 1) +
             '</span><span class="truncate font-menlo text-[13px]">' +
             UI.esc(t.label) +
             '</span><span class="ml-auto shrink-0 text-xs text-label-3 dark:text-dark-label-3">' +
-            UI.esc(t.value.replace(" attempts", "")) +
+            total +
+            (total === 1 ? " task" : " tasks") +
             "</span></a>"
           );
         })
         .join("") +
-      "</div></div>" +
+      '<div class="px-1 py-2 text-xs text-label-3 dark:text-dark-label-3" id="gc-trending-empty" style="display:none">No commands match.</div>' +
+      "</div></div></div>" +
 
       '<div class="mt-4 flex flex-col gap-1 px-1 text-xs text-label-3 dark:text-dark-label-3">' +
-      '<div class="flex flex-wrap items-center gap-x-2 gap-y-1">' +
-      '<a class="hover:text-label-1 dark:hover:text-dark-label-1" href="index.html?view=cli">Download App</a><span>|</span>' +
-      '<a class="hover:text-label-1 dark:hover:text-dark-label-1" href="index.html?view=support">Support</a><span>|</span>' +
-      '<a class="hover:text-label-1 dark:hover:text-dark-label-1" href="index.html?view=terms">Terms</a></div>' +
-      '<div class="flex flex-wrap items-center gap-x-2 gap-y-1">' +
-      '<a class="hover:text-label-1 dark:hover:text-dark-label-1" href="index.html?view=privacy">Privacy Policy</a><span>|</span>' +
-      '<a class="hover:text-label-1 dark:hover:text-dark-label-1" href="index.html?view=more">More</a></div>' +
+      "<div>Local practice sandbox · progress stays in this browser</div>" +
       '<div class="mt-1">Copyright © 2026 GitCode</div>' +
-      '<div class="mt-1 flex items-center gap-1"><span class="gc-flag"></span>India</div>' +
       "</div>";
   }
 
@@ -526,7 +540,7 @@
     var si = UI.$("#gc-status-icon");
     if (si) si.innerHTML = window.icon("filter");
     var dot = UI.$("#gc-status-dot");
-    if (dot) dot.hidden = false;
+    if (dot) dot.hidden = state.status === "all";
     var statusBtn = UI.$("#gc-status-button");
     if (statusBtn) statusBtn.setAttribute("title", "Filter: " + (statusLabels[state.status] || "All statuses"));
     var oi = UI.$("#gc-sort-icon");
@@ -540,8 +554,8 @@
     if (!host) return;
     host.hidden = !state.tag;
     host.innerHTML = state.tag
-      ? '<span class="hash">#</span>' + UI.esc(state.tag) +
-        '<button type="button" data-clear-tag aria-label="Remove tag filter">' +
+      ? "<span>" + UI.esc(UI.tagLabel(state.tag)) + "</span>" +
+        '<button type="button" data-clear-tag aria-label="Remove ' + UI.esc(UI.tagLabel(state.tag)) + ' filter">' +
         window.icon("xmark") + "</button>"
       : "";
   }
@@ -561,7 +575,6 @@
     else p.delete("q");
     p.delete("page");
     p.delete("view");
-    p.delete("premium");
     p.delete("streak");
     history.replaceState({}, "", url);
   }
@@ -615,10 +628,17 @@
 
     var pillsNav = UI.$("#gc-pills-nav");
     if (pillsNav) {
-      pillsNav.innerHTML = window.icon("angles-right");
       pillsNav.addEventListener("click", function () {
         var host = UI.$("#gc-pills");
-        if (host) host.scrollBy({ left: 240, behavior: "smooth" });
+        if (!host) return;
+        var atEnd = host.scrollLeft + host.clientWidth >= host.scrollWidth - 2;
+        host.scrollTo({ left: atEnd ? 0 : host.scrollLeft + 240, behavior: "smooth" });
+      });
+      pillsNav.addEventListener("keydown", function (e) {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          pillsNav.click();
+        }
       });
     }
 
@@ -631,14 +651,9 @@
     var keywords = UI.$("#gc-keywords");
     if (keywords) {
       keywords.addEventListener("click", function (e) {
-        var expand = e.target.closest("[data-expand-tags]");
-        if (!expand) return;
-        var extra = UI.$$(".gc-keyword-extra", keywords);
-        var show = extra.length && extra[0].hidden;
-        extra.forEach(function (el) { el.hidden = !show; });
-        expand.innerHTML = show
-          ? 'Collapse<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="currentColor" class="ml-1 h-3.5 w-3.5"><path fill-rule="evenodd" d="M4.929 7.913l7.078 7.057 7.064-7.057a1 1 0 111.414 1.414l-7.77 7.764a1 1 0 01-1.415 0L3.515 9.328a1 1 0 011.414-1.414z" clip-rule="evenodd"></path></svg>'
-          : 'Expand<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="currentColor" class="ml-1 h-3.5 w-3.5"><path fill-rule="evenodd" d="M4.929 7.913l7.078 7.057 7.064-7.057a1 1 0 111.414 1.414l-7.77 7.764a1 1 0 01-1.415 0L3.515 9.328a1 1 0 011.414-1.414z" clip-rule="evenodd"></path></svg>';
+        if (!e.target.closest("[data-expand-tags]")) return;
+        keywordsExpanded = !keywordsExpanded;
+        renderKeywords();
       });
     }
 
@@ -687,6 +702,21 @@
         star.click();
       }
     });
+
+    var trendSearch = UI.$("#gc-trending-search");
+    if (trendSearch) {
+      trendSearch.addEventListener("input", function () {
+        var q = trendSearch.value.trim().toLowerCase();
+        var shown = 0;
+        UI.$$("[data-trending-row]").forEach(function (row) {
+          var on = !q || row.getAttribute("data-label").indexOf(q) !== -1;
+          row.style.display = on ? "" : "none";
+          if (on) shown++;
+        });
+        var empty = UI.$("#gc-trending-empty");
+        if (empty) empty.style.display = shown ? "none" : "";
+      });
+    }
 
     var shuffle = UI.$("#gc-shuffle");
     if (shuffle) {
@@ -791,7 +821,7 @@
     bind();
     apply();
     syncPillsNav();
-    UI.initEdgeFades("#gc-tracks, #gc-keywords");
+    UI.initEdgeFades("#gc-tracks");
     UI.initTheme();
     UI.initMenus();
     UI.initGlobalKeys();
@@ -800,12 +830,9 @@
       item.setAttribute("aria-checked", item.getAttribute("aria-checked") || "false");
     });
 
-    if (params.get("view") && params.get("view") !== "bookmarks") {
-      UI.toast("This view is a design preview. The dashboard is the live surface.", "circle-question");
-    }
-    if (params.get("premium")) {
-      UI.toast("Premium is a visual state in this build.", "trophy");
-    }
+    updateDayCountdown();
+    setInterval(updateDayCountdown, 1000);
+
     if (params.get("streak")) {
       UI.toast("No streak yet — solve a task to start one.", "fire");
     }

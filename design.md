@@ -45,14 +45,14 @@ Rules that follow from this:
 
 1. **Density over decoration.** This is a practice tool, not a landing page. Information
    per pixel is high; whitespace is structural, not ornamental.
-2. **One accent, many surfaces.** Orange is reserved for brand, premium, and the single
-   primary action in a view. Everything else is monochrome.
+2. **One accent, many surfaces.** Orange is reserved for brand and the single primary
+   action in a view. Everything else is monochrome.
 3. **Colour carries meaning, never mood.** Teal = easy/success, yellow = medium/warning,
    red = hard/danger, blue = informational/link. Never use these decoratively.
 4. **Monospace means "the machine said this".** Repo paths, commands, hashes, diffs, and
    terminal output are monospace. Prose is never monospace.
-5. **The state is the interface.** Solved, attempted, premium, daily — these are glyphs and
-   tones, not sentences.
+5. **The state is the interface.** Solved, attempted, daily — these are glyphs and tones,
+   not sentences.
 6. **Dark first.** The canonical look is dark (LeetCode's own default). Light mode is a
    full peer, not an afterthought, but every new component is designed in dark first.
 
@@ -109,7 +109,7 @@ on it at `#262626` / `#ffffff`. The dashboard canvas is `#1a1a1a` / `#ffffff`.
 | Easy / success | `--difficulty-easy` · `--sd-easy` | `#46c6c2` · `hsl(180 74% 42%)` | Teal, not green |
 | Medium / warning | `--difficulty-medium` · `--sd-medium` | `#fac31d` · `hsl(43 100% 50%)` | Yellow |
 | Hard / danger | `--difficulty-hard` · `--sd-hard` | `#f8615c` · `hsl(0 91% 59%)` | Coral red |
-| Brand / premium | `--brand-orange` | `#ffa116` | The only saturated brand colour |
+| Brand | `--brand-orange` | `#ffa116` | The only saturated brand colour |
 | Info / link | `--sd-info` · `--sd-blue-500` | `hsl(211 100% 50%)` | Links, selection |
 | Success state | `--sd-success` | green-600 | Checkmarks, accepted |
 | Danger state | `--sd-danger` | red-600 | Destructive actions |
@@ -141,9 +141,8 @@ runtime CSS variable. Do not write `var(--dark-layer-1)`; use the utility.
 
 ### 3.5 Gradients
 
-Only two are allowed, both already defined by LeetCode's CSS: the premium text gradient
-(`.premium-text-yellow-gradinet`) and the progress-ring stroke gradient
-(`#007AFF → #73B6FF`). Do not invent gradient buttons.
+Only one is allowed: the progress-ring stroke gradient (`#007AFF → #73B6FF`). Do not
+invent gradient buttons or gradient text.
 
 One exception exists in `app.css`: the edge-fade mask (§8.14) uses a black-to-transparent
 `linear-gradient` as a `mask-image`. It paints no colour, so it is not a visual gradient.
@@ -250,7 +249,7 @@ At 1440 px the three-column dashboard resolves to content `x=27` (inner `x=51`) 
 
 - Base radius **8 px** (`--sd-radius`). Cards, rows, panes, menus.
 - Small radius **5 px** (`calc(var(--sd-radius) - 3px)`) for inline code and tiny controls.
-- Fully rounded (`9999px`) for pills, chips, badges, avatars, icon buttons.
+- Fully rounded (`9999px`) for pills, chips, badges, icon buttons.
 - Borders are **1 px** and always `hsl(var(--sd-border))`. No 2 px borders except focus.
 - Shadows are LeetCode's layers, used sparingly: menus/popovers get `shadow-level2`,
   floating cards `shadow-dark-level2`. Rows and panes get no shadow.
@@ -314,7 +313,7 @@ nav placement.
 - **Question page:** the lockup is present at the start of the 48 px IDE bar, followed by
   the "All tasks" back control. This mirrors LeetCode's logo → Problem List order.
 
-Premium is never a logo variant — it is the orange "Premium" pill in the nav.
+The mark is never recoloured, rotated, or replaced by a task icon.
 
 ---
 
@@ -337,7 +336,7 @@ Gylph vocabulary:
 | Solved | `square-check` in `--sd-easy` |
 | Attempted | `clock-rotate-left` in `--sd-medium` |
 | Todo | empty 16 px ring, `hsl(var(--sd-border))` |
-| Premium / locked | `lock-keyhole` |
+| Hidden check | `lock-keyhole` |
 | Daily | `calendar` in `--sd-blue-500` |
 | Bookmark | `star` |
 | Run | `play` · Submit: `cloud-arrow-up` |
@@ -403,7 +402,8 @@ Pills sit in a horizontally scrolling strip with a **16 px** gap. An `angles-rig
 ```
 
 Variants: difficulty (`text-difficulty-*`), topic (`text-text-secondary`, or `bg-sd-accent`),
-premium (`premium-text-yellow-gradinet` + lock), status (`bg-sd-easy/15 text-sd-easy`).
+status (`bg-sd-easy/15 text-sd-easy`). Tags are stored lowercase for filtering and displayed
+title-case (`reflog` → `Reflog`, `cherry-pick` → `Cherry-pick`).
 
 ### 8.4 Status glyph
 
@@ -415,7 +415,7 @@ never a checkbox:
 | solved | `square-check`, `--sd-easy` |
 | attempted | `clock-rotate-left`, `--sd-medium` |
 | todo | `<span class="gc-status-ring">` — 14 px circle, 1.5 px `hsl(var(--sd-border))` |
-| locked | `lock-keyhole`, `hsl(var(--sd-muted-foreground))` |
+| daily | `calendar`, `--sd-blue-500`, in the status slot |
 
 ### 8.5 Problem row *(copied structure, `.gc-row` modifiers)*
 
@@ -424,15 +424,15 @@ never a checkbox:
 
 ```
 [status 16] │ 18px gap │ [title flex] [accept 70 centered] [difficulty auto, mx 16]
-            [premium meter 23] [bookmark 28]
+            [difficulty meter 23] [bookmark 28]
 ```
 
 - Title is **14/20, weight 500**, and includes the number: `1. Recover a Lost Commit`.
 - Acceptance is **70 px**, centered, 14 px, `#a8a8a8`; hidden below 720 px.
 - Difficulty is 14 px in the exact rubric colour (`#46c6c2`, `#fac31d`, `#f8615c`), with
   16 px margins.
-- The premium meter is eight 2×8 px bars at 20% opacity, with a 12 px lock when the task is
-  premium. It is hidden below 720 px in the mobile layout.
+- The difficulty meter is eight 2×8 px bars at 20% opacity. It is hidden below 720 px in the
+  mobile layout. The daily task takes the status slot with a blue calendar glyph.
 - The bookmark is a 28 px hover-only control (`opacity: 0` until row hover/focus); it is
   hidden below 720 px.
 - Hover is a 300 ms background transition; inner controls stop propagation.
@@ -604,18 +604,16 @@ and a footer.
   26 px, today a 28 px green circle, completed days a 4 px red dot. Below it, a 77 px
   orange-tinted daily banner with the challenge title, difficulty, acceptance and a Start
   link. Footer: streak and week count.
-- **Trending card:** 36 px header with carousel arrows, a 32 px search-looking field, and
-  34 px rows with rank, mono command, and attempts.
-- **Footer:** three 12 px rows of links and copyright, exactly like the reference's
-  Download App / Support / Terms block.
+- **Trending card:** 36 px header with a live filter field (32 px) and 34 px rows with rank,
+  mono command, and the number of tasks carrying that tag.
+- **Footer:** a 12 px local-storage note and a copyright line. There is no row of dead links.
 
 ### 8.20 Mobile header *(new)*
 
-Below 768 px the 50 px bar shows logo + wordmark on the left, then a search icon and a
-three-line hamburger. The hamburger animates to an X over 200 ms and reveals a disclosure
-panel (`hidden` when closed) with the four primary links, Bookmarks, Submissions, Premium,
-and the theme row. The desktop search collapses to a 32 px icon between 768–1023 px and
-expands to 240 px on focus with a 300 ms width transition.
+Below 768 px the 50 px bar shows logo + wordmark on the left, then a bookmark shortcut and
+the theme toggle. There is no auth or menu affordance to fake. The desktop search collapses
+to a 32 px icon between 768–1023 px and expands to 240 px on focus with a 300 ms width
+transition.
 
 ## 9. Motion
 
@@ -675,11 +673,11 @@ reference's Tailwind steps (`xl`, `lg`, `md`) and the content's own collapse poi
 | --- | --- | --- |
 | ≥ 1280 | content 1100 + rail 270, `x=27 / 51`, `x=1154` | 50/50 panes, splitters live |
 | 1024–1279 | rail removed; content centred, width ≤1100, `0 16px` padding | unchanged |
-| ≤ 1023 | nav wordmark hides, search collapses to a 32 px icon (expands on focus), streak and Premium hide | prev/next hide; centre actions leave absolute centring |
-| 768–1023 | desktop nav remains (icon logo + 4 links + search icon + theme + avatar) | unchanged |
-| ≤ 767 | mobile header: logo + wordmark, search, hamburger; full menu drops below the bar; theme moves into the menu | unchanged |
+| ≤ 1023 | nav wordmark hides, search collapses to a 32 px icon (expands on focus), streak hides | prev/next hide; centre actions leave absolute centring |
+| 768–1023 | desktop nav remains (icon logo + 3 links + search icon + theme) | unchanged |
+| ≤ 767 | mobile header: logo + wordmark, bookmark shortcut, theme toggle; identity links hidden | unchanged |
 | ≤ 900 | content `x=16`; row topic tag hides | panes stack — description 46 vh, terminal fills the rest; splitters hide |
-| ≤ 720 | acceptance and bookmark hide; premium meter stays; toolbar stays on one row with a flexible search; progress text drops to 12 px | title stays 24/32; pane padding 16; terminal padding 12 |
+| ≤ 720 | acceptance and bookmark hide; difficulty meter stays; toolbar stays on one row with a flexible search; progress text drops to 12 px | title stays 24/32; pane padding 16; terminal padding 12 |
 | ≤ 560 | — | IDE bar compacts: back label, divider, logo wordmark hide |
 | ≤ 480 | toolbar controls tighten (30 px buttons, 14 px ring, 11 px progress) | — |
 
@@ -708,7 +706,7 @@ assets/
   fonts/
     Typo_Round_Regular.subset.woff2
     Typo_Round_Regular.woff
-    Typo_Round_Bold.woff   rounded display face used by Premium/promo labels
+    Typo_Round_Bold.woff   rounded display face used by the track cards
   js/
     icons.js               generated icon set + icon()
     data.js                problem dataset, categories, tracks, stats
@@ -779,7 +777,7 @@ border-radius: 5px;                    /* panes, tabs, inline code */
 color: #46c6c2;                        /* easy */
 color: #fac31d;                        /* medium */
 color: #f8615c;                        /* hard */
-color: #ffa116;                        /* brand / premium */
+color: #ffa116;                        /* brand */
 color: #2db55d;                        /* today / online */
 
 /* copied markup — prefer the vendor utility */

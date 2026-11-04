@@ -98,12 +98,15 @@
   UI.renderNav = function (active) {
     var host = $("#gc-nav");
     if (!host) return;
+    var daily = window.GCData && window.GCData.daily;
     var links = [
       { id: "practice", label: "Problems", href: "index.html" },
-      { id: "contest", label: "Contest", href: "index.html?view=contest" },
-      { id: "discuss", label: "Discuss", href: "index.html?view=discuss" },
-      { id: "interview", label: "Interview", href: "index.html?view=interview", caret: true },
-      { id: "store", label: "Store", href: "index.html?premium=1", caret: true, brand: true }
+      {
+        id: "daily",
+        label: "Daily challenge",
+        href: daily ? "problem.html?p=" + encodeURIComponent(daily.slug) : "index.html"
+      },
+      { id: "bookmarked", label: "Bookmarked", href: "index.html?status=bookmarked" }
     ];
 
     var linkHtml = links
@@ -162,16 +165,11 @@
       "</span></div>" +
       '<input class="block h-full w-full rounded-full border-none py-1.5 pr-9 text-sm outline-none pl-9 bg-sd-accent text-sd-muted-foreground" type="search" placeholder="Search" aria-label="Search tasks" data-global-search autocomplete="off">' +
       "</div></div></div>" +
-      '<a class="group relative z-base-1 flex h-full w-full cursor-pointer items-center justify-center rounded p-1 transition-all duration-200 [@media(min-width:1180px)]:opacity-0 [@media(min-width:1180px)]:delay-100 hover:bg-fill-3 dark:hover:bg-dark-fill-3" aria-label="search" data-focus-search>' +
+      '<a class="group relative z-base-1 flex h-full w-full cursor-pointer items-center justify-center rounded p-1 transition-all duration-200 [@media(min-width:1180px)]:opacity-0 [@media(min-width:1180px)]:delay-100 hover:bg-fill-3 dark:hover:bg-dark-fill-3" role="button" tabindex="0" aria-label="Focus search" data-focus-search>' +
       '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" width="1em" height="1em" fill="none" class="h-4 w-4 transition-colors hover:text-text-primary dark:hover:text-text-primary text-text-secondary dark:text-text-secondary"><path d="M14.1057 14.2L17 17M16.0667 9.53333C16.0667 13.1416 13.1416 16.0667 9.53333 16.0667C5.92507 16.0667 3 13.1416 3 9.53333C3 5.92507 5.92507 3 9.53333 3C13.1416 3 16.0667 5.92507 16.0667 9.53333Z" stroke="currentColor" stroke-width="1.66667" stroke-linecap="round"></path></svg></a>' +
       "</div></div>" +
       '<div class="flex items-center whitespace-nowrap">' +
-      '<a class="text-text-secondary dark:text-text-secondary hover:text-text-primary dark:hover:text-text-primary hidden lg:flex" href="index.html?premium=1">Register</a>' +
-      '<span class="mx-3 hidden lg:inline-block text-text-secondary dark:text-text-secondary">or</span>' +
-      '<button type="button" class="text-text-secondary dark:text-text-secondary hover:text-text-primary dark:hover:text-text-primary" id="navbar_sign_in_button">Log in</button>' +
-      "</div>" +
-      '<div class="ml-4 hidden lc-lg:inline-block">' +
-      '<a href="index.html?premium=1"><span class="display-none h-8 w-[84px] cursor-pointer rounded-[8px] bg-[#ffa1161f] text-center leading-8 transition-colors hover:bg-[#ffa11633] lg:inline-block !inline-block font-typo"><span class="text-brand-orange">Premium</span></span></a>' +
+      '<button type="button" class="inline-flex h-8 w-8 items-center justify-center rounded text-text-secondary transition-colors hover:bg-fill-3 hover:text-text-primary dark:text-text-secondary dark:hover:bg-dark-fill-3 dark:hover:text-text-primary" data-theme-toggle aria-label="Toggle theme"></button>' +
       "</div>" +
       "</div></div></div>" +
       '<div class="flex h-[50px] w-full items-center justify-between pl-3 pr-[5px] md:hidden">' +
@@ -183,7 +181,9 @@
       '<span class="text-[18px] font-semibold leading-[22px] tracking-[-0.02em] text-text-primary dark:text-text-primary">GitCode</span>' +
       "</span></a>" +
       '<div class="flex items-center gap-1">' +
-      '<a class="inline-flex h-8 w-8 items-center justify-center rounded text-text-secondary hover:bg-fill-3 dark:hover:bg-dark-fill-3" href="index.html?premium=1"><span class="text-xs font-medium text-brand-orange">Premium</span></a>' +
+      '<a class="inline-flex h-8 w-8 items-center justify-center rounded text-text-secondary hover:bg-fill-3 dark:hover:bg-dark-fill-3" href="index.html?status=bookmarked" aria-label="Bookmarked tasks" title="Bookmarked tasks">' +
+      window.icon("star") +
+      "</a>" +
       '<button class="inline-flex h-8 w-8 items-center justify-center rounded text-text-secondary hover:bg-fill-3 dark:hover:bg-dark-fill-3" data-theme-toggle aria-label="Toggle theme"></button>' +
       "</div></div>" +
       "</nav>";
@@ -208,7 +208,7 @@
       });
     }
     $$("[data-focus-search]", host).forEach(function (btn) {
-      btn.addEventListener("click", function () {
+      function focusSearch() {
         var inputs = $$("[data-global-search]").filter(function (el) {
           return el.getClientRects().length > 0;
         });
@@ -216,6 +216,13 @@
         if (input) {
           input.focus();
           input.select && input.select();
+        }
+      }
+      btn.addEventListener("click", focusSearch);
+      btn.addEventListener("keydown", function (e) {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          focusSearch();
         }
       });
     });
@@ -529,17 +536,24 @@
     );
   };
 
-  UI.statusGlyph = function (status, premium) {
+  UI.statusGlyph = function (status) {
     if (status === "solved") {
       return '<span class="gc-status gc-status--solved" title="Solved">' + window.icon("square-check") + "</span>";
     }
     if (status === "attempted") {
       return '<span class="gc-status gc-status--attempted" title="Attempted">' + window.icon("clock-rotate-left") + "</span>";
     }
-    if (premium) {
-      return '<span class="gc-status gc-status--locked" title="Premium">' + window.icon("lock-keyhole") + "</span>";
-    }
     return '<span class="gc-status"><span class="gc-status-ring"></span></span>';
+  };
+
+  // Tags are stored lowercase because they are also filter keys. Display them
+  // as title-case labels ("reflog" -> "Reflog", "cherry-pick" -> "Cherry-pick")
+  // while leaving acronyms such as HEAD untouched.
+  UI.tagLabel = function (tag) {
+    var value = String(tag == null ? "" : tag);
+    if (!value) return "";
+    if (value === value.toUpperCase()) return value;
+    return value.charAt(0).toUpperCase() + value.slice(1);
   };
 
   UI.progressRing = function (done, total, size) {
@@ -562,13 +576,9 @@
   UI.tagChips = function (tags) {
     return (tags || [])
       .map(function (t) {
-        return '<a class="gc-chip" href="index.html?tag=' + encodeURIComponent(t) + '">#' + esc(t) + "</a>";
+        return '<a class="gc-chip" href="index.html?tag=' + encodeURIComponent(t) + '">' + esc(UI.tagLabel(t)) + "</a>";
       })
       .join("");
-  };
-
-  UI.attempts = function (p) {
-    return ((p.n * 431 + 1200) / 1000).toFixed(1) + "k";
   };
 
   /* ---------------------------------------------------------- statement */
@@ -662,7 +672,7 @@
           '<a class="gc-related__row" href="problem.html?p=' +
           encodeURIComponent(x.slug) +
           '">' +
-          UI.statusGlyph(x.status, x.premium) +
+          UI.statusGlyph(x.status) +
           "<span>" +
           x.n +
           ". " +
@@ -701,9 +711,6 @@
       '<div class="gc-qmeta__cell"><span class="gc-qmeta__label">Acceptance</span><span class="gc-qmeta__value">' +
       p.acceptance.toFixed(1) +
       "%</span></div>" +
-      '<div class="gc-qmeta__cell"><span class="gc-qmeta__label">Attempts</span><span class="gc-qmeta__value">' +
-      UI.attempts(p) +
-      "</span></div>" +
       '<div class="gc-qmeta__cell"><span class="gc-qmeta__label">Category</span><span class="gc-qmeta__value" style="font-size:14px;font-weight:500">' +
       esc(p.category.charAt(0).toUpperCase() + p.category.slice(1)) +
       "</span></div>" +
@@ -832,13 +839,15 @@
     for (var d = 1; d <= days; d++) {
       if (d === today) {
         out +=
-          '<span class="group flex h-8 w-8 cursor-pointer items-center justify-center" aria-current="date"><span class="h-7 w-7 bg-green-s dark:bg-dark-green-s text-white flex items-center justify-center rounded-full">' +
+          '<span class="group flex h-8 w-8 items-center justify-center" aria-current="date"><span class="h-7 w-7 bg-green-s dark:bg-dark-green-s text-white flex items-center justify-center rounded-full">' +
           d +
           "</span></span>";
       } else {
         var done = !!(activeDays && activeDays[key(d)]);
         out +=
-          '<span class="hover:text-label-3 dark:hover:text-dark-label-3 group relative flex h-8 w-8 cursor-pointer items-center justify-center rounded-full hover:bg-fill-3 dark:hover:bg-dark-fill-3">' +
+          '<span class="group relative flex h-8 w-8 items-center justify-center rounded-full"' +
+          (done ? ' title="Practised this day"' : "") +
+          ">" +
           d +
           (done ? '<span class="absolute h-1 w-1 rounded-full bottom-[3px] bg-red-s dark:bg-dark-red-s"></span>' : "") +
           "</span>";

@@ -609,10 +609,6 @@ a.gc-chip:hover {
 .gc-chip--hard {
   color: var(--gc-diff-hard);
 }
-.gc-chip--premium {
-  color: var(--gc-brand);
-  background: rgb(255 161 22 / 0.12);
-}
 .gc-chip--mono {
   font-family: var(--gc-font-mono);
   font-size: 11px;
@@ -647,10 +643,6 @@ a.gc-chip:hover {
 }
 .gc-status--attempted {
   color: var(--gc-diff-medium);
-}
-.gc-status--locked {
-  color: hsl(var(--sd-muted-foreground));
-  opacity: 0.7;
 }
 .gc-status-ring {
   width: 13px;
@@ -938,6 +930,54 @@ a.gc-chip:hover {
 .gc-filterchip button svg {
   width: 11px;
   height: 11px;
+}
+.gc-filterchip > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Dashboard toolbar: the search field keeps its 200px desktop width, then
+   shrinks on narrow screens so the sort/filter controls and the progress ring
+   stay on one line. */
+.gc-dashtool__controls {
+  min-width: 0;
+}
+.gc-dashtool__search,
+.gc-dashtool__meta {
+  flex: none;
+}
+
+@media (max-width: 767px) {
+  .gc-dashtool {
+    gap: 8px;
+  }
+  .gc-dashtool__controls {
+    flex: 1 1 auto;
+    min-width: 0;
+    gap: 6px;
+  }
+  .gc-dashtool__search {
+    flex: 1 1 auto;
+    min-width: 96px;
+  }
+  .gc-dashtool__search #gc-search {
+    width: 100%;
+  }
+  .gc-dashtool__meta {
+    gap: 4px;
+  }
+  .gc-dashtool__meta .mr-2 {
+    margin-right: 0;
+  }
+  .gc-progress-label {
+    display: none;
+  }
+  .gc-filterchip {
+    max-width: 118px;
+    padding-left: 10px;
+    overflow: hidden;
+  }
 }
 
 .gc-btn-round {
@@ -3195,24 +3235,6 @@ body,
   height: 16px;
 }
 
-.gc-premiumbtn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 84px;
-  height: 32px;
-  border-radius: 8px;
-  background: rgba(255, 161, 22, 0.12);
-  color: #ffa116;
-  font-family: TypoRound, "Arial Rounded MT Bold", var(--gc-font-sans);
-  font-size: 14px;
-  text-decoration: none;
-  transition: background-color 120ms ease-out;
-}
-.gc-premiumbtn:hover {
-  background: rgba(255, 161, 22, 0.2);
-}
-
 .gc-avatar {
   display: inline-flex;
   align-items: center;
@@ -3856,18 +3878,6 @@ html.light .gc-row__meter .gc-row__lock {
 }
 .gc-row__diff--hard {
   color: #f8615c;
-}
-.gc-row__premium {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 20px;
-  flex: none;
-  color: #8a8a8a;
-}
-.gc-row__premium svg {
-  width: 14px;
-  height: 14px;
 }
 .gc-row__star {
   display: flex;
@@ -4691,8 +4701,7 @@ html.light .gc-terminal {
   .gc-navsearch:focus-within input::placeholder {
     color: var(--gc-label-2);
   }
-  .gc-streak,
-  .gc-premiumbtn {
+  .gc-streak {
     display: none;
   }
   .gc-searchkbd {

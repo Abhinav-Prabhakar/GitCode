@@ -65,7 +65,7 @@
 
                 <div class="mb-4 mt-8 flex flex-col gap-8 overflow-hidden border-b border-sd-border pb-4">
                   <div class="relative flex">
-                    <div class="relative my-[-10px] ml-[-10px] flex overflow-hidden flex-nowrap" id="gc-keywords"></div>
+                    <div class="relative my-[-10px] ml-[-10px] flex flex-wrap items-center" id="gc-keywords"></div>
                   </div>
                   <div class="relative flex">
                     <div class="relative flex select-none items-center gap-4 overflow-x-auto overflow-y-hidden scrollbar-hide" id="gc-pills" role="tablist" aria-label="Task categories"></div>
@@ -77,21 +77,21 @@
                 </div>
 
                 <div class="mt-4 flex flex-col items-center gap-4">
-                  <div class="flex w-full justify-between">
-                    <div class="flex gap-2">
-                      <div class="relative">
+                  <div class="gc-dashtool flex w-full justify-between">
+                    <div class="gc-dashtool__controls flex gap-2">
+                      <div class="gc-dashtool__search relative">
                         <input class="flex w-full border border-sd-input px-3 text-sd-foreground transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-sd-muted-foreground focus-visible:outline-none focus-visible:ring-sd-ring disabled:cursor-not-allowed disabled:opacity-50 h-8 rounded-full border-none bg-sd-accent py-1.5 pl-[34px] pr-3 text-sm focus-visible:ring-0 w-[200px]"
                                type="search" id="gc-search" data-search data-global-search
                                placeholder="Search questions" aria-label="Search tasks" autocomplete="off">
-                        <div class="text-[14px] leading-[normal] p-[1px] before:block before:h-3.5 before:w-3.5 absolute text-sd-muted-foreground left-3 top-2">
-                          <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" height="1em" width="1em" class="svg-inline--fa absolute h-[1em] -translate-x-1/2 -translate-y-1/2 left-1/2 top-1/2"><path fill="currentColor" d="M368 208A160 160 0 1 0 48 208a160 160 0 1 0 320 0zM337.1 371.1C301.7 399.2 256.8 416 208 416C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208c0 48.8-16.8 93.7-44.9 129.1L505 471c9.4 9.4 9.4 24.6 0 33.9s-24.6 9.4-33.9 0L337.1 371.1z"></path></svg>
+                        <div class="pointer-events-none absolute left-3 top-1/2 flex h-3.5 w-3.5 -translate-y-1/2 items-center justify-center text-sd-muted-foreground" aria-hidden="true">
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" height="1em" width="1em" class="h-3.5 w-3.5"><path fill="currentColor" d="M368 208A160 160 0 1 0 48 208a160 160 0 1 0 320 0zM337.1 371.1C301.7 399.2 256.8 416 208 416C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208c0 48.8-16.8 93.7-44.9 129.1L505 471c9.4 9.4 9.4 24.6 0 33.9s-24.6 9.4-33.9 0L337.1 371.1z"></path></svg>
                         </div>
                       </div>
 
                       <div class="gc-menu-anchor">
                         <button class="relative inline-flex items-center justify-center font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-sd-ring disabled:pointer-events-none disabled:opacity-50 text-sd-foreground hover:bg-sd-accent hover:text-sd-accent-foreground text-xs rounded-full h-8 p-2"
                                 data-menu-button aria-label="Sort tasks" title="Sort">
-                          <div class="relative text-[14px] leading-[normal] p-[1px] before:block before:h-3.5 before:w-3.5 text-sd-muted-foreground" id="gc-sort-icon"></div>
+                          <div class="flex h-3.5 w-3.5 items-center justify-center text-sd-muted-foreground" id="gc-sort-icon"></div>
                         </button>
                         <div class="gc-menu" role="menu" hidden>
                           <div class="gc-menu__label">Sort by</div>
@@ -105,7 +105,8 @@
                       <div class="gc-menu-anchor">
                         <button class="relative inline-flex items-center justify-center font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-sd-ring disabled:pointer-events-none disabled:opacity-50 text-sd-foreground hover:bg-sd-accent hover:text-sd-accent-foreground text-xs rounded-full h-8 p-2"
                                 data-menu-button id="gc-status-button" aria-label="Filter tasks" title="Filter">
-                          <div class="relative text-[14px] leading-[normal] p-[1px] before:block before:h-3.5 before:w-3.5 text-sd-muted-foreground" id="gc-status-icon"></div>
+                          <div class="flex h-3.5 w-3.5 items-center justify-center text-sd-muted-foreground" id="gc-status-icon"></div>
+                          <span class="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-sd-blue-500" id="gc-status-dot" hidden></span>
                         </button>
                         <div class="gc-menu" role="menu" hidden>
                           <div class="gc-menu__label">Status</div>
@@ -120,7 +121,7 @@
                       <div class="gc-filterchip" id="gc-tag-filter" hidden></div>
                     </div>
 
-                    <div class="relative flex items-center gap-2">
+                    <div class="gc-dashtool__meta relative flex items-center gap-2">
                       <div class="mr-2 flex flex-1 justify-end">
                         <a class="flex items-center gap-1 text-sd-muted-foreground hover:text-sd-foreground" href="index.html?status=solved" id="gc-progress"></a>
                       </div>

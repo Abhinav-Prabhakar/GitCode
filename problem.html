@@ -97,28 +97,21 @@
             <span class="relative text-[16px] leading-[normal]" data-icon="objects-column"></span>
           </a>
           <div class="gc-menu-anchor">
-            <button type="button" id="gc-more" class="flex cursor-pointer rounded-lg p-2 text-[16px] text-sd-muted-foreground hover:bg-fill-tertiary hover:text-sd-foreground dark:hover:bg-fill-tertiary" aria-label="Task options" aria-haspopup="menu"></button>
+            <button type="button" id="gc-more" data-menu-button class="flex cursor-pointer rounded-lg p-2 text-[16px] text-sd-muted-foreground hover:bg-fill-tertiary hover:text-sd-foreground dark:hover:bg-fill-tertiary" aria-label="Task options" aria-haspopup="menu"></button>
             <div class="gc-menu gc-menu--right" role="menu" hidden>
               <button class="gc-menu__item" role="menuitem" data-reset>Reset workspace</button>
               <button class="gc-menu__item" role="menuitem" data-goto-solutions>All solutions</button>
               <button class="gc-menu__item" role="menuitem" data-copy-link>Copy link</button>
               <button class="gc-menu__item" role="menuitem" data-theme-toggle></button>
               <div class="gc-menu__sep"></div>
-              <div class="gc-menu__item" role="menuitem" aria-disabled="true">
-                Report an issue<span class="gc-menu__right">demo</span></div>
+              <a class="gc-menu__item" role="menuitem" href="https://github.com/Abhinav-Prabhakar/GitCode/issues/new" target="_blank" rel="noopener">
+                Report an issue<span class="gc-menu__right">GitHub</span></a>
             </div>
           </div>
-          <button type="button" id="gc-timer" class="gc-timer flex h-8 flex-none cursor-pointer items-center justify-center rounded-sd bg-fill-tertiary text-sd-blue-400 hover:bg-fill-quaternary dark:hover:bg-fill-quaternary" style="width:33px" aria-label="Lab timer" title="Lab timer 00:00:00">
+          <button type="button" id="gc-timer" class="gc-timer flex h-8 flex-none cursor-pointer items-center justify-center gap-1 rounded-sd bg-fill-tertiary px-2 font-mono text-xs tabular-nums text-sd-blue-400 hover:bg-fill-quaternary dark:hover:bg-fill-quaternary" aria-label="Lab timer" title="Lab timer 00:00">
             <span id="gc-timer-icon" class="relative text-[16px] leading-[normal]"></span>
+            <span id="gc-timer-label">00:00</span>
           </button>
-          <div class="gc-nav-auth flex items-center whitespace-nowrap">
-            <a class="hidden text-text-secondary hover:text-text-primary dark:text-text-secondary dark:hover:text-text-primary lg:flex" href="index.html?premium=1">Register</a>
-            <span class="mx-3 hidden text-text-secondary dark:text-text-secondary lg:inline-block">or</span>
-            <button type="button" class="text-text-secondary hover:text-text-primary dark:text-text-secondary dark:hover:text-text-primary">Log in</button>
-          </div>
-          <div class="gc-nav-premium hidden lc-lg:inline-block">
-            <a href="index.html?premium=1"><span class="h-8 w-[84px] cursor-pointer rounded-[8px] bg-[#ffa1161f] text-center leading-8 transition-colors hover:bg-[#ffa11633] !inline-block font-typo"><span class="text-brand-orange">Premium</span></span></a>
-          </div>
         </div>
       </div>
     </nav>
@@ -205,7 +198,6 @@
                         <div class="h-auto w-[1px] bg-layer-01 dark:bg-layer-01"></div>
                         <button type="button" id="gc-dislike" class="relative inline-flex h-7 w-7 items-center justify-center gap-2 text-sm font-medium text-text-secondary dark:text-text-secondary" aria-label="Dislike task"></button>
                       </div>
-                      <button type="button" id="gc-comment" class="relative inline-flex h-7 items-center justify-center gap-2 px-2 text-sm font-medium text-text-secondary dark:text-text-secondary" aria-label="Comments"></button>
                     </div>
                     <div class="h-4 w-[1px] bg-border-tertiary dark:bg-border-tertiary"></div>
                     <div class="flex gap-2">
@@ -215,16 +207,16 @@
                     </div>
                   </div>
                   <div class="flex-1"></div>
-                  <div class="gc-online mr-2 flex items-center gap-1 text-caption font-medium text-text-secondary">
+                  <div class="mr-2 flex items-center gap-1 text-caption font-medium text-text-secondary" title="This workspace runs entirely in your browser">
                     <div class="h-1.5 w-1.5 rounded-full bg-sd-green-500"></div>
-                    <div>791 Online</div>
+                    <div>Local sandbox</div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
 
-          <div class="flexlayout__splitter flexlayout__splitter_vert" role="separator" aria-orientation="vertical" aria-label="Resize description"></div>
+          <div class="flexlayout__splitter flexlayout__splitter_vert" id="gc-split-vert" role="separator" aria-orientation="vertical" aria-label="Resize description" tabindex="0"></div>
 
           <!-- terminal -->
           <div class="flexlayout__tabset" data-tabgroup id="gc-code-tabset">
@@ -251,13 +243,10 @@
               <div class="relative flex h-full min-h-0 flex-col overflow-hidden rounded bg-layer-01 dark:bg-layer-01" id="gc-editor">
                 <div class="flex h-8 items-center justify-between border-b border-border-quaternary py-1 pl-[10px] pr-[10px] dark:border-border-quaternary">
                   <div class="flex h-full flex-nowrap items-center">
-                    <button type="button" id="gc-shell-select" class="inline-flex h-full items-center whitespace-nowrap rounded px-1.5 py-0.5 text-sm font-normal text-text-secondary hover:bg-fill-secondary dark:text-text-secondary">
-                      <span>bash</span>
-                      <span id="gc-shell-chev" class="relative ml-1 text-[12px] leading-[normal] p-0.5 text-gray-60 dark:text-gray-60"></span>
-                    </button>
-                    <span class="ml-2 flex items-center gap-1 text-xs text-text-secondary dark:text-text-secondary">
-                      <span class="h-1 w-1 rounded-full bg-gray-60"></span>
-                      Auto
+                    <span class="inline-flex h-full items-center whitespace-nowrap rounded px-1.5 py-0.5 text-sm font-normal text-text-secondary dark:text-text-secondary" title="The lab shell is fixed to bash">bash</span>
+                    <span class="ml-2 flex items-center gap-1 text-xs text-text-secondary dark:text-text-secondary" title="Commands run as soon as you press Enter">
+                      <span class="h-1 w-1 rounded-full bg-sd-green-500"></span>
+                      Ready
                     </span>
                   </div>
                   <div class="flex items-center gap-2">
@@ -283,7 +272,7 @@
             </div>
           </div>
 
-          <div class="flexlayout__splitter flexlayout__splitter_horz" role="separator" aria-orientation="horizontal" aria-label="Resize terminal"></div>
+          <div class="flexlayout__splitter flexlayout__splitter_horz" id="gc-split-horz" role="separator" aria-orientation="horizontal" aria-label="Resize terminal" tabindex="0"></div>
 
           <!-- workspace -->
           <div class="flexlayout__tabset" data-tabgroup id="gc-testcase-tabset">
@@ -317,7 +306,7 @@
               </div>
               <div class="flexlayout__tab_toolbar">
                 <div class="panel-right-btn flex space-x-1">
-                  <button type="button" class="flex h-6 w-6 items-center justify-center rounded p-[5px] text-text-secondary hover:bg-fill-secondary dark:text-text-secondary dark:hover:bg-fill-secondary" aria-label="Expand" data-icon="expand"></button>
+                  <button type="button" id="gc-workbench-expand" class="flex h-6 w-6 items-center justify-center rounded p-[5px] text-text-secondary hover:bg-fill-secondary dark:text-text-secondary dark:hover:bg-fill-secondary" aria-label="Expand workbench" title="Expand workbench" data-icon="expand"></button>
                 </div>
               </div>
             </div>
