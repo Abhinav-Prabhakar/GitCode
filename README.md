@@ -47,7 +47,7 @@
 
 <p align="center"><sub>Keyword tags, inverted category pills, scroll arrow</sub></p>
 
-<img src="docs/screenshots/detail-rows.png" alt="Problem rows with status, acceptance, difficulty and bookmark" width="100%">
+<img src="docs/screenshots/detail-list.png" alt="Problem rows with status, acceptance, difficulty and bookmark" width="100%">
 
 <p align="center"><sub>44 px rows · zebra striping · acceptance · difficulty · premium meter · hover bookmark</sub></p>
 
@@ -55,7 +55,7 @@
 
 <p align="center"><sub>36 px tab strip · 28 px tabs · icon colours per panel</sub></p>
 
-<img src="docs/screenshots/detail-description.png" alt="Problem description with difficulty chips and examples" width="100%">
+<img src="docs/screenshots/detail-problem.png" alt="Problem description with difficulty chips and examples" width="100%">
 
 <p align="center"><sub>24/32 title · difficulty + topic chips · 14/21 prose · inline code</sub></p>
 
