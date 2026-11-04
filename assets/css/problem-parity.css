@@ -32,12 +32,15 @@
   background: var(--fill-tertiary);
 }
 
-/* Pane geometry. At 1440 x 900 the reference measures a 1420 x 842 layout:
-   description 486 x 642, code 486 x 598, testcase 486 x 236 at y = 606, with
-   an 8px splitter between the columns and rows. Declare it as variables so the
-   same proportions hold at any viewport instead of freezing pixel heights.
-   --gc-main-h accounts for the 48px nav and the 10px bottom padding; below
-   560px tall the layout stops shrinking and main scrolls instead. */
+/* Pane geometry. At 1440 x 900 the reference layout is 1420 x 842 with two
+   486px columns: code 486 x 598 above a 236px testcase pane, and a description
+   pane that spans the whole column. (The saved reference collapses its
+   testcase content to a 36px bar, so its description measures 642; ours keeps
+   a 236px workspace, so the description fills all 842px and both columns line
+   up at the bottom.) Declare it as variables so the same proportions hold at
+   any viewport instead of freezing pixel heights. --gc-main-h accounts for the
+   48px nav and the 10px bottom padding; below 560px tall the layout stops
+   shrinking and main scrolls instead. */
 #gc-ide .flexlayout__layout {
   --gc-pane-w: 486px;
   --gc-main-h: max(calc(100vh - 58px), 560px);
@@ -56,7 +59,7 @@
   left: 0;
   top: 0;
   width: var(--gc-pane-w);
-  height: calc(var(--gc-main-h) - 200px);
+  height: var(--gc-main-h);
 }
 #gc-ide #gc-code-tabset {
   left: calc(var(--gc-pane-w) + 8px);
@@ -79,7 +82,7 @@
   left: var(--gc-pane-w);
   top: 0;
   width: 8px;
-  height: calc(var(--gc-main-h) - 200px);
+  height: var(--gc-main-h);
 }
 #gc-ide .flexlayout__splitter_horz {
   left: calc(var(--gc-pane-w) + 8px);
@@ -94,6 +97,24 @@
   #gc-ide .flexlayout__layout {
     --gc-pane-w: calc((100vw - 28px) / 2);
   }
+}
+
+/* The description scrolls above a pinned 36px footer. Fade the last few
+   pixels so a clipped line reads as "more below" instead of butting into the
+   footer row; the 20px bottom padding keeps real text clear when scrolled to
+   the end. */
+#gc-ide #gc-desc-tabset .flexlayout__tab > div {
+  position: relative;
+}
+#gc-ide #gc-desc-tabset .flexlayout__tab > div::after {
+  position: absolute;
+  right: 0;
+  bottom: 36px;
+  left: 0;
+  height: 22px;
+  content: "";
+  background: linear-gradient(to top, var(--layer-01) 6px, transparent);
+  pointer-events: none;
 }
 
 /* LeetCode reveals pane tools on hover; keep the bar visually empty at rest. */
