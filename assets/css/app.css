@@ -4900,3 +4900,155 @@ html.light .gc-terminal {
     animation: none;
   }
 }
+
+/* --------------------------------------------------------------------------
+   16. Interactive lab: terminal input, editor, rebase plan, submissions
+   -------------------------------------------------------------------------- */
+
+.gc-term-inputrow {
+  display: flex;
+  align-items: center;
+}
+.gc-term-input,
+#gc-terminal .gc-term-input {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  outline: 0;
+  background: transparent;
+  color: hsl(var(--sd-foreground));
+  font: inherit;
+  line-height: inherit;
+  caret-color: var(--gc-brand);
+  appearance: none;
+  -webkit-appearance: none;
+  box-shadow: none;
+}
+.gc-term-input:focus,
+.gc-term-input:focus-visible,
+#gc-terminal .gc-term-input:focus,
+#gc-terminal .gc-term-input:focus-visible {
+  outline: 0;
+  border: 0;
+  box-shadow: none;
+}
+.gc-term-input::selection {
+  background: rgb(255 161 22 / 0.28);
+}
+
+.gc-modal__panel--wide {
+  max-width: 780px;
+}
+.gc-editor {
+  display: block;
+  width: 100%;
+  height: min(52vh, 420px);
+  padding: 12px 14px;
+  border-radius: 8px;
+  border: 1px solid hsl(var(--sd-border));
+  background: hsl(var(--sd-background));
+  color: hsl(var(--sd-foreground));
+  font-family: var(--gc-font-mono);
+  font-size: 12.5px;
+  line-height: 20px;
+  resize: vertical;
+  tab-size: 2;
+}
+.gc-editor:focus {
+  outline: 1px solid hsl(var(--sd-info) / 0.55);
+  outline-offset: 1px;
+}
+
+.gc-plan {
+  border-top: 1px solid hsl(var(--sd-border));
+}
+.gc-plan__row {
+  display: grid;
+  grid-template-columns: 96px 66px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  padding: 9px 0;
+  border-bottom: 1px solid hsl(var(--sd-border));
+  font-size: 13px;
+}
+.gc-plan__select,
+.gc-plan__msg {
+  height: 30px;
+  border-radius: 6px;
+  border: 1px solid hsl(var(--sd-border));
+  background: hsl(var(--sd-background));
+  color: hsl(var(--sd-foreground));
+  font-family: inherit;
+  font-size: 12.5px;
+  padding: 0 8px;
+}
+.gc-plan__sha {
+  font-family: var(--gc-font-mono);
+  font-size: 12px;
+  color: hsl(var(--sd-info));
+}
+.gc-plan__subject {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: hsl(var(--sd-foreground));
+}
+.gc-plan__msg {
+  grid-column: 1 / -1;
+  width: 100%;
+}
+.gc-plan__msg[hidden] {
+  display: none;
+}
+
+.gc-submission--row {
+  width: 100%;
+  padding: 0;
+  border: 0;
+  border-top: 1px solid hsl(var(--sd-border));
+  background: transparent;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.gc-submission--row:hover,
+.gc-submission--row:focus-visible {
+  background: hsl(var(--sd-accent));
+}
+
+.gc-tree__status--conflict {
+  color: var(--gc-diff-hard);
+  font-weight: 600;
+}
+.gc-tree__status--staged,
+.gc-tree__status--added {
+  color: var(--gc-diff-easy);
+}
+.gc-tree__status--modified {
+  color: var(--gc-diff-medium);
+}
+.gc-tree__status--deleted {
+  color: var(--gc-diff-hard);
+}
+.gc-tree__status--untracked {
+  color: hsl(var(--sd-muted-foreground));
+}
+
+@media (max-width: 540px) {
+  .gc-plan__row {
+    grid-template-columns: 88px minmax(0, 1fr);
+  }
+  .gc-plan__sha {
+    display: none;
+  }
+  .gc-plan__subject {
+    grid-column: 2;
+  }
+  .gc-plan__msg {
+    grid-column: 1 / -1;
+  }
+}
