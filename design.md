@@ -446,9 +446,11 @@ the active panel is rendered; inactive panels carry `hidden`.
 
 ### 8.7 Progress ring *(copied)*
 
-22 px SVG, `r=42` in a 100-unit viewBox, stroke-width 11, track
-`stroke-sd-primary/20`, arc `stroke-sd-success`. Label sits to the right:
-`0/4101 Solved` in `--sd-muted-foreground` at 12 px. Numbers use tabular figures.
+18 px SVG, `r=42` in a 100-unit viewBox, stroke-width 11, track
+`hsl(var(--sd-muted-foreground) / .25)`, arc `--sd-success` with a round cap. Label sits to
+the right: `15 / 44 solved` in `--sd-muted-foreground` at 12 px. Numbers use tabular
+figures. The ring is rendered by `UI.progressRing(done, total, size)`; pass a size only
+when the composition needs a larger ring.
 
 ### 8.8 Terminal (new — `.gc-terminal`)
 
@@ -495,8 +497,11 @@ Sections separated by a 1 px `--sd-border` rule with an 8 px label in
 
 Empty: centred, 48 px icon in `hsl(var(--sd-muted-foreground) / .4)`, title 16/24 600,
 one line of 14/20 secondary, one ghost button. Never an illustration.
-Skeletons: `hsl(var(--sd-muted))` blocks with a 1.6 s shimmer; radius matches the element
-they replace.
+
+There are no skeletons in this build: all data is local and renders synchronously, so a
+loading state would be fiction. If async data is introduced, add `hsl(var(--sd-muted))`
+blocks with a 1.6 s shimmer and match the radius of the element they replace — do not ship
+a spinner for a sub-200 ms load.
 
 ### 8.14 Edge fades (new — `.gc-fade-x`)
 
