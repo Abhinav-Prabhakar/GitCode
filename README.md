@@ -43,10 +43,6 @@
 
 ## Anatomy
 
-<img src="docs/screenshots/detail-nav.png" alt="Top navigation" width="100%">
-
-<p align="center"><sub>50 px nav · 16 px links · 2 px active rule · collapsed search</sub></p>
-
 <img src="docs/screenshots/detail-filters.png" alt="Keyword tags and category pills" width="100%">
 
 <p align="center"><sub>Keyword tags, inverted category pills, scroll arrow</sub></p>
@@ -55,27 +51,27 @@
 
 <p align="center"><sub>44 px rows · zebra striping · acceptance · difficulty · premium meter · hover bookmark</sub></p>
 
+<img src="docs/screenshots/detail-tabs.png" alt="Pane tab strip" width="100%">
+
+<p align="center"><sub>36 px tab strip · 28 px tabs · icon colours per panel</sub></p>
+
+<img src="docs/screenshots/detail-description.png" alt="Problem description with difficulty chips and examples" width="100%">
+
+<p align="center"><sub>24/32 title · difficulty + topic chips · 14/21 prose · inline code</sub></p>
+
 <table>
   <tr>
-    <td width="30%" valign="top"><img src="docs/screenshots/detail-rail.png" alt="Daily challenge calendar and trending commands" width="100%"></td>
-    <td width="70%" valign="top">
-      <img src="docs/screenshots/detail-tabs.png" alt="Pane tab strip" width="100%">
-      <img src="docs/screenshots/detail-description.png" alt="Problem description with difficulty chips and examples" width="100%">
+    <td width="32%" valign="top"><img src="docs/screenshots/detail-rail.png" alt="Daily challenge calendar and trending commands" width="100%"></td>
+    <td width="68%" valign="top">
+      <img src="docs/screenshots/detail-terminal.png" alt="Terminal with reflog output" width="100%">
+      <img src="docs/screenshots/detail-workspace.png" alt="Workspace panel with repo metadata and file tree" width="100%">
     </td>
   </tr>
   <tr>
     <td align="center"><sub>270 px rail · calendar · daily · trending</sub></td>
-    <td align="center"><sub>36 px tab strip · 28 px tabs · 24/32 title</sub></td>
+    <td align="center"><sub>Terminal + workspace · repo state and file tree</sub></td>
   </tr>
 </table>
-
-<img src="docs/screenshots/detail-terminal.png" alt="Terminal with reflog output" width="100%">
-
-<p align="center"><sub>Interactive-looking terminal · prompt, hashes, and shell colours</sub></p>
-
-<img src="docs/screenshots/detail-workspace.png" alt="Workspace panel with repo metadata and file tree" width="100%">
-
-<p align="center"><sub>Workspace panel · HEAD, upstream, conflicts, stashes, files</sub></p>
 
 ---
 
