@@ -11,14 +11,14 @@
 </p>
 
 <p align="center">
-  <a href="https://abhinav-prabhakar.github.io/gitcode/"><img src="https://img.shields.io/badge/%E2%96%B6%20live%20demo-gitcode-ffa116?style=for-the-badge" alt="Live demo"></a>
+  <a href="https://abhinav-prabhakar.github.io/GitCode/"><img src="https://img.shields.io/badge/%E2%96%B6%20live%20demo-GitCode-ffa116?style=for-the-badge" alt="Live demo"></a>
   <img src="https://img.shields.io/badge/HTML%20%7C%20CSS%20%7C%20JS-no%20build-2db55d?style=for-the-badge" alt="HTML, CSS and vanilla JS — no build step">
   <img src="https://img.shields.io/badge/labs-44%2F44%20validated-0a84ff?style=for-the-badge" alt="All 44 labs validated">
-  <a href="https://github.com/Abhinav-Prabhakar/gitcode/actions/workflows/pages.yml"><img src="https://github.com/Abhinav-Prabhakar/gitcode/actions/workflows/pages.yml/badge.svg" alt="Deploy status"></a>
+  <a href="https://github.com/Abhinav-Prabhakar/GitCode/actions/workflows/pages.yml"><img src="https://github.com/Abhinav-Prabhakar/GitCode/actions/workflows/pages.yml/badge.svg" alt="Deploy status"></a>
 </p>
 
 <p align="center">
-  <a href="https://abhinav-prabhakar.github.io/gitcode/">abhinav-prabhakar.github.io/gitcode</a>
+  <a href="https://abhinav-prabhakar.github.io/GitCode/">abhinav-prabhakar.github.io/GitCode</a>
 </p>
 
 ---
@@ -27,7 +27,7 @@
 
 <table>
   <tr>
-    <td width="50%"><a href="https://abhinav-prabhakar.github.io/gitcode/"><img src="docs/screenshots/dashboard-light.png" alt="Dashboard — light theme" width="100%"></a></td>
+    <td width="50%"><a href="https://abhinav-prabhakar.github.io/GitCode/"><img src="docs/screenshots/dashboard-light.png" alt="Dashboard — light theme" width="100%"></a></td>
     <td width="50%"><img src="docs/screenshots/question-dark.png" alt="Question page — dark theme" width="100%"></td>
   </tr>
   <tr>
@@ -137,7 +137,7 @@ the live index and refs. Nothing is prerecorded.
 python3 -m http.server 8000
 ```
 
-Open <http://127.0.0.1:8000> — or use the **[live demo](https://abhinav-prabhakar.github.io/gitcode/)**.
+Open <http://127.0.0.1:8000> — or use the **[live demo](https://abhinav-prabhakar.github.io/GitCode/)**.
 The pages also work from `file://`; the scripts are classic `<script>` tags, not ES modules.
 
 ---
